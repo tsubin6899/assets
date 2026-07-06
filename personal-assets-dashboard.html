@@ -329,6 +329,7 @@
     ];
     const seed = {
       rates: { usd: 31.8, goldGram: 2980, silverOz: 1850 },
+      fxRates: { TWD: 1, USD: 31.8, JPY: 0.22, EUR: 34.5, CNY: 4.4, HKD: 4.05 },
       tw: [],
       us: [],
       cash: [],
@@ -347,7 +348,12 @@
     function load() {
       try {
         const saved = JSON.parse(localStorage.getItem(storageKey));
-        return saved ? { ...structuredClone(seed), ...saved, rates: { ...seed.rates, ...(saved.rates || {}) } } : structuredClone(seed);
+        return saved ? {
+          ...structuredClone(seed),
+          ...saved,
+          rates: { ...seed.rates, ...(saved.rates || {}) },
+          fxRates: { ...seed.fxRates, ...(saved.fxRates || {}) }
+        } : structuredClone(seed);
       }
       catch { return structuredClone(seed); }
     }
@@ -359,7 +365,9 @@
       return new Intl.NumberFormat("zh-TW", { maximumFractionDigits: currency === "USD" ? 2 : 0 }).format(Number(n) || 0);
     }
     function sum(rows, fn) { return rows.reduce((t, r) => t + fn(r), 0); }
-    function twdCash(row) { return row.currency === "USD" ? row.amount * data.rates.usd : row.amount; }
+    function normalizeCurrency(value) { return String(value || "TWD").trim().toUpperCase(); }
+    function fxRate(currency) { return Number(data.fxRates?.[normalizeCurrency(currency)] ?? 1) || 1; }
+    function twdCash(row) { return (Number(row.amount) || 0) * fxRate(row.currency); }
     function stockValue(rows, fx = 1) { return sum(rows, r => r.shares * r.price * fx); }
     function stockCost(rows, fx = 1) { return sum(rows, r => r.shares * r.cost * fx); }
     function goldCost() { return sum(data.gold, r => r.gold + r.labor); }
@@ -450,6 +458,7 @@
     function renderCash() {
       const bank = sum(data.cash, twdCash);
       const reserved = sum(data.cards, r => r.amount);
+      const currencies = [...new Set(["TWD", ...data.cash.map(row => normalizeCurrency(row.currency)).filter(Boolean)])];
       return `
         ${section("cash", "現金帳戶", "", `<button class="btn blue small" data-add="cash">+ 新增銀行帳戶</button>`)}
         <div class="cards">
@@ -458,9 +467,16 @@
           ${card("現金類合計", money(bank + 85000), "銀行現金 + 預備金", "dark")}
           ${card("信用卡待繳總額", `NT$${money(reserved)}`, "提醒用，不併入總資產")}
         </div>
+        <article class="panel"><div class="panel-pad">
+          <h3>幣別匯率設定</h3>
+          <p class="section-note">每 1 單位外幣折合台幣金額；TWD 固定為 1。若新增其他幣別，會自動出現在這裡。</p>
+          <div class="cards" style="margin-top:14px">
+            ${currencies.map(code => card(code, textInput(fxRate(code), `fxRates.${code}`, "number"), "TWD / 1 " + code)).join("")}
+          </div>
+        </div></article>
         <article class="panel"><div class="table-wrap"><table>
-          <thead><tr><th>銀行名稱</th><th>幣別</th><th>現金餘額</th><th>折台幣</th><th>操作</th></tr></thead>
-          <tbody>${data.cash.map((r, i) => `<tr><td>${textInput(r.bank, `cash.${i}.bank`)}</td><td>${textInput(r.currency, `cash.${i}.currency`)}</td><td>${textInput(r.amount, `cash.${i}.amount`, "number")}</td><td>${money(twdCash(r))}</td><td><button class="icon-btn" data-del="cash.${i}">刪</button></td></tr>`).join("")}</tbody>
+          <thead><tr><th>銀行名稱</th><th>幣別</th><th>匯率</th><th>現金餘額</th><th>折台幣</th><th>操作</th></tr></thead>
+          <tbody>${data.cash.map((r, i) => `<tr><td>${textInput(r.bank, `cash.${i}.bank`)}</td><td>${textInput(normalizeCurrency(r.currency), `cash.${i}.currency`)}</td><td>${money(fxRate(r.currency))}</td><td>${textInput(r.amount, `cash.${i}.amount`, "number")}</td><td>${money(twdCash(r))}</td><td><button class="icon-btn" data-del="cash.${i}">刪</button></td></tr>`).join("")}</tbody>
         </table></div></article>
         <article class="panel"><div class="panel-pad">${section("cards", "信用卡款項紀錄", "只記錄各張卡本期待繳總額。", `<button class="btn green small" data-add="cards">+ 新增信用卡款項</button>`)}
           <div class="table-wrap"><table><thead><tr><th>信用卡 / 銀行</th><th>本期待繳金額</th><th>繳款期限</th><th>備註</th><th>操作</th></tr></thead><tbody>${data.cards.map((r, i) => `<tr><td>${textInput(r.card, `cards.${i}.card`)}</td><td>${textInput(r.amount, `cards.${i}.amount`, "number")}</td><td>${textInput(r.due, `cards.${i}.due`)}</td><td>${textInput(r.note, `cards.${i}.note`)}</td><td><button class="icon-btn" data-del="cards.${i}">刪</button></td></tr>`).join("")}</tbody></table></div>
