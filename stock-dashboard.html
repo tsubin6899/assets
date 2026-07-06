@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>投資理財 Dashboard</title>
+  <style>
+    :root {
+      --bg: #f5f7f8;
+      --ink: #17212b;
+      --muted: #66727f;
+      --line: #dbe3e5;
+      --surface: #ffffff;
+      --surface-2: #f9fbfb;
+      --blue: #225ea8;
+      --teal: #0f766e;
+      --green: #228b5f;
+      --amber: #b7791f;
+      --red: #b42318;
+      --violet: #6d5bd0;
+      --cyan: #117a9b;
+      --shadow: 0 12px 28px rgba(23, 33, 43, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #e8eef0 0, var(--bg) 320px);
+      color: var(--ink);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+    }
+    button, input, select { font: inherit; }
+    .page { max-width: 1480px; margin: 0 auto; padding: 28px 30px 48px; }
+    header { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: end; margin-bottom: 18px; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.15; letter-spacing: 0; }
+    .subtitle { max-width: 900px; margin: 10px 0 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
+    .meta { display: grid; gap: 8px; justify-items: end; color: var(--muted); font-size: 12px; }
+    .pill { display: inline-flex; align-items: center; min-height: 30px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.75); white-space: nowrap; }
+    .kpis { display: grid; grid-template-columns: repeat(5, minmax(150px, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .metric { min-height: 126px; padding: 17px; border: 1px solid rgba(219,227,229,.95); border-radius: 8px; background: rgba(255,255,255,.9); box-shadow: var(--shadow); }
+    .metric span, .metric small { color: var(--muted); }
+    .metric span { display: block; font-size: 12px; line-height: 1.4; }
+    .metric strong { display: block; margin-top: 8px; font-size: 25px; line-height: 1.18; letter-spacing: 0; }
+    .metric small { display: block; margin-top: 9px; line-height: 1.45; }
+    .metric.positive strong, .positive-text { color: var(--green); }
+    .metric.negative strong, .negative-text { color: var(--red); }
+    .grid { display: grid; gap: 18px; margin-bottom: 18px; }
+    .grid.two { grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr); }
+    .grid.three { grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr) minmax(340px, .85fr); }
+    .panel { overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 14px; min-height: 62px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+    .panel-head h2 { margin: 0; font-size: 17px; letter-spacing: 0; }
+    .panel-head span { color: var(--muted); font-size: 12px; line-height: 1.45; text-align: right; }
+    .panel-body { padding: 18px; }
+    .allocation { display: grid; grid-template-columns: 270px minmax(0, 1fr); gap: 22px; align-items: center; }
+    .donut { width: 240px; height: 240px; border-radius: 50%; background: conic-gradient(var(--blue) 0 var(--a), var(--teal) var(--a) var(--b), var(--amber) var(--b) var(--c), var(--violet) var(--c) var(--d), var(--cyan) var(--d) 360deg); position: relative; margin: 0 auto; }
+    .donut::after { content: ""; position: absolute; inset: 54px; border-radius: 50%; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+    .donut-label { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; z-index: 1; }
+    .donut-label strong { font-size: 26px; }
+    .donut-label small { color: var(--muted); }
+    .legend, .bar-list, .rank-list, .insights { display: grid; gap: 12px; }
+    .legend-row { display: grid; grid-template-columns: 14px minmax(90px, 1fr) auto auto; gap: 10px; align-items: center; font-size: 13px; }
+    .dot { width: 10px; height: 10px; border-radius: 99px; background: var(--color); }
+    .bar-row { display: grid; grid-template-columns: minmax(120px, 180px) minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 13px; }
+    .bar-label strong { display: block; line-height: 1.35; }
+    .bar-label small, .bar-value small { color: var(--muted); display: block; line-height: 1.45; }
+    .track { height: 12px; border-radius: 999px; background: #eef2f3; overflow: hidden; }
+    .fill { height: 100%; min-width: 2px; border-radius: inherit; background: var(--color); }
+    .bar-value { text-align: right; white-space: nowrap; }
+    .rank-row { display: grid; grid-template-columns: minmax(130px, 1fr) auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .rank-row:last-child { border-bottom: 0; }
+    .rank-row strong { display: block; line-height: 1.35; }
+    .rank-row small { color: var(--muted); }
+    .insight { display: grid; gap: 6px; padding: 13px; border: 1px solid var(--line); border-radius: 8px; background: #fbfcfc; }
+    .insight strong { font-size: 14px; }
+    .insight p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+    .toolbar { display: grid; grid-template-columns: minmax(220px, 1fr) auto auto; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); background: #fbfcfc; }
+    .search, select { min-height: 38px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink); padding: 8px 11px; }
+    .tabs { display: flex; gap: 8px; flex-wrap: wrap; padding: 14px 18px 0; }
+    .tab { min-height: 34px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; background: var(--surface); color: var(--muted); cursor: pointer; }
+    .tab.active { border-color: #bdd0db; background: #eaf2f5; color: var(--ink); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: middle; }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th { color: var(--muted); font-weight: 600; background: #fbfcfc; position: sticky; top: 0; z-index: 1; }
+    .table-wrap { max-height: 560px; overflow: auto; }
+    .name-cell strong { display: block; line-height: 1.35; }
+    .name-cell small { color: var(--muted); }
+    .status { display: inline-flex; align-items: center; min-height: 24px; padding: 3px 8px; border-radius: 999px; background: #eef2f3; color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .status.held { background: #e6f3ec; color: #17603f; }
+    footer { color: var(--muted); font-size: 12px; line-height: 1.7; padding: 8px 2px 0; }
+    @media (max-width: 1100px) {
+      .page { padding: 22px 18px 38px; }
+      header, .grid.two, .grid.three, .allocation { grid-template-columns: 1fr; }
+      .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .meta { justify-items: start; }
+      .toolbar { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      h1 { font-size: 27px; }
+      .kpis { grid-template-columns: 1fr; }
+      .panel-head { align-items: flex-start; flex-direction: column; }
+      .panel-head span { text-align: left; }
+      .bar-row { grid-template-columns: 1fr; gap: 7px; }
+      .bar-value { text-align: left; }
+      .table-wrap { overflow-x: auto; }
+      table { min-width: 900px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <h1>投資理財 Dashboard</h1>
+        <p class="subtitle">同步 Notion「台股庫存」最新資料，持股與觀察清單分開呈現。00403A 主動統一升級50、00993A 主動安聯台灣已依最新資料列為 0 股；6770 與 2605 未出現在本次有效清單中。</p>
+      </div>
+      <div class="meta" aria-label="資料狀態">
+        <span class="pill">資料來源：Notion 台股庫存</span>
+        <span class="pill">更新時間：2026-07-06 13:39 台北時間</span>
+      </div>
+    </header>
+
+    <section class="kpis" aria-label="投資組合摘要">
+      <div class="metric"><span>持股總市值</span><strong id="totalValue">--</strong><small id="activeCount">--</small></div>
+      <div class="metric" id="gainMetric"><span>未實現損益</span><strong id="totalGain">--</strong><small id="totalReturn">--</small></div>
+      <div class="metric"><span>投入成本</span><strong id="totalCost">--</strong><small>僅計入目前持有股數大於 0 的標的</small></div>
+      <div class="metric"><span>最大持倉</span><strong id="largestHolding">--</strong><small id="largestWeight">--</small></div>
+      <div class="metric"><span>追蹤標的</span><strong id="trackedCount">--</strong><small id="freshness">--</small></div>
+    </section>
+
+    <section class="grid two">
+      <article class="panel">
+        <div class="panel-head"><h2>資產配置</h2><span>依目前仍持有的標的計算</span></div>
+        <div class="panel-body allocation">
+          <div class="donut" id="assetDonut"><div class="donut-label"><strong id="donutReturn">--</strong><small>整體報酬率</small></div></div>
+          <div class="legend" id="assetLegend"></div>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>重點觀察</h2><span>由最新持股資料自動整理</span></div>
+        <div class="panel-body insights" id="insights"></div>
+      </article>
+    </section>
+
+    <section class="grid three">
+      <article class="panel">
+        <div class="panel-head"><h2>持倉市值排行</h2><span>看出資金集中位置</span></div>
+        <div class="panel-body bar-list" id="valueBars"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>損益排行</h2><span>依未實現損益排序</span></div>
+        <div class="panel-body rank-list" id="profitRank"></div>
+      </article>
+      <article class="panel">
+        <div class="panel-head"><h2>產業分布</h2><span>僅統計仍持有標的</span></div>
+        <div class="panel-body bar-list" id="sectorBars"></div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2>庫存明細</h2><span>可篩選持有、觀察與產業類別</span></div>
+      <div class="tabs" id="tabs"></div>
+      <div class="toolbar">
+        <input class="search" id="searchInput" type="search" placeholder="搜尋名稱或股票代號">
+        <select id="sortBy" aria-label="排序">
+          <option value="value">市值高到低</option>
+          <option value="gain">損益高到低</option>
+          <option value="return">報酬率高到低</option>
+          <option value="price">股價高到低</option>
+          <option value="name">名稱排序</option>
+        </select>
+        <span class="pill" id="visibleCount">--</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>標的</th><th>產業</th><th>狀態</th><th>股數</th><th>成本均價</th><th>目前股價</th><th>市值</th><th>損益</th><th>報酬率</th></tr>
+          </thead>
+          <tbody id="holdingsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>本頁由本機產生器依 Notion 最新資料重建，產生時間：2026-07-06T06:35:02+00:00。</footer>
+  </div>
+
+  <script id="dashboard-data" type="application/json">{"updatedAt":"2026-07-06T05:39:04.210Z","updatedLabel":"2026-07-06 13:39 台北時間","source":"Notion 台股庫存","holdings":[{"name":"主動統一台股增長","code":"00981A","sector":"主動型ETF","shares":9000,"cost":28.88,"price":31.2,"edited":"2026-07-06T05:38:12.895Z"},{"name":"元大台灣50","code":"0050","sector":"指數型ETF","shares":3000,"cost":100.99,"price":108.25,"edited":"2026-07-06T05:38:10.345Z"},{"name":"台積電","code":"2330","sector":"半導體","shares":61,"cost":1964.84,"price":2460,"edited":"2026-07-06T05:37:59.721Z"},{"name":"凱基台灣TOP50","code":"009816","sector":"指數型ETF","shares":21000,"cost":14.75,"price":15.65,"edited":"2026-07-06T05:38:23.640Z"},{"name":"主動統一升級50","code":"00403A","sector":"主動型ETF","shares":0,"cost":0,"price":11.14,"edited":"2026-07-06T05:38:00.000Z"},{"name":"主動安聯台灣","code":"00993A","sector":"主動型ETF","shares":0,"cost":0,"price":14.4,"edited":"2026-07-06T05:38:00.000Z"},{"name":"主動復華未來50","code":"00991A","sector":"主動型ETF","shares":13000,"cost":18.42,"price":20.05,"edited":"2026-07-06T05:39:04.210Z"},{"name":"主動野村臺灣高息","code":"00999A","sector":"主動型ETF","shares":0,"cost":0,"price":11.17,"edited":"2026-07-06T05:38:00.000Z"},{"name":"主動統一全球創新","code":"00988A","sector":"國外型ETF","shares":9000,"cost":19.84,"price":20.83,"edited":"2026-07-06T05:38:55.164Z"},{"name":"主動群益台灣強棒","code":"00982A","sector":"主動型ETF","shares":0,"cost":0,"price":25.51,"edited":"2026-07-06T05:38:00.000Z"},{"name":"主動群益科技創新","code":"00992A","sector":"主動型ETF","shares":0,"cost":0,"price":19.1,"edited":"2026-07-06T05:38:00.000Z"},{"name":"富邦台50","code":"006208","sector":"指數型ETF","shares":0,"cost":0,"price":251.35,"edited":"2026-07-06T05:38:00.000Z"},{"name":"富邦旗艦50","code":"009802","sector":"指數型ETF","shares":0,"cost":0,"price":19.56,"edited":"2026-07-06T05:38:00.000Z"},{"name":"元大台灣50正2","code":"00631L","sector":"槓桿型ETF","shares":0,"cost":0,"price":38.8,"edited":"2026-07-06T05:38:00.000Z"},{"name":"元大台灣50反1","code":"00632R","sector":"槓桿型ETF","shares":0,"cost":0,"price":9.88,"edited":"2026-07-06T05:38:00.000Z"},{"name":"聯發科","code":"2454","sector":"半導體","shares":0,"cost":0,"price":4195,"edited":"2026-07-06T05:38:00.000Z"},{"name":"日月光投控","code":"3711","sector":"半導體","shares":0,"cost":0,"price":682,"edited":"2026-07-06T05:38:00.000Z"},{"name":"台達電","code":"2308","sector":"電子零組件","shares":0,"cost":0,"price":2075,"edited":"2026-07-06T05:39:00.000Z"},{"name":"鴻海","code":"2317","sector":"電子代工","shares":0,"cost":0,"price":240.5,"edited":"2026-07-06T05:38:00.000Z"},{"name":"廣達","code":"2382","sector":"電子代工","shares":0,"cost":0,"price":377,"edited":"2026-07-06T05:38:00.000Z"},{"name":"智邦","code":"2345","sector":"網絡通信","shares":0,"cost":0,"price":2735,"edited":"2026-07-06T05:38:00.000Z"},{"name":"友達","code":"2409","sector":"光電","shares":0,"cost":0,"price":30,"edited":"2026-07-06T05:38:00.000Z"},{"name":"華邦電","code":"2344","sector":"記憶體","shares":0,"cost":0,"price":184.5,"edited":"2026-07-06T05:38:00.000Z"},{"name":"南亞科","code":"2408","sector":"記憶體","shares":0,"cost":0,"price":409.5,"edited":"2026-07-06T05:38:00.000Z"},{"name":"長榮","code":"2603","sector":"航運","shares":0,"cost":0,"price":195,"edited":"2026-07-06T05:38:00.000Z"},{"name":"萬海","code":"2615","sector":"航運","shares":0,"cost":0,"price":82.8,"edited":"2026-07-06T05:38:00.000Z"},{"name":"陽明","code":"2609","sector":"航運","shares":0,"cost":0,"price":52.4,"edited":"2026-07-06T05:38:00.000Z"},{"name":"聯邦銀","code":"2838","sector":"金融","shares":0,"cost":0,"price":22.9,"edited":"2026-07-06T05:38:00.000Z"}]}</script>
+  <script>
+    const data = JSON.parse(document.getElementById("dashboard-data").textContent);
+    const holdings = data.holdings;
+    const colors = ["#225ea8", "#0f766e", "#b7791f", "#6d5bd0", "#117a9b", "#228b5f", "#b42318", "#5f6b7a"];
+    const valueOf = item => item.shares * item.price;
+    const costOf = item => item.shares * item.cost;
+    const gainOf = item => valueOf(item) - costOf(item);
+    const returnOf = item => costOf(item) ? gainOf(item) / costOf(item) : 0;
+    const fmtMoney = value => "NT$" + Math.round(value).toLocaleString("zh-TW");
+    const fmtPrice = value => "NT$" + Number(value).toLocaleString("zh-TW", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fmtNum = value => Number(value).toLocaleString("zh-TW");
+    const fmtPct = value => (value * 100).toFixed(2) + "%";
+    const active = holdings.filter(item => item.shares > 0);
+    const inactive = holdings.filter(item => item.shares === 0);
+    const totalValue = active.reduce((sum, item) => sum + valueOf(item), 0);
+    const totalCost = active.reduce((sum, item) => sum + costOf(item), 0);
+    const totalGain = totalValue - totalCost;
+    const totalReturn = totalCost ? totalGain / totalCost : 0;
+    const largest = [...active].sort((a, b) => valueOf(b) - valueOf(a))[0];
+    let currentFilter = "全部";
+
+    function groupedBy(rows, keyFn) {
+      return rows.reduce((acc, item) => {
+        const key = keyFn(item);
+        acc[key] = (acc[key] || 0) + valueOf(item);
+        return acc;
+      }, {});
+    }
+
+    function hydrateKpis() {
+      document.getElementById("totalValue").textContent = fmtMoney(totalValue);
+      document.getElementById("activeCount").textContent = `${active.length} 檔持有，平均市值 ${fmtMoney(totalValue / Math.max(active.length, 1))}`;
+      document.getElementById("totalGain").textContent = fmtMoney(totalGain);
+      document.getElementById("totalReturn").textContent = `整體報酬率 ${fmtPct(totalReturn)}`;
+      document.getElementById("totalCost").textContent = fmtMoney(totalCost);
+      document.getElementById("largestHolding").textContent = largest ? largest.name : "--";
+      document.getElementById("largestWeight").textContent = largest ? `佔組合 ${fmtPct(valueOf(largest) / totalValue)}` : "--";
+      document.getElementById("trackedCount").textContent = `${holdings.length} 檔`;
+      document.getElementById("freshness").textContent = `觀察/已出清 ${inactive.length} 檔，${data.updatedLabel}`;
+      document.getElementById("gainMetric").classList.toggle("positive", totalGain >= 0);
+      document.getElementById("gainMetric").classList.toggle("negative", totalGain < 0);
+    }
+
+    function renderAllocation() {
+      const entries = Object.entries(groupedBy(active, item => item.sector)).map(([name, value], index) => ({
+        name, value, pct: totalValue ? value / totalValue : 0, color: colors[index % colors.length]
+      })).sort((a, b) => b.value - a.value);
+      let angle = 0;
+      const stops = entries.map(row => {
+        angle += row.pct * 360;
+        return angle.toFixed(2) + "deg";
+      });
+      const donut = document.getElementById("assetDonut");
+      ["--a", "--b", "--c", "--d"].forEach((prop, index) => donut.style.setProperty(prop, stops[index] || stops[stops.length - 1] || "0deg"));
+      document.getElementById("donutReturn").textContent = fmtPct(totalReturn);
+      document.getElementById("assetLegend").innerHTML = entries.map(row => `
+        <div class="legend-row">
+          <span class="dot" style="--color:${row.color}"></span><strong>${row.name}</strong>
+          <span>${fmtMoney(row.value)}</span><span>${fmtPct(row.pct)}</span>
+        </div>`).join("");
+    }
+
+    function renderValueBars() {
+      const rows = [...active].sort((a, b) => valueOf(b) - valueOf(a));
+      const max = Math.max(...rows.map(valueOf), 1);
+      document.getElementById("valueBars").innerHTML = rows.map((item, index) => {
+        const pct = totalValue ? valueOf(item) / totalValue : 0;
+        return `<div class="bar-row">
+          <div class="bar-label"><strong>${item.name}</strong><small>${item.code} · ${item.sector}</small></div>
+          <div class="track"><div class="fill" style="--color:${colors[index % colors.length]};width:${(valueOf(item) / max * 100).toFixed(2)}%"></div></div>
+          <div class="bar-value"><strong>${fmtMoney(valueOf(item))}</strong><small>${fmtPct(pct)}</small></div>
+        </div>`;
+      }).join("");
+    }
+
+    function renderSectorBars() {
+      const entries = Object.entries(groupedBy(active, item => item.sector)).sort((a, b) => b[1] - a[1]);
+      const max = Math.max(...entries.map(([, value]) => value), 1);
+      document.getElementById("sectorBars").innerHTML = entries.map(([name, value], index) => `
+        <div class="bar-row">
+          <div class="bar-label"><strong>${name}</strong><small>${fmtPct(value / totalValue)} of portfolio</small></div>
+          <div class="track"><div class="fill" style="--color:${colors[index % colors.length]};width:${(value / max * 100).toFixed(2)}%"></div></div>
+          <div class="bar-value"><strong>${fmtMoney(value)}</strong></div>
+        </div>`).join("");
+    }
+
+    function renderProfitRank() {
+      const rows = [...active].sort((a, b) => gainOf(b) - gainOf(a));
+      document.getElementById("profitRank").innerHTML = rows.map(item => {
+        const positive = gainOf(item) >= 0;
+        return `<div class="rank-row">
+          <div><strong>${item.name}</strong><small>${item.code} · 成本 ${fmtPrice(item.cost)} / 現價 ${fmtPrice(item.price)}</small></div>
+          <div class="${positive ? "positive-text" : "negative-text"}" style="text-align:right"><strong>${fmtMoney(gainOf(item))}</strong><small>${fmtPct(returnOf(item))}</small></div>
+        </div>`;
+      }).join("");
+    }
+
+    function renderInsights() {
+      const best = [...active].sort((a, b) => returnOf(b) - returnOf(a))[0];
+      const weakest = [...active].sort((a, b) => returnOf(a) - returnOf(b))[0];
+      const topSector = Object.entries(groupedBy(active, item => item.sector)).sort((a, b) => b[1] - a[1])[0];
+      const topThreeWeight = [...active].sort((a, b) => valueOf(b) - valueOf(a)).slice(0, 3).reduce((sum, item) => sum + valueOf(item), 0) / totalValue;
+      const rows = [
+        ["最大持倉", `${largest.name} 市值 ${fmtMoney(valueOf(largest))}，佔組合 ${fmtPct(valueOf(largest) / totalValue)}。`],
+        ["最高報酬", `${best.name} 報酬率 ${fmtPct(returnOf(best))}，未實現損益 ${fmtMoney(gainOf(best))}。`],
+        ["集中度", `前三大持倉合計 ${fmtPct(topThreeWeight)}，最大產業為 ${topSector[0]}，市值 ${fmtMoney(topSector[1])}。`],
+        ["已出清確認", `00403A、00993A 目前皆為 0 股；00999A 已納入追蹤但未列入持倉總額。`],
+        ["資料狀態", `共 ${holdings.length} 檔追蹤，其中 ${active.length} 檔仍持有，更新時間 ${data.updatedLabel}。`]
+      ];
+      document.getElementById("insights").innerHTML = rows.map(([title, body]) => `<div class="insight"><strong>${title}</strong><p>${body}</p></div>`).join("");
+    }
+
+    function buildTabs() {
+      const sectors = [...new Set(holdings.map(item => item.sector))];
+      const tabs = ["全部", "持有", "觀察/已出清", ...sectors];
+      document.getElementById("tabs").innerHTML = tabs.map((tab, index) => `<button class="tab ${index === 0 ? "active" : ""}" type="button" data-filter="${tab}">${tab}</button>`).join("");
+    }
+
+    function filterRows() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      return holdings.filter(item => {
+        const matchesFilter =
+          currentFilter === "全部" ||
+          (currentFilter === "持有" && item.shares > 0) ||
+          (currentFilter === "觀察/已出清" && item.shares === 0) ||
+          item.sector === currentFilter;
+        const matchesSearch = !query || item.name.toLowerCase().includes(query) || item.code.toLowerCase().includes(query);
+        return matchesFilter && matchesSearch;
+      });
+    }
+
+    function sortedRows(rows) {
+      const sortBy = document.getElementById("sortBy").value;
+      const sorters = {
+        value: (a, b) => valueOf(b) - valueOf(a) || a.code.localeCompare(b.code),
+        gain: (a, b) => gainOf(b) - gainOf(a) || valueOf(b) - valueOf(a),
+        return: (a, b) => returnOf(b) - returnOf(a) || valueOf(b) - valueOf(a),
+        price: (a, b) => b.price - a.price,
+        name: (a, b) => a.name.localeCompare(b.name, "zh-Hant")
+      };
+      return [...rows].sort(sorters[sortBy]);
+    }
+
+    function renderTable() {
+      const rows = sortedRows(filterRows());
+      document.getElementById("visibleCount").textContent = `顯示 ${rows.length} / ${holdings.length}`;
+      document.getElementById("holdingsTable").innerHTML = rows.map(item => {
+        const held = item.shares > 0;
+        const gain = gainOf(item);
+        return `<tr>
+          <td class="name-cell"><strong>${item.name}</strong><small>${item.code}</small></td>
+          <td>${item.sector}</td>
+          <td><span class="status ${held ? "held" : ""}">${held ? "持有" : "觀察/已出清"}</span></td>
+          <td>${fmtNum(item.shares)}</td>
+          <td>${held ? fmtPrice(item.cost) : "--"}</td>
+          <td>${fmtPrice(item.price)}</td>
+          <td>${held ? fmtMoney(valueOf(item)) : "--"}</td>
+          <td class="${gain >= 0 ? "positive-text" : "negative-text"}">${held ? fmtMoney(gain) : "--"}</td>
+          <td class="${gain >= 0 ? "positive-text" : "negative-text"}">${held ? fmtPct(returnOf(item)) : "--"}</td>
+        </tr>`;
+      }).join("");
+    }
+
+    hydrateKpis();
+    renderAllocation();
+    renderValueBars();
+    renderSectorBars();
+    renderProfitRank();
+    renderInsights();
+    buildTabs();
+    renderTable();
+    document.getElementById("tabs").addEventListener("click", event => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      currentFilter = button.dataset.filter;
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      button.classList.add("active");
+      renderTable();
+    });
+    document.getElementById("searchInput").addEventListener("input", renderTable);
+    document.getElementById("sortBy").addEventListener("change", renderTable);
+  </script>
+</body>
+</html>
