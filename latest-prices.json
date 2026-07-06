@@ -1,0 +1,78 @@
+{
+  "generatedAt": "2026-07-06T13:47:38+00:00",
+  "prices": {
+    "TW:0050": {
+      "symbol": "0050",
+      "yahooSymbol": "0050.TW",
+      "market": "TW",
+      "price": 108.25,
+      "currency": "TWD",
+      "previousClose": 108.35,
+      "change": -0.1,
+      "changePercent": -0.0923,
+      "source": "Yahoo Finance chart API",
+      "fetchedAt": "2026-07-06T13:47:36+00:00"
+    },
+    "TW:009816": {
+      "symbol": "009816",
+      "yahooSymbol": "009816.TW",
+      "market": "TW",
+      "price": 15.65,
+      "currency": "TWD",
+      "previousClose": 15.75,
+      "change": -0.1,
+      "changePercent": -0.6349,
+      "source": "Yahoo Finance chart API",
+      "fetchedAt": "2026-07-06T13:47:36+00:00"
+    },
+    "TW:00981A": {
+      "symbol": "00981A",
+      "yahooSymbol": "00981A.TW",
+      "market": "TW",
+      "price": 31.2,
+      "currency": "TWD",
+      "previousClose": 32.26,
+      "change": -1.06,
+      "changePercent": -3.2858,
+      "source": "Yahoo Finance chart API",
+      "fetchedAt": "2026-07-06T13:47:36+00:00"
+    },
+    "TW:00988A": {
+      "symbol": "00988A",
+      "yahooSymbol": "00988A.TW",
+      "market": "TW",
+      "price": 20.83,
+      "currency": "TWD",
+      "previousClose": 21.33,
+      "change": -0.5,
+      "changePercent": -2.3441,
+      "source": "Yahoo Finance chart API",
+      "fetchedAt": "2026-07-06T13:47:37+00:00"
+    },
+    "TW:00991A": {
+      "symbol": "00991A",
+      "yahooSymbol": "00991A.TW",
+      "market": "TW",
+      "price": 20.05,
+      "currency": "TWD",
+      "previousClose": 20.73,
+      "change": -0.68,
+      "changePercent": -3.2803,
+      "source": "Yahoo Finance chart API",
+      "fetchedAt": "2026-07-06T13:47:37+00:00"
+    },
+    "TW:2330": {
+      "symbol": "2330",
+      "yahooSymbol": "2330.TW",
+      "market": "TW",
+      "price": 2460.0,
+      "currency": "TWD",
+      "previousClose": 2445.0,
+      "change": 15.0,
+      "changePercent": 0.6135,
+      "source": "Yahoo Finance chart API",
+      "fetchedAt": "2026-07-06T13:47:37+00:00"
+    }
+  },
+  "errors": []
+}

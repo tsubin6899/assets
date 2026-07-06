@@ -397,6 +397,41 @@
       localStorage.setItem(storageKey, JSON.stringify(data));
       toast("已存入瀏覽器本機儲存");
     }
+    function hydrateData(payload) {
+      return {
+        ...structuredClone(seed),
+        ...(payload || {}),
+        rates: { ...seed.rates, ...((payload || {}).rates || {}) },
+        fxRates: { ...seed.fxRates, ...((payload || {}).fxRates || {}) }
+      };
+    }
+    function purchaseRecordKey(row) {
+      return [
+        row.date || "",
+        tradeType(row),
+        String(row.market || "TW").toUpperCase(),
+        tradeCurrency(row),
+        String(row.code || "").toUpperCase(),
+        String(row.name || "").trim(),
+        Number(row.shares) || 0,
+        Number(row.price) || 0,
+        Number(row.fee) || 0,
+        Number(row.tax) || 0,
+        String(row.note || "").trim()
+      ].join("|");
+    }
+    function mergePurchaseRecords(records) {
+      const existing = new Set((data.purchaseRecords || []).map(purchaseRecordKey));
+      let added = 0;
+      (records || []).forEach(row => {
+        const key = purchaseRecordKey(row);
+        if (existing.has(key)) return;
+        data.purchaseRecords.push(row);
+        existing.add(key);
+        added += 1;
+      });
+      return added;
+    }
     function money(n, currency = "TWD") {
       return new Intl.NumberFormat("zh-TW", { maximumFractionDigits: currency === "USD" ? 2 : 0 }).format(Number(n) || 0);
     }
@@ -879,6 +914,47 @@
       render();
       toast(updated ? `已更新 ${updated} 檔最新股價` : "沒有找到可套用的股價");
     }
+    async function autoApplyLatestPrices() {
+      if (!location.protocol.startsWith("http")) return;
+      try {
+        const response = await fetch(`latest-prices.json?ts=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (!payload.prices || !Object.keys(payload.prices).length) return;
+        applyLatestPrices(payload);
+      } catch {
+        // file:// cannot reliably read sibling JSON; manual import remains available.
+      }
+    }
+    async function updatePricesFromServer() {
+      if (!location.protocol.startsWith("http")) {
+        document.getElementById("priceJson").click();
+        return;
+      }
+      const button = document.getElementById("importPrices");
+      const original = button.textContent;
+      button.disabled = true;
+      button.textContent = "更新中...";
+      try {
+        const updateResponse = await fetch("/api/update-prices", { method: "POST" });
+        if (!updateResponse.ok) throw new Error(`HTTP ${updateResponse.status}`);
+        const result = await updateResponse.json();
+        const priceResponse = await fetch(`latest-prices.json?ts=${Date.now()}`, { cache: "no-store" });
+        if (!priceResponse.ok) throw new Error("latest-prices.json not found");
+        const payload = await priceResponse.json();
+        if (!payload.prices || !Object.keys(payload.prices).length) {
+          toast(result.stderr ? "股價更新失敗，請確認網路權限" : "沒有可套用的最新股價");
+          return;
+        }
+        applyLatestPrices(payload);
+      } catch {
+        toast("本機更新服務不可用，請改用手動匯入");
+        document.getElementById("priceJson").click();
+      } finally {
+        button.disabled = false;
+        button.textContent = original;
+      }
+    }
     function toast(msg) {
       const box = document.createElement("div");
       box.textContent = msg;
@@ -898,12 +974,14 @@
       const file = e.target.files[0];
       if (!file) return;
       const payload = JSON.parse(await file.text());
-      if (payload.kind === "personal-assets-purchase-records" || Array.isArray(payload.purchaseRecords)) {
-        data.purchaseRecords = [...(data.purchaseRecords || []), ...payload.purchaseRecords];
+      if (payload.kind === "personal-assets-purchase-records") {
+        const added = mergePurchaseRecords(payload.purchaseRecords || []);
+        toast(`已匯入 ${added} 筆股票交易紀錄，重複資料已略過`);
       } else {
-        data = payload;
+        data = hydrateData(payload);
+        toast("已還原完整儀表板資料");
       }
-      persist();
+      localStorage.setItem(storageKey, JSON.stringify(data));
       render();
       e.target.value = "";
     });
@@ -916,7 +994,7 @@
     document.getElementById("exportJson").addEventListener("click", () => download("personal-assets-demo.json", JSON.stringify(data, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
     document.getElementById("exportSymbols").addEventListener("click", exportSymbols);
-    document.getElementById("importPrices").addEventListener("click", () => document.getElementById("priceJson").click());
+    document.getElementById("importPrices").addEventListener("click", updatePricesFromServer);
     document.getElementById("resetData").addEventListener("click", () => {
       if (confirm("要重設為展示資料嗎？")) {
         data = structuredClone(seed);
@@ -925,6 +1003,7 @@
       }
     });
     render();
+    autoApplyLatestPrices();
   </script>
 </body>
 </html>
