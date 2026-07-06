@@ -514,10 +514,15 @@
         ${section("cash", "現金帳戶", "", `<button class="btn blue small" data-add="cash">+ 新增銀行帳戶</button>`)}
         <div class="cards">
           ${card("銀行現金總計", money(bank), "TWD，只計銀行帳戶")}
-          ${card("預備金", textInput(reserve, "rates.reserve", "number"), "算入總資產，但不算入銀行現金統計")}
           ${card("現金類合計", money(bank + reserve), "銀行現金 + 預備金", "dark")}
           ${card("信用卡待繳總額", `NT$${money(reserved)}`, "提醒用，不併入總資產")}
         </div>
+        <article class="panel"><div class="panel-pad">
+          <h3>預備金設定</h3>
+          <div class="setting-grid">
+            ${settingTile("預備金", textInput(reserve, "rates.reserve", "number"), "算入總資產，但不算入銀行現金統計")}
+          </div>
+        </div></article>
         <article class="panel"><div class="panel-pad">
           <h3>幣別匯率設定</h3>
           <p class="section-note">每 1 單位外幣折合台幣金額；TWD 固定為 1。若新增其他幣別，會自動出現在這裡。</p>
