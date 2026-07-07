@@ -237,6 +237,51 @@
       gap: 10px;
       align-items: center;
     }
+    .chart-pair {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+      margin: 16px 0;
+    }
+    .chart-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #fff;
+      padding: 18px;
+    }
+    .chart-card h3 {
+      margin: 0 0 14px;
+      font-size: 18px;
+    }
+    .portfolio-donut {
+      width: 210px;
+      height: 210px;
+      border-radius: 50%;
+      background: var(--chart-bg, #eef2f7);
+      position: relative;
+      margin: 0 auto 16px;
+    }
+    .portfolio-donut:after {
+      content: "";
+      position: absolute;
+      inset: 48px;
+      border-radius: 50%;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .portfolio-donut .donut-text strong {
+      font-size: 20px;
+    }
+    .chart-empty {
+      min-height: 210px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      background: #f8fafc;
+      border: 1px dashed #cfd8e3;
+      border-radius: 14px;
+      margin-bottom: 16px;
+    }
     .dot { width: 11px; height: 11px; border-radius: 50%; background: var(--c); }
     .notice {
       margin-top: 14px;
@@ -304,7 +349,7 @@
     .day-card small { color: var(--muted); line-height: 1.45; }
     @media (max-width: 1100px) {
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .asset-grid, .split { grid-template-columns: 1fr; }
+      .asset-grid, .split, .chart-pair { grid-template-columns: 1fr; }
       .calendar-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .tabs { margin-bottom: 28px; }
     }
@@ -499,8 +544,51 @@
     function section(id, title, note = "", tools = "") {
       return `<div class="section-head"><div><h2>${title}</h2>${note ? `<p class="section-note">${note}</p>` : ""}</div>${tools}</div>`;
     }
+    const chartColors = ["#2368d9", "#16a36a", "#d99a21", "#7c3aed", "#e25555", "#0891b2", "#db2777", "#64748b", "#84cc16", "#f97316"];
     function renderTabs() {
       document.getElementById("tabs").innerHTML = tabs.map(([id, label]) => `<button class="tab ${id === currentTab ? "active" : ""}" data-tab="${id}">${label}</button>`).join("");
+    }
+    function renderPieChart(title, items, totalLabel, currency) {
+      const filtered = items.filter(item => Number(item.value) > 0);
+      const total = sum(filtered, item => item.value);
+      if (!total) {
+        return `<article class="chart-card"><h3>${title}</h3><div class="chart-empty">尚無可呈現資料</div></article>`;
+      }
+      let cursor = 0;
+      const segments = filtered.map((item, index) => {
+        const start = cursor;
+        const end = cursor + item.value / total * 360;
+        cursor = end;
+        return `${chartColors[index % chartColors.length]} ${start.toFixed(3)}deg ${end.toFixed(3)}deg`;
+      }).join(", ");
+      return `<article class="chart-card">
+        <h3>${title}</h3>
+        <div class="portfolio-donut" style="--chart-bg:conic-gradient(${segments});"><div class="donut-text"><strong>${money(total, currency)}</strong><span class="muted">${totalLabel}</span></div></div>
+        <div class="legend">${filtered.map((item, index) => {
+          const pct = item.value / total * 100;
+          return `<div class="legend-row"><span class="dot" style="--c:${chartColors[index % chartColors.length]}"></span><strong>${item.label}</strong><span>${pct.toFixed(1)}%｜${money(item.rawValue ?? item.value, currency)}</span></div>`;
+        }).join("")}</div>
+      </article>`;
+    }
+    function renderStockCharts(rows, currency) {
+      const valueItems = rows.map(row => ({
+        label: `${row.code || "-"} ${row.name || ""}`.trim(),
+        value: Math.max(0, (Number(row.shares) || 0) * (Number(row.price) || 0))
+      }));
+      const gainItems = rows.map(row => {
+        const value = (Number(row.shares) || 0) * (Number(row.price) || 0);
+        const cost = (Number(row.shares) || 0) * (Number(row.cost) || 0);
+        const gain = value - cost;
+        return {
+          label: `${row.code || "-"} ${row.name || ""}`.trim(),
+          value: Math.abs(gain),
+          rawValue: gain
+        };
+      });
+      return `<div class="chart-pair">
+        ${renderPieChart("每支股票持有比例", valueItems, "持股現值", currency)}
+        ${renderPieChart("未實現損益各支股票比例", gainItems, "損益絕對值", currency)}
+      </div>`;
     }
     function renderOverview() {
       const t = allTotals();
@@ -541,6 +629,7 @@
           ${card("當前總現值", money(value, currency), currency)}
           ${card("未實現損益", money(gain, currency), `${cost ? (gain / cost * 100).toFixed(2) : "0.00"}%`, "accent")}
         </div>
+        ${renderStockCharts(rows, currency)}
         <div class="toolbox toolbar"><input class="search" id="${kind}Search" placeholder="搜尋代號或名稱"><select id="${kind}Sort"><option value="code">依代號排序</option><option value="gain">依損益排序</option><option value="value">依市值排序</option></select></div>
         <article class="panel"><div class="table-wrap"><table>
           <thead><tr><th>股票代號</th><th>標的名稱</th><th>持股數</th><th>平均成本</th><th>目前市價</th><th>現值</th><th>未實現損益</th><th>報酬率</th><th>操作</th></tr></thead>

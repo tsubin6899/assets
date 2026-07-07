@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>投資理財整合儀表板｜阿斌Tsubin</title>
+  <title>個人資產儀表板｜阿斌Tsubin</title>
   <style>
     :root {
       --bg: #f4f8fb;
@@ -11,9 +11,7 @@
       --muted: #667485;
       --line: #dfe6ee;
       --surface: #ffffff;
-      --navy: #101c34;
       --blue: #2368d8;
-      --green: #24b370;
       --shadow: 0 14px 34px rgba(21, 32, 49, .08);
     }
     * { box-sizing: border-box; }
@@ -44,45 +42,25 @@
     }
     h1 { margin: 0; font-size: 32px; line-height: 1.18; letter-spacing: 0; }
     p { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 10px;
-    }
-    button, a.button {
+    .button {
       min-height: 38px;
-      border: 0;
       border-radius: 999px;
       padding: 8px 16px;
-      background: #eef3f8;
-      color: var(--ink);
+      background: var(--blue);
+      color: #fff;
       font: inherit;
       font-weight: 800;
       text-decoration: none;
-      cursor: pointer;
       white-space: nowrap;
     }
-    button.active { background: var(--navy); color: #fff; }
-    a.button { background: var(--blue); color: #fff; }
-    .frames {
-      display: grid;
-      gap: 16px;
-      margin-top: 18px;
-    }
-    .frames.side-by-side {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      align-items: start;
-    }
     .frame-panel {
-      display: none;
       overflow: hidden;
+      margin-top: 18px;
       border: 1px solid var(--line);
       border-radius: 18px;
       background: var(--surface);
       box-shadow: 0 10px 26px rgba(21,32,49,.05);
     }
-    .frame-panel.active, .frames.side-by-side .frame-panel { display: block; }
     .frame-head {
       display: flex;
       justify-content: space-between;
@@ -98,13 +76,9 @@
       display: block;
       width: 100%;
       height: calc(100vh - 230px);
-      min-height: 720px;
+      min-height: 780px;
       border: 0;
       background: #fff;
-    }
-    .frames.side-by-side iframe {
-      height: calc(100vh - 238px);
-      min-height: 760px;
     }
     .note {
       margin-top: 14px;
@@ -118,9 +92,7 @@
     }
     @media (max-width: 1050px) {
       .hero { grid-template-columns: 1fr; }
-      .controls { justify-content: flex-start; }
-      .frames.side-by-side { grid-template-columns: 1fr; }
-      iframe, .frames.side-by-side iframe { height: 760px; }
+      iframe { height: 760px; }
     }
   </style>
 </head>
@@ -128,52 +100,21 @@
   <main class="shell">
     <section class="hero">
       <div>
-        <h1>投資理財整合儀表板｜阿斌Tsubin</h1>
-        <p>整合原本 Notion 台股投資儀表板與個人資產儀表板。可切換檢視，也可上下並排比較。</p>
+        <h1>個人資產儀表板｜阿斌Tsubin</h1>
+        <p>集中管理台股、美股、現金、貴金屬、基金、定期定額與股票交易紀錄。</p>
       </div>
-      <div class="controls" aria-label="儀表板切換">
-        <button class="active" data-mode="stock">台股投資</button>
-        <button data-mode="personal">個人資產</button>
-        <button data-mode="both">上下並排</button>
-      </div>
+      <a class="button" href="personal-assets-dashboard.html" target="_blank" rel="noopener">開新視窗</a>
     </section>
 
-    <section class="frames" id="frames">
-      <article class="frame-panel active" id="stockPanel">
-        <div class="frame-head">
-          <strong>台股投資儀表板</strong>
-          <a class="button" href="stock-dashboard.html" target="_blank" rel="noopener">開新視窗</a>
-        </div>
-        <iframe src="stock-dashboard.html" title="台股投資儀表板"></iframe>
-      </article>
-      <article class="frame-panel" id="personalPanel">
-        <div class="frame-head">
-          <strong>個人資產儀表板</strong>
-          <a class="button" href="personal-assets-dashboard.html" target="_blank" rel="noopener">開新視窗</a>
-        </div>
-        <iframe src="personal-assets-dashboard.html" title="個人資產儀表板"></iframe>
-      </article>
-    </section>
+    <article class="frame-panel">
+      <div class="frame-head">
+        <strong>個人資產儀表板</strong>
+        <a class="button" href="personal-assets-dashboard.html" target="_blank" rel="noopener">開新視窗</a>
+      </div>
+      <iframe src="personal-assets-dashboard.html" title="個人資產儀表板"></iframe>
+    </article>
 
-    <div class="note">說明：這個合併版先保留兩個原頁各自的資料與功能，避免互相覆蓋。個人資產資料仍使用瀏覽器本機儲存；若資料沒出現，請從原頁匯出 JSON 後在個人資產頁匯入。</div>
+    <div class="note">說明：此 invest 入口現在只顯示個人資產儀表板；台股資產已整合在個人資產頁中的台股部位、交易紀錄與總覽分析。</div>
   </main>
-
-  <script>
-    const frames = document.getElementById("frames");
-    const buttons = document.querySelectorAll("[data-mode]");
-    const stockPanel = document.getElementById("stockPanel");
-    const personalPanel = document.getElementById("personalPanel");
-
-    function setMode(mode) {
-      buttons.forEach(button => button.classList.toggle("active", button.dataset.mode === mode));
-      frames.classList.toggle("side-by-side", mode === "both");
-      stockPanel.classList.toggle("active", mode === "stock" || mode === "both");
-      personalPanel.classList.toggle("active", mode === "personal" || mode === "both");
-    }
-
-    buttons.forEach(button => {
-      button.addEventListener("click", () => setMode(button.dataset.mode));
-    });
-  </script>
 </body>
 </html>
