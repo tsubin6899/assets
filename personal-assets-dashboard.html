@@ -713,7 +713,7 @@
             const rowValue = r.shares * r.price;
             const rowCost = r.shares * r.cost;
             const rowGain = rowValue - rowCost;
-            return `<tr><td>${textInput(r.code, `${kind}.${i}.code`)}</td><td>${textInput(r.name, `${kind}.${i}.name`)}</td><td>${textInput(r.shares, `${kind}.${i}.shares`, "number")}</td><td>${textInput(r.cost, `${kind}.${i}.cost`, "number")}</td><td>${textInput(r.price, `${kind}.${i}.price`, "number")}</td><td>${money(rowValue, currency)}</td><td class="${rowGain >= 0 ? "gain" : ""}">${money(rowGain, currency)}</td><td>${rowCost ? (rowGain / rowCost * 100).toFixed(2) : "0.00"}%</td><td><button class="icon-btn" data-del="${kind}.${i}">?</button></td></tr>`;
+            return `<tr><td>${textInput(r.code, `${kind}.${i}.code`)}</td><td>${textInput(r.name, `${kind}.${i}.name`)}</td><td>${textInput(r.shares, `${kind}.${i}.shares`, "number")}</td><td>${textInput(r.cost, `${kind}.${i}.cost`, "number")}</td><td>${textInput(r.price, `${kind}.${i}.price`, "number")}</td><td>${money(rowValue, currency)}</td><td class="${rowGain >= 0 ? "gain" : ""}">${money(rowGain, currency)}</td><td>${rowCost ? (rowGain / rowCost * 100).toFixed(2) : "0.00"}%</td><td><button class="icon-btn" data-del="${kind}.${i}">刪</button></td></tr>`;
           }).join("")}</tbody>
         </table></div></article>
       `;
@@ -772,8 +772,8 @@
         <article class="panel"><div class="table-wrap"><table>
           <thead><tr>${isGold ? "<th>購買日期</th><th>品項</th><th>兩</th><th>錢</th><th>分</th><th>厘</th><th>公克</th><th>金價</th><th>工錢</th><th>總成本</th><th>購買地點</th><th>操作</th>" : "<th>購買日期</th><th>品項名稱</th><th>數量</th><th>單件重量(oz)</th><th>總重量(oz)</th><th>總購買金額</th><th>備註</th><th>操作</th>"}</tr></thead>
           <tbody>${rows.map((r, i) => isGold
-            ? `<tr><td>${textInput(r.date, `gold.${i}.date`)}</td><td>${textInput(r.item, `gold.${i}.item`)}</td><td>${textInput(r.tael, `gold.${i}.tael`, "number")}</td><td>${textInput(r.mace, `gold.${i}.mace`, "number")}</td><td>${textInput(r.candareen, `gold.${i}.candareen`, "number")}</td><td>${textInput(r.li, `gold.${i}.li`, "number")}</td><td>${textInput(r.gram, `gold.${i}.gram`, "number")}</td><td>${textInput(r.gold, `gold.${i}.gold`, "number")}</td><td>${textInput(r.labor, `gold.${i}.labor`, "number")}</td><td>${money(r.gold + r.labor)}</td><td>${textInput(r.place, `gold.${i}.place`)}</td><td><button class="icon-btn" data-del="gold.${i}">?</button></td></tr>`
-            : `<tr><td>${textInput(r.date, `silver.${i}.date`)}</td><td>${textInput(r.item, `silver.${i}.item`)}</td><td>${textInput(r.qty, `silver.${i}.qty`, "number")}</td><td>${textInput(r.oz, `silver.${i}.oz`, "number")}</td><td>${(r.qty * r.oz).toFixed(2)}</td><td>${textInput(r.cost, `silver.${i}.cost`, "number")}</td><td>${textInput(r.note, `silver.${i}.note`)}</td><td><button class="icon-btn" data-del="silver.${i}">?</button></td></tr>`
+            ? `<tr><td>${textInput(r.date, `gold.${i}.date`)}</td><td>${textInput(r.item, `gold.${i}.item`)}</td><td>${textInput(r.tael, `gold.${i}.tael`, "number")}</td><td>${textInput(r.mace, `gold.${i}.mace`, "number")}</td><td>${textInput(r.candareen, `gold.${i}.candareen`, "number")}</td><td>${textInput(r.li, `gold.${i}.li`, "number")}</td><td>${textInput(r.gram, `gold.${i}.gram`, "number")}</td><td>${textInput(r.gold, `gold.${i}.gold`, "number")}</td><td>${textInput(r.labor, `gold.${i}.labor`, "number")}</td><td>${money(r.gold + r.labor)}</td><td>${textInput(r.place, `gold.${i}.place`)}</td><td><button class="icon-btn" data-del="gold.${i}">刪</button></td></tr>`
+            : `<tr><td>${textInput(r.date, `silver.${i}.date`)}</td><td>${textInput(r.item, `silver.${i}.item`)}</td><td>${textInput(r.qty, `silver.${i}.qty`, "number")}</td><td>${textInput(r.oz, `silver.${i}.oz`, "number")}</td><td>${(r.qty * r.oz).toFixed(2)}</td><td>${textInput(r.cost, `silver.${i}.cost`, "number")}</td><td>${textInput(r.note, `silver.${i}.note`)}</td><td><button class="icon-btn" data-del="silver.${i}">刪</button></td></tr>`
           ).join("")}</tbody>
         </table></div></article>
       `;
@@ -953,7 +953,7 @@
             const i = data.pnlCalendar.indexOf(r);
             const prev = rows.filter(item => item.date < r.date).at(-1);
             const rowDelta = prev ? r.totalGain - prev.totalGain : 0;
-            return `<tr><td>${textInput(r.date, `pnlCalendar.${i}.date`)}</td><td>${textInput(r.twGain, `pnlCalendar.${i}.twGain`, "number")}</td><td>${textInput(r.usGain, `pnlCalendar.${i}.usGain`, "number")}</td><td>${textInput(r.totalGain, `pnlCalendar.${i}.totalGain`, "number")}</td><td class="${rowDelta >= 0 ? "ok" : "gain"}">${rowDelta >= 0 ? "+" : ""}${money(rowDelta)}</td><td>${textInput(r.note, `pnlCalendar.${i}.note`)}</td><td><button class="icon-btn" data-del="pnlCalendar.${i}">??/button></td></tr>`;
+            return `<tr><td>${textInput(r.date, `pnlCalendar.${i}.date`)}</td><td>${textInput(r.twGain, `pnlCalendar.${i}.twGain`, "number")}</td><td>${textInput(r.usGain, `pnlCalendar.${i}.usGain`, "number")}</td><td>${textInput(r.totalGain, `pnlCalendar.${i}.totalGain`, "number")}</td><td class="${rowDelta >= 0 ? "ok" : "gain"}">${rowDelta >= 0 ? "+" : ""}${money(rowDelta)}</td><td>${textInput(r.note, `pnlCalendar.${i}.note`)}</td><td><button class="icon-btn" data-del="pnlCalendar.${i}">刪</button></td></tr>`;
           }).join("")}</tbody>
         </table></div></article>`;
     }

@@ -40,21 +40,35 @@
     iframe {
       display: block;
       width: 100%;
-      height: calc(100vh - 70px);
-      min-height: 780px;
+      min-height: 100vh;
       border: 0;
       background: #fff;
-    }
-    @media (max-width: 1050px) {
-      iframe { height: 760px; }
     }
   </style>
 </head>
 <body>
   <main class="shell">
     <article class="frame-panel">
-      <iframe src="personal-assets-dashboard.html" title="個人資產儀表板"></iframe>
+      <iframe id="assetFrame" src="personal-assets-dashboard.html" title="個人資產儀表板" scrolling="no"></iframe>
     </article>
   </main>
+  <script>
+    const frame = document.getElementById("assetFrame");
+    function resizeFrame() {
+      try {
+        const doc = frame.contentDocument || frame.contentWindow.document;
+        const height = Math.max(doc.documentElement.scrollHeight, doc.body.scrollHeight);
+        frame.style.height = `${height}px`;
+      } catch {
+        frame.style.height = "1800px";
+      }
+    }
+    frame.addEventListener("load", () => {
+      resizeFrame();
+      frame.contentWindow?.addEventListener("resize", resizeFrame);
+      setInterval(resizeFrame, 600);
+    });
+    window.addEventListener("resize", resizeFrame);
+  </script>
 </body>
 </html>
