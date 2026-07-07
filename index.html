@@ -30,18 +30,6 @@
       background: rgba(255,255,255,.86);
       box-shadow: var(--shadow);
     }
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 16px;
-      align-items: end;
-      padding: 26px;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: linear-gradient(90deg, #dfeeff 0%, #f8fbff 50%, #fff 100%);
-    }
-    h1 { margin: 0; font-size: 32px; line-height: 1.18; letter-spacing: 0; }
-    p { margin: 9px 0 0; color: var(--muted); font-size: 14px; }
     .button {
       min-height: 38px;
       border-radius: 999px;
@@ -55,7 +43,6 @@
     }
     .frame-panel {
       overflow: hidden;
-      margin-top: 18px;
       border: 1px solid var(--line);
       border-radius: 18px;
       background: var(--surface);
@@ -75,37 +62,18 @@
     iframe {
       display: block;
       width: 100%;
-      height: calc(100vh - 230px);
+      height: calc(100vh - 126px);
       min-height: 780px;
       border: 0;
       background: #fff;
     }
-    .note {
-      margin-top: 14px;
-      padding: 12px 14px;
-      border: 1px dashed #cfd8e3;
-      border-radius: 12px;
-      background: #fbfcfe;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
     @media (max-width: 1050px) {
-      .hero { grid-template-columns: 1fr; }
       iframe { height: 760px; }
     }
   </style>
 </head>
 <body>
   <main class="shell">
-    <section class="hero">
-      <div>
-        <h1>個人資產儀表板｜阿斌Tsubin</h1>
-        <p>集中管理台股、美股、現金、貴金屬、基金、定期定額與股票交易紀錄。</p>
-      </div>
-      <a class="button" href="personal-assets-dashboard.html" target="_blank" rel="noopener">開新視窗</a>
-    </section>
-
     <article class="frame-panel">
       <div class="frame-head">
         <strong>個人資產儀表板</strong>
@@ -113,8 +81,6 @@
       </div>
       <iframe src="personal-assets-dashboard.html" title="個人資產儀表板"></iframe>
     </article>
-
-    <div class="note">說明：此 invest 入口現在只顯示個人資產儀表板；台股資產已整合在個人資產頁中的台股部位、交易紀錄與總覽分析。</div>
   </main>
 </body>
 </html>
