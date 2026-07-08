@@ -2,8 +2,16 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>個人資產儀表板｜阿斌Tsubin</title>
+  <meta name="theme-color" content="#101c34">
+  <meta name="application-name" content="阿斌資產儀表板">
+  <meta name="apple-mobile-web-app-title" content="阿斌資產儀表板">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <style>
     :root {
       --bg: #f4f8fb;
@@ -27,6 +35,8 @@
       background: var(--bg);
       color: var(--ink);
       font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior-y: none;
     }
     button, input, select { font: inherit; }
     button { cursor: pointer; }
@@ -403,6 +413,7 @@
     }
     @media (max-width: 720px) {
       .shell { width: 100%; margin: 0; border-radius: 0; padding: 16px; }
+      .shell { padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
       h1 { font-size: 27px; }
       .section-head { align-items: flex-start; flex-direction: column; }
       .cards { grid-template-columns: 1fr; }
@@ -1897,6 +1908,11 @@
     });
     render();
     autoApplyLatestPrices();
+    if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("service-worker.js").catch(() => {});
+      });
+    }
   </script>
 </body>
 </html>
