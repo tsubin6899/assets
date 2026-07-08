@@ -1,77 +1,77 @@
 {
-  "generatedAt": "2026-07-07T12:18:37+00:00",
+  "generatedAt": "2026-07-08T05:54:12+00:00",
   "prices": {
     "TW:0050": {
       "symbol": "0050",
       "twseChannel": "tse_0050.tw",
       "market": "TW",
-      "price": 106.2,
+      "price": 106.05,
       "currency": "TWD",
-      "previousClose": 108.25,
-      "change": -2.05,
-      "changePercent": -1.8938,
+      "previousClose": 106.2,
+      "change": -0.15,
+      "changePercent": -0.1412,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-07T12:18:35+00:00"
+      "fetchedAt": "2026-07-08T05:54:10+00:00"
     },
     "TW:009816": {
       "symbol": "009816",
       "twseChannel": "tse_009816.tw",
       "market": "TW",
-      "price": 15.29,
+      "price": 15.26,
       "currency": "TWD",
-      "previousClose": 15.65,
-      "change": -0.36,
-      "changePercent": -2.3003,
+      "previousClose": 15.29,
+      "change": -0.03,
+      "changePercent": -0.1962,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-07T12:18:35+00:00"
+      "fetchedAt": "2026-07-08T05:54:11+00:00"
     },
     "TW:00981A": {
       "symbol": "00981A",
       "twseChannel": "tse_00981A.tw",
       "market": "TW",
-      "price": 29.84,
+      "price": 29.75,
       "currency": "TWD",
-      "previousClose": 31.2,
-      "change": -1.36,
-      "changePercent": -4.359,
+      "previousClose": 29.84,
+      "change": -0.09,
+      "changePercent": -0.3016,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-07T12:18:36+00:00"
+      "fetchedAt": "2026-07-08T05:54:11+00:00"
     },
     "TW:00988A": {
       "symbol": "00988A",
       "twseChannel": "tse_00988A.tw",
       "market": "TW",
-      "price": 19.62,
+      "price": 19.15,
       "currency": "TWD",
-      "previousClose": 20.83,
-      "change": -1.21,
-      "changePercent": -5.8089,
+      "previousClose": 19.62,
+      "change": -0.47,
+      "changePercent": -2.3955,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-07T12:18:36+00:00"
+      "fetchedAt": "2026-07-08T05:54:11+00:00"
     },
     "TW:00991A": {
       "symbol": "00991A",
       "twseChannel": "tse_00991A.tw",
       "market": "TW",
-      "price": 19.12,
+      "price": 19.1,
       "currency": "TWD",
-      "previousClose": 20.05,
-      "change": -0.93,
-      "changePercent": -4.6384,
+      "previousClose": 19.12,
+      "change": -0.02,
+      "changePercent": -0.1046,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-07T12:18:36+00:00"
+      "fetchedAt": "2026-07-08T05:54:12+00:00"
     },
     "TW:2330": {
       "symbol": "2330",
       "twseChannel": "tse_2330.tw",
       "market": "TW",
-      "price": 2440.0,
+      "price": 2465.0,
       "currency": "TWD",
-      "previousClose": 2460.0,
-      "change": -20.0,
-      "changePercent": -0.813,
+      "previousClose": 2440.0,
+      "change": 25.0,
+      "changePercent": 1.0246,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-07T12:18:36+00:00"
+      "fetchedAt": "2026-07-08T05:54:12+00:00"
     }
   },
   "errors": []
