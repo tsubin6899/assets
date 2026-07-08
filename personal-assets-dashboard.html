@@ -122,6 +122,9 @@
       align-items: end;
       margin-bottom: 20px;
     }
+    .view > .section-head:not(:first-child) {
+      margin-top: 34px;
+    }
     .section-head h2 { font-size: 28px; letter-spacing: 0; }
     .section-note { margin-top: 8px; color: var(--muted); font-size: 14px; }
     .cards {
@@ -470,6 +473,9 @@
         flex-direction: column;
         gap: 9px;
         margin-bottom: 12px;
+      }
+      .view > .section-head:not(:first-child) {
+        margin-top: 26px;
       }
       .section-head h2 { font-size: 22px; }
       .section-note { margin-top: 5px; font-size: 12px; line-height: 1.5; }
@@ -1007,7 +1013,7 @@
     const storageKey = "personal-assets-dashboard-tsubin-v2";
     const tabs = [
       ["overview", "總覽儀表板"], ["tw", "台股部位"], ["us", "美股部位"], ["cash", "現金帳戶"],
-      ["metal", "貴金屬"], ["fund", "台幣基金"], ["dca", "定期投入"],
+      ["metal", "貴金屬"], ["fund", "基金"], ["dca", "定期投入"],
       ["purchase", "購買股票紀錄"], ["dividend", "股息 / 配息紀錄"],
       ["expense", "支出規畫"], ["allocation", "額外資金分配"],
       ["chart", "資訊圖表庫"]
@@ -1023,6 +1029,7 @@
       gold: [],
       silver: [],
       funds: [],
+      usdFunds: [],
       dca: [],
       dcaTargets: [],
       purchaseRecords: [],
@@ -1125,11 +1132,14 @@
       const cards = sum(data.cards, r => r.amount);
       const gold = goldGram() * data.rates.goldGram;
       const silver = silverOz() * data.rates.silverOz;
-      const fund = sum(data.funds, r => r.units * r.nav);
+      const fundTwd = sum(data.funds, r => r.units * r.nav);
+      const usdFund = sum(data.usdFunds || [], r => r.units * r.nav) * data.rates.usd;
+      const fund = fundTwd + usdFund;
       const total = tw + us + cash + gold + silver + fund - cards;
-      const cost = stockCost(data.tw) + stockCost(data.us, data.rates.usd) + goldCost() + silverCost() + sum(data.funds, r => r.cost);
+      const fundCost = sum(data.funds, r => r.cost) + sum(data.usdFunds || [], r => r.cost) * data.rates.usd;
+      const cost = stockCost(data.tw) + stockCost(data.us, data.rates.usd) + goldCost() + silverCost() + fundCost;
       const gain = (tw + us + gold + silver + fund) - cost;
-      return { tw, us, cash, cards, gold, silver, fund, total, cost, gain };
+      return { tw, us, cash, cards, gold, silver, fund, fundTwd, usdFund, total, cost, gain };
     }
     function card(label, value, unit, cls = "") {
       return `<article class="card ${cls}"><span class="label">${label}</span><strong class="number">${value}</strong><span class="unit">${unit}</span></article>`;
@@ -1524,7 +1534,10 @@
       const fundValue = (data.funds || [])
         .filter(row => String(row.name || "").toUpperCase().includes(text) || text.includes(String(row.name || "").toUpperCase()))
         .reduce((total, row) => total + (Number(row.units) || 0) * (Number(row.nav) || 0), 0);
-      return twValue + usValue + fundValue;
+      const usdFundValue = (data.usdFunds || [])
+        .filter(row => String(row.name || "").toUpperCase().includes(text) || text.includes(String(row.name || "").toUpperCase()))
+        .reduce((total, row) => total + (Number(row.units) || 0) * (Number(row.nav) || 0) * data.rates.usd, 0);
+      return twValue + usValue + fundValue + usdFundValue;
     }
     function dividendYieldRows() {
       const grouped = new Map();
@@ -1683,7 +1696,7 @@
       const usGain = stockValue(data.us, data.rates.usd) - stockCost(data.us, data.rates.usd);
       const goldGain = goldGram() * data.rates.goldGram - goldCost();
       const silverGain = silverOz() * data.rates.silverOz - silverCost();
-      const fundGain = sum(data.funds, r => r.units * r.nav) - sum(data.funds, r => r.cost);
+      const fundGain = (sum(data.funds, r => r.units * r.nav) - sum(data.funds, r => r.cost)) + (sum(data.usdFunds || [], r => r.units * r.nav) - sum(data.usdFunds || [], r => r.cost)) * data.rates.usd;
       const gainRows = [
         { label: "台股", rawValue: twGain, value: Math.abs(twGain), color: "var(--blue)" },
         { label: "美股", rawValue: usGain, value: Math.abs(usGain), color: "var(--green)" },
@@ -1920,14 +1933,23 @@
         ${renderMetals("gold")}
         ${renderMetals("silver")}`;
     }
+    function renderFundPage(key, title, currency) {
+      const rows = data[key] || [];
+      const cost = sum(rows, r => r.cost);
+      const value = sum(rows, r => r.units * r.nav);
+      const valueTwd = currency === "USD" ? value * data.rates.usd : value;
+      const costTwd = currency === "USD" ? cost * data.rates.usd : cost;
+      return `${section(key === "funds" ? "fund" : "usdFund", `${title}持股總覽`, "", `<button class="btn blue small" data-add="${key}">+ 新增${title}紀錄</button>`)}
+        <div class="cards">
+          ${card("總投入成本", money(cost, currency), currency)}
+          ${card("目前總現值", money(value, currency), currency, "accent")}
+          ${card("未實現損益", money(value - cost, currency), `${cost ? ((value - cost) / cost * 100).toFixed(2) : "0.00"}%`, "accent")}
+          ${card("折合台幣現值", money(valueTwd), currency === "USD" ? `TWD｜成本 ${money(costTwd)}` : "TWD")}
+        </div>
+        <article class="panel"><div class="table-wrap"><table><thead><tr><th>基金名稱</th><th>投入成本</th><th>購買單位數</th><th>目前淨值</th><th>現值</th><th>操作</th></tr></thead><tbody>${rows.map((r, i) => `<tr><td>${textInput(r.name, `${key}.${i}.name`)}</td><td>${textInput(r.cost, `${key}.${i}.cost`, "number")}</td><td>${textInput(r.units, `${key}.${i}.units`, "number")}</td><td>${textInput(r.nav, `${key}.${i}.nav`, "number")}</td><td>${money(r.units * r.nav, currency)}</td><td><button class="icon-btn" data-del="${key}.${i}">刪</button></td></tr>`).join("")}</tbody></table></div></article>`;
+    }
     function renderFund() {
-      const cost = sum(data.funds, r => r.cost);
-      const value = sum(data.funds, r => r.units * r.nav);
-      return `${section("fund", "台幣基金持股總覽", "", `<button class="btn blue small" data-add="funds">+ 新增基金紀錄</button>`)}
-        <article class="panel"><div class="panel-pad">
-          <p>總持有單位：<strong class="number" style="display:inline">${money(sum(data.funds, r => r.units))}</strong>，總投入成本：<strong class="number" style="display:inline">${money(cost)}</strong> TWD，目前總現值：<strong class="number amber" style="display:inline">${money(value)}</strong> TWD，未實現損益：<strong class="number gain" style="display:inline">${money(value - cost)}</strong> TWD</p>
-        </div></article>
-        <article class="panel"><div class="table-wrap"><table><thead><tr><th>基金名稱</th><th>投入成本</th><th>購買單位數</th><th>目前淨值</th><th>現值</th><th>操作</th></tr></thead><tbody>${data.funds.map((r, i) => `<tr><td>${textInput(r.name, `funds.${i}.name`)}</td><td>${textInput(r.cost, `funds.${i}.cost`, "number")}</td><td>${textInput(r.units, `funds.${i}.units`, "number")}</td><td>${textInput(r.nav, `funds.${i}.nav`, "number")}</td><td>${money(r.units * r.nav)}</td><td><button class="icon-btn" data-del="funds.${i}">刪</button></td></tr>`).join("")}</tbody></table></div></article>`;
+      return `${renderFundPage("funds", "基金", "TWD")}${renderFundPage("usdFunds", "美元基金", "USD")}`;
     }
     function renderDcaEditable() {
       const targets = ensureDcaTargets();
@@ -2223,6 +2245,7 @@
         gold: { date: "2026-07-06", item: "新黃金", tael: 0, mace: 0, candareen: 0, li: 0, gram: 0, gold: 0, labor: 0, place: "" },
         silver: { date: "2026-07-06", item: "新白銀", qty: 0, oz: 1, cost: 0, note: "" },
         funds: { name: "新基金", units: 0, cost: 0, nav: 0 },
+        usdFunds: { name: "新美元基金", units: 0, cost: 0, nav: 0 },
         dca: { month: localMonthString().replace("-", "."), ...Object.fromEntries(ensureDcaTargets().map((target, index) => {
           const code = dcaCode(target, index);
           return [code, Number(data.rates[`dca_${code}`]) || 0];
