@@ -14,37 +14,40 @@
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <style>
     :root {
-      --bg: #f4f8fb;
-      --ink: #142033;
-      --muted: #667485;
-      --line: #dfe6ee;
-      --surface: #ffffff;
-      --blue: #2368d8;
-      --shadow: 0 14px 34px rgba(21, 32, 49, .08);
+      --bg: #edf0f2;
+      --ink: #20242c;
+      --muted: #77716a;
+      --line: rgba(214, 219, 224, .95);
+      --surface: #fffdf7;
+      --blue: #2f6f8f;
+      --shadow: 0 24px 70px rgba(83, 92, 104, .18);
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      background: var(--bg);
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.48) 0 1px, transparent 1px 22px),
+        linear-gradient(180deg, #f6f7f7 0, #edf0f2 360px, #e6eaed 100%);
       color: var(--ink);
       font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
       -webkit-text-size-adjust: 100%;
       overscroll-behavior-y: none;
     }
     .shell {
-      width: min(1500px, calc(100vw - 28px));
-      margin: 14px auto 28px;
-      padding: 20px;
+      width: min(1500px, calc(100vw - 40px));
+      margin: 22px auto 42px;
+      padding: 18px;
       border: 1px solid var(--line);
-      border-radius: 22px;
-      background: rgba(255,255,255,.86);
+      border-radius: 10px;
+      background: rgba(255, 253, 247, .72);
       box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
     }
     .frame-panel {
       overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      background: var(--surface);
+      border: 1px solid rgba(214, 219, 224, .95);
+      border-radius: 8px;
+      background: #edf0f2;
       box-shadow: 0 10px 26px rgba(21,32,49,.05);
     }
     iframe {
@@ -52,10 +55,14 @@
       width: 100%;
       min-height: 100vh;
       border: 0;
-      background: #fff;
+      background: #edf0f2;
     }
     @media (max-width: 720px) {
-      body { background: #eef4f8; }
+      body {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.42) 0 1px, transparent 1px 20px),
+          #edf0f2;
+      }
       .shell {
         width: 100%;
         margin: 0;

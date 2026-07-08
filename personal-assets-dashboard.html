@@ -613,6 +613,362 @@
       }
       .bar-row span:last-child { justify-self: start; }
     }
+    :root {
+      --bg: #edf0f2;
+      --panel: #fffdf7;
+      --panel-2: #f6f0e6;
+      --ink: #20242c;
+      --muted: #77716a;
+      --line: #ded2bf;
+      --navy: #172033;
+      --blue: #2f6f8f;
+      --green: #3f8f71;
+      --purple: #8d5d9e;
+      --amber: #c9862b;
+      --red: #b44a3f;
+      --teal: #247f7a;
+      --shadow: 0 18px 44px rgba(50, 57, 68, .12);
+    }
+    body {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.48) 0 1px, transparent 1px 22px),
+        linear-gradient(180deg, #f6f7f7 0, #edf0f2 360px, #e6eaed 100%);
+      color: var(--ink);
+    }
+    .shell {
+      width: min(1480px, calc(100vw - 40px));
+      margin: 22px auto 42px;
+      padding: 26px;
+      border-color: rgba(214, 219, 224, .95);
+      border-radius: 10px;
+      background: rgba(255, 253, 247, .72);
+      box-shadow: 0 24px 70px rgba(83, 92, 104, .18);
+      backdrop-filter: blur(8px);
+    }
+    .hero {
+      position: relative;
+      overflow: hidden;
+      min-height: 150px;
+      padding: 32px 34px;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 8px;
+      background:
+        linear-gradient(90deg, rgba(17,22,31,.94), rgba(37,50,68,.74)),
+        linear-gradient(135deg, #21304a, #173632);
+      color: #fffdf7;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 20px 48px rgba(0,0,0,.22);
+    }
+    .hero:after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 5px;
+      background: linear-gradient(90deg, #b44a3f, #c9862b 34%, #3f8f71 68%, #2f6f8f);
+    }
+    h1 {
+      font-weight: 800;
+      text-wrap: balance;
+    }
+    .sub {
+      max-width: 860px;
+      color: rgba(255,253,247,.72);
+      line-height: 1.75;
+    }
+    .actions, .tabs, .toolbar {
+      border: 1px solid rgba(222,210,191,.84);
+      border-radius: 8px;
+      background: rgba(255,253,247,.9);
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+    }
+    .actions {
+      margin: 18px 0;
+      padding: 12px;
+    }
+    .tabs {
+      position: sticky;
+      top: 10px;
+      z-index: 4;
+      margin-bottom: 38px;
+      background: rgba(246,240,230,.94);
+      backdrop-filter: blur(10px);
+    }
+    .tab {
+      border-radius: 7px;
+      color: #4e4944;
+    }
+    .tab.active {
+      background: #172033;
+      color: #fffdf7;
+      box-shadow: 0 8px 20px rgba(23,32,51,.22);
+    }
+    .btn {
+      border-radius: 7px;
+      box-shadow: 0 7px 18px rgba(0,0,0,.14);
+    }
+    .btn.purple { background: #8d5d9e; }
+    .btn.green { background: #3f8f71; }
+    .btn.blue { background: #2f6f8f; }
+    .btn.dark { background: #20242c; }
+    .btn.small:not(.purple):not(.green):not(.blue):not(.dark) {
+      border: 1px solid #cdbfa9;
+      background: #fffdf7;
+      color: #3f454d;
+      box-shadow: 0 5px 14px rgba(75,84,96,.1);
+    }
+    .btn.small:not(.purple):not(.green):not(.blue):not(.dark):hover {
+      border-color: #bca98f;
+      background: #f6f0e6;
+    }
+    .section-head h2 {
+      color: #20242c;
+      font-weight: 800;
+    }
+    .section-note {
+      color: #77716a;
+      line-height: 1.7;
+    }
+    .card, .panel, .chart-card, .setting-tile, .day-card {
+      border-color: rgba(222,210,191,.95);
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,253,247,.94)),
+        var(--panel);
+      box-shadow: 0 16px 36px rgba(75,84,96,.13);
+    }
+    .card {
+      min-height: 136px;
+      padding: 22px 21px;
+    }
+    .card.dark {
+      background:
+        linear-gradient(135deg, rgba(180,74,63,.96), rgba(23,32,51,.98) 68%),
+        #172033;
+      color: #fffdf7;
+    }
+    .card.accent {
+      background: linear-gradient(180deg, #fff8e8, #f5efe3);
+      border-color: #d0aa6f;
+    }
+    .label {
+      color: #786f65;
+      font-weight: 700;
+    }
+    .dark .label { color: rgba(255,253,247,.76); }
+    .number {
+      color: #20242c;
+      font-weight: 850;
+    }
+    .dark .number { color: #fffdf7; }
+    .unit, .muted { color: #82786d; }
+    .panel {
+      margin-top: 18px;
+      overflow: hidden;
+    }
+    .panel-pad { padding: 20px; }
+    th {
+      background: #efe7da;
+      color: #403b35;
+    }
+    th, td { border-color: #e2d7c6; }
+    tr:nth-child(even) td { background: rgba(246,240,230,.48); }
+    input, select {
+      border-color: #cdbfa9;
+      border-radius: 7px;
+      background: #fffdf7;
+      color: #20242c;
+    }
+    input:focus, select:focus {
+      outline: 2px solid rgba(201,134,43,.34);
+      border-color: #c9862b;
+    }
+    .icon-btn {
+      border-color: #cdbfa9;
+      border-radius: 7px;
+      background: #fffdf7;
+      color: #514b45;
+    }
+    .donut:after, .portfolio-donut:after {
+      background: #fffdf7;
+      border-color: #ded2bf;
+    }
+    .legend-row {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(222,210,191,.48);
+    }
+    .legend-row:last-child { border-bottom: 0; }
+    .chart-empty {
+      border-color: #cabaa2;
+      background: #f8f2e8;
+    }
+    .bar-track {
+      background: #eadfce;
+    }
+    .trend-line .axis { stroke: #d7cab8; }
+    .notice {
+      border-color: #cabaa2;
+      background: rgba(255,253,247,.78);
+    }
+    .day-card.empty { background: #f4eadb; }
+    .gain { color: #b44a3f; }
+    .ok { color: #2e8060; }
+    .amber { color: #b97620; }
+    @media (max-width: 720px) {
+      body {
+        background:
+          linear-gradient(135deg, rgba(255,255,255,.42) 0 1px, transparent 1px 20px),
+          #edf0f2;
+      }
+      .shell {
+        width: 100%;
+        margin: 0;
+        padding: 10px;
+        border: 0;
+        border-radius: 0;
+        background: rgba(255, 253, 247, .55);
+        box-shadow: none;
+        backdrop-filter: none;
+      }
+      .hero {
+        min-height: 100px;
+        padding: 20px 16px;
+        border-radius: 8px;
+        background:
+          linear-gradient(90deg, rgba(17,22,31,.96), rgba(37,50,68,.78)),
+          linear-gradient(135deg, #21304a, #173632);
+      }
+      .actions, .tabs, .toolbar { border-radius: 8px; }
+      .tabs { top: 0; margin-bottom: 22px; }
+      .card, .panel, .chart-card, .setting-tile, .day-card { border-radius: 8px; }
+    }
+    body, button, input, select, table, .label, .unit, .sub, .section-note, .legend-row, .bar-row, .setting-tile, .day-card, .notice {
+      font-weight: 350;
+    }
+    strong, b, th, .btn, .tab, .label, .setting-tile input, .day-card strong, .day-card .delta {
+      font-weight: 400;
+    }
+    h1, h2, h3, .section-head h2, .chart-card h3 {
+      font-weight: 650;
+    }
+    .number {
+      font-weight: 500;
+    }
+    .stock-analysis .chart-card,
+    .stock-overview-charts .chart-card {
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .stock-analysis .chart-card h3,
+    .stock-overview-charts .chart-card h3 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    .stock-overview-charts .legend-row {
+      gap: 8px;
+      font-size: 12px;
+    }
+    .stock-overview-charts .portfolio-donut {
+      width: 190px;
+      height: 190px;
+    }
+    .stock-overview-charts .portfolio-donut:after {
+      inset: 44px;
+    }
+    .stock-overview-charts .portfolio-donut .donut-text strong {
+      font-size: 17px;
+    }
+    .stock-analysis .bar-row {
+      grid-template-columns: minmax(96px, 1fr) minmax(150px, 2fr) auto;
+      gap: 9px;
+      font-size: 12px;
+    }
+    .compare-list {
+      display: grid;
+      gap: 12px;
+    }
+    .compare-row {
+      display: grid;
+      grid-template-columns: minmax(92px, 1fr) minmax(180px, 2.2fr) minmax(76px, auto);
+      gap: 10px;
+      align-items: center;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(222,210,191,.58);
+    }
+    .compare-row:last-child {
+      padding-bottom: 0;
+      border-bottom: 0;
+    }
+    .compare-name {
+      color: #393d44;
+      overflow-wrap: anywhere;
+    }
+    .compare-bars {
+      display: grid;
+      gap: 5px;
+    }
+    .compare-line {
+      display: grid;
+      grid-template-columns: 30px minmax(80px, 1fr) auto;
+      gap: 7px;
+      align-items: center;
+      color: #77716a;
+    }
+    .compare-line em {
+      min-width: 58px;
+      color: #4e535b;
+      font-style: normal;
+      text-align: right;
+      font-size: 11px;
+    }
+    .compare-track {
+      height: 7px;
+      border-radius: 999px;
+      background: #eadfce;
+      overflow: hidden;
+    }
+    .compare-fill {
+      display: block;
+      width: var(--w);
+      height: 100%;
+      border-radius: inherit;
+      background: #9aa3ad;
+    }
+    .compare-fill.up { background: var(--green); }
+    .compare-fill.down { background: var(--red); }
+    .compare-delta {
+      display: grid;
+      gap: 2px;
+      justify-items: end;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    .compare-delta small {
+      color: #82786d;
+      font-size: 11px;
+    }
+    @media (max-width: 720px) {
+      .stock-analysis .chart-card,
+      .stock-overview-charts .chart-card { font-size: 11px; }
+      .stock-analysis .chart-card h3,
+      .stock-overview-charts .chart-card h3 { font-size: 14px; }
+      .stock-overview-charts .legend-row { font-size: 11px; }
+      .stock-overview-charts .portfolio-donut {
+        width: 164px;
+        height: 164px;
+      }
+      .stock-overview-charts .portfolio-donut:after { inset: 39px; }
+      .stock-analysis .bar-row {
+        grid-template-columns: minmax(76px, 1fr) minmax(90px, 1.3fr) auto;
+        gap: 7px;
+        font-size: 11px;
+      }
+      .compare-row {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+      .compare-delta {
+        justify-items: start;
+      }
+    }
   </style>
 </head>
 <body>
@@ -624,8 +980,6 @@
 
     <section class="actions" aria-label="操作工具">
       <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
-      <button class="btn blue" id="exportSymbols">匯出代碼清單</button>
-      <button class="btn green" id="importPrices">套用最新股價與匯率</button>
       <button class="btn green" id="saveData">匯入存檔</button>
       <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
       <button class="btn dark" id="resetData">清空資料</button>
@@ -853,7 +1207,7 @@
           rawValue: gain
         };
       });
-      return `<div class="chart-pair">
+      return `<div class="chart-pair stock-overview-charts">
         ${renderPieChart("每支股票持有比例", valueItems, "持股市值", currency)}
         ${renderPieChart("未實現損益各支股票比例", gainItems, "損益絕對值", currency)}
       </div>`;
@@ -882,6 +1236,33 @@
         ];
       });
     }
+    function renderCostValueComparison(title, rows, currency) {
+      const items = rows.map(row => {
+        const label = `${row.code || "-"} ${row.name || ""}`.trim();
+        const cost = (Number(row.shares) || 0) * (Number(row.cost) || 0);
+        const value = (Number(row.shares) || 0) * (Number(row.price) || 0);
+        const gain = value - cost;
+        const rate = cost ? gain / cost * 100 : 0;
+        return { label, cost, value, gain, rate };
+      }).filter(row => row.cost > 0 || row.value > 0);
+      const max = Math.max(...items.map(row => Math.max(row.cost, row.value)), 0);
+      if (!items.length || !max) {
+        return `<article class="chart-card stock-compare-card"><h3>${title}</h3><div class="chart-empty">尚無可呈現資料</div></article>`;
+      }
+      return `<article class="chart-card stock-compare-card"><h3>${title}</h3><div class="compare-list">${items.map(row => {
+        const costWidth = Math.max(3, row.cost / max * 100);
+        const valueWidth = Math.max(3, row.value / max * 100);
+        const positive = row.gain >= 0;
+        return `<div class="compare-row">
+          <div class="compare-name">${row.label}</div>
+          <div class="compare-bars">
+            <div class="compare-line"><span>成本</span><div class="compare-track"><i class="compare-fill cost" style="--w:${costWidth.toFixed(1)}%"></i></div><em>${money(row.cost, currency)}</em></div>
+            <div class="compare-line"><span>現值</span><div class="compare-track"><i class="compare-fill value ${positive ? "up" : "down"}" style="--w:${valueWidth.toFixed(1)}%"></i></div><em>${money(row.value, currency)}</em></div>
+          </div>
+          <div class="compare-delta ${positive ? "ok" : "gain"}">${positive ? "+" : ""}${money(row.gain, currency)}<small>${positive ? "+" : ""}${row.rate.toFixed(1)}%</small></div>
+        </div>`;
+      }).join("")}</div></article>`;
+    }
     function stockConcentrationRows(rows) {
       const total = sum(rows, row => (Number(row.shares) || 0) * (Number(row.price) || 0));
       return rows.map(row => {
@@ -898,7 +1279,7 @@
     function renderStockAnalysisCharts(kind, rows, currency) {
       const extras = [
         renderBarChart(`${kind === "tw" ? "台股" : "美股"}個股報酬率排行`, stockReturnRankRows(rows), "%"),
-        renderBarChart(`${kind === "tw" ? "台股" : "美股"}成本 vs 現值比較`, stockCostValueRows(rows), currency)
+        renderCostValueComparison(`${kind === "tw" ? "台股" : "美股"}成本 vs 現值比較`, rows, currency)
       ];
       if (kind === "tw") {
         extras.push(renderBarChart("台股集中度提醒", stockConcentrationRows(rows), "%"));
@@ -908,7 +1289,7 @@
           { label: "USD/TWD 每變動 1 元", value: Math.abs(usdValue), rawValue: usdValue, color: "var(--teal)" }
         ], "TWD"));
       }
-      return `<div class="chart-grid">${extras.join("")}</div>`;
+      return `<div class="chart-grid stock-analysis">${extras.join("")}</div>`;
     }
     function cashBankShareItems() {
       const grouped = new Map();
@@ -2090,8 +2471,6 @@
     });
     document.getElementById("exportJson").addEventListener("click", () => download("personal-assets-demo.json", JSON.stringify(data, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
-    document.getElementById("exportSymbols").addEventListener("click", exportSymbols);
-    document.getElementById("importPrices").addEventListener("click", updatePricesFromServer);
     document.getElementById("resetData").addEventListener("click", () => {
       if (confirm("確定要清除目前所有資料嗎？")) {
         data = structuredClone(seed);
