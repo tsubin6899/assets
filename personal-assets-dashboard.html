@@ -435,11 +435,11 @@
     <section class="view" id="tw"></section>
     <section class="view" id="us"></section>
     <section class="view" id="cash"></section>
-    <section class="view" id="gold"></section>
-    <section class="view" id="silver"></section>
+    <section class="view" id="metal"></section>
     <section class="view" id="fund"></section>
     <section class="view" id="dca"></section>
     <section class="view" id="purchase"></section>
+    <section class="view" id="dividend"></section>
     <section class="view" id="expense"></section>
     <section class="view" id="allocation"></section>
     <section class="view" id="chart"></section>
@@ -449,8 +449,8 @@
     const storageKey = "personal-assets-dashboard-tsubin-v2";
     const tabs = [
       ["overview", "總覽儀表板"], ["tw", "台股部位"], ["us", "美股部位"], ["cash", "現金帳戶"],
-      ["gold", "實體黃金"], ["silver", "實體白銀"], ["fund", "台幣基金"], ["dca", "定期投入"],
-      ["purchase", "購買股票紀錄"],
+      ["metal", "貴金屬"], ["fund", "台幣基金"], ["dca", "定期投入"],
+      ["purchase", "購買股票紀錄"], ["dividend", "股息 / 配息紀錄"],
       ["expense", "支出規畫"], ["allocation", "額外資金分配"],
       ["chart", "資訊圖表庫"]
     ];
@@ -478,6 +478,7 @@
     };
     let data = load();
     let currentTab = "overview";
+    if (["gold", "silver"].includes(currentTab)) currentTab = "metal";
     let calendarMonth = null;
 
     function load() {
@@ -653,6 +654,58 @@
         ${renderPieChart("未實現損益各支股票比例", gainItems, "損益絕對值", currency)}
       </div>`;
     }
+    function stockReturnRankRows(rows) {
+      return rows.map(row => {
+        const value = (Number(row.shares) || 0) * (Number(row.price) || 0);
+        const cost = (Number(row.shares) || 0) * (Number(row.cost) || 0);
+        const rate = cost ? (value - cost) / cost * 100 : 0;
+        return {
+          label: `${row.code || "-"} ${row.name || ""}`.trim(),
+          value: Math.abs(rate),
+          rawValue: rate,
+          color: rate >= 0 ? "var(--green)" : "var(--red)"
+        };
+      }).filter(row => Number(row.value) > 0).sort((a, b) => b.rawValue - a.rawValue);
+    }
+    function stockCostValueRows(rows) {
+      return rows.flatMap(row => {
+        const label = `${row.code || "-"} ${row.name || ""}`.trim();
+        const cost = (Number(row.shares) || 0) * (Number(row.cost) || 0);
+        const value = (Number(row.shares) || 0) * (Number(row.price) || 0);
+        return [
+          { label: `${label} 成本`, value: Math.max(0, cost), rawValue: cost, color: "var(--muted)" },
+          { label: `${label} 現值`, value: Math.max(0, value), rawValue: value, color: value >= cost ? "var(--green)" : "var(--red)" }
+        ];
+      });
+    }
+    function stockConcentrationRows(rows) {
+      const total = sum(rows, row => (Number(row.shares) || 0) * (Number(row.price) || 0));
+      return rows.map(row => {
+        const value = (Number(row.shares) || 0) * (Number(row.price) || 0);
+        const ratio = total ? value / total * 100 : 0;
+        return {
+          label: `${row.code || "-"} ${ratio >= 40 ? "高度集中" : ratio >= 30 ? "偏高" : "正常"}`,
+          value: Math.max(0, ratio),
+          rawValue: ratio,
+          color: ratio >= 40 ? "var(--red)" : ratio >= 30 ? "var(--amber)" : "var(--green)"
+        };
+      }).sort((a, b) => b.rawValue - a.rawValue);
+    }
+    function renderStockAnalysisCharts(kind, rows, currency) {
+      const extras = [
+        renderBarChart(`${kind === "tw" ? "台股" : "美股"}個股報酬率排行`, stockReturnRankRows(rows), "%"),
+        renderBarChart(`${kind === "tw" ? "台股" : "美股"}成本 vs 現值比較`, stockCostValueRows(rows), currency)
+      ];
+      if (kind === "tw") {
+        extras.push(renderBarChart("台股集中度提醒", stockConcentrationRows(rows), "%"));
+      } else {
+        const usdValue = stockValue(rows, 1);
+        extras.push(renderBarChart("美股匯率敏感度", [
+          { label: "USD/TWD 每變動 1 元", value: Math.abs(usdValue), rawValue: usdValue, color: "var(--teal)" }
+        ], "TWD"));
+      }
+      return `<div class="chart-grid">${extras.join("")}</div>`;
+    }
     function cashBankShareItems() {
       const grouped = new Map();
       data.cash
@@ -677,6 +730,40 @@
       return `<div class="chart-pair">
         ${renderPieChart("台幣帳戶各銀行持有比例", cashBankShareItems(), "台幣帳戶", "TWD")}
         ${renderPieChart("台幣與其他外幣持有比例", cashCurrencyShareItems(), "折合台幣", "TWD")}
+      </div>`;
+    }
+    function cashPressureRows() {
+      const bank = sum(data.cash, twdCash);
+      const reserve = Number(data.rates.reserve) || 0;
+      const cards = sum(data.cards, row => Number(row.amount) || 0);
+      const available = Math.max(0, bank + reserve - cards);
+      return [
+        { label: "可動用現金", value: available, rawValue: available, color: "var(--green)" },
+        { label: "信用卡待繳", value: Math.max(0, cards), rawValue: cards, color: "var(--red)" }
+      ];
+    }
+    function cashCurrencyRankRows() {
+      return cashCurrencyShareItems()
+        .map(row => ({ label: row.label, value: row.value, rawValue: row.value }))
+        .sort((a, b) => b.value - a.value);
+    }
+    function cashFxImpactRows() {
+      const grouped = new Map();
+      data.cash.forEach(row => {
+        const currency = normalizeCurrency(row.currency);
+        if (currency === "TWD") return;
+        grouped.set(currency, (grouped.get(currency) || 0) + twdCash(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label: `${label} 匯率變動 1%`, value: Math.abs(value * 0.01), rawValue: value * 0.01, color: "var(--teal)" }))
+        .sort((a, b) => b.value - a.value);
+    }
+    function renderCashAnalysisCharts() {
+      return `<div class="chart-grid">
+        ${renderSafetySettings()}
+        ${renderBarChart("信用卡待繳 vs 可動用現金", cashPressureRows(), "TWD")}
+        ${renderBarChart("各幣別折台幣金額排行", cashCurrencyRankRows(), "TWD")}
+        ${renderBarChart("外幣現金匯率敏感度", cashFxImpactRows(), "TWD")}
       </div>`;
     }
     function renderBarChart(title, rows, currency = "TWD") {
@@ -782,6 +869,171 @@
     function dividendTwd(row) {
       return (Number(row.amount) || 0) * fxRate(row.currency || "TWD");
     }
+    function dividendRows() {
+      return [...(data.dividends || [])].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+    }
+    function dividendTotalRows(rows = data.dividends || []) {
+      return sum(rows, dividendTwd);
+    }
+    function dividendBySourceRows() {
+      const grouped = new Map();
+      (data.dividends || []).forEach(row => {
+        const label = String(row.source || "未命名來源").trim() || "未命名來源";
+        grouped.set(label, (grouped.get(label) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => b.value - a.value);
+    }
+    function dividendByCurrencyRows() {
+      const grouped = new Map();
+      (data.dividends || []).forEach(row => {
+        const label = normalizeCurrency(row.currency || "TWD");
+        grouped.set(label, (grouped.get(label) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => b.value - a.value);
+    }
+    function dividendMonthlyRows() {
+      const grouped = new Map();
+      (data.dividends || []).forEach(row => {
+        const month = String(row.date || "").slice(0, 7) || "未填月份";
+        grouped.set(month, (grouped.get(month) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => String(a.label).localeCompare(String(b.label)))
+        .slice(-12);
+    }
+    function dividendAnnualRows() {
+      const grouped = new Map();
+      (data.dividends || []).forEach(row => {
+        const year = String(row.date || "").slice(0, 4) || "未填年份";
+        grouped.set(year, (grouped.get(year) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => String(a.label).localeCompare(String(b.label)));
+    }
+    function recentDividendRows() {
+      const today = new Date();
+      const cutoff = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+      return (data.dividends || []).filter(row => {
+        const date = new Date(row.date || "");
+        return !Number.isNaN(date.getTime()) && date >= cutoff && date <= today;
+      });
+    }
+    function holdingValueForDividendSource(source) {
+      const text = String(source || "").trim().toUpperCase();
+      if (!text) return 0;
+      const matchRows = (rows, fx = 1) => rows
+        .filter(row => {
+          const code = String(row.code || "").toUpperCase();
+          const name = String(row.name || "").toUpperCase();
+          return text === code || text.includes(code) || text.includes(name) || name.includes(text);
+        })
+        .reduce((total, row) => total + (Number(row.shares) || 0) * (Number(row.price) || 0) * fx, 0);
+      const twValue = matchRows(data.tw || []);
+      const usValue = matchRows(data.us || [], data.rates.usd);
+      const fundValue = (data.funds || [])
+        .filter(row => String(row.name || "").toUpperCase().includes(text) || text.includes(String(row.name || "").toUpperCase()))
+        .reduce((total, row) => total + (Number(row.units) || 0) * (Number(row.nav) || 0), 0);
+      return twValue + usValue + fundValue;
+    }
+    function dividendYieldRows() {
+      const grouped = new Map();
+      recentDividendRows().forEach(row => {
+        const label = String(row.source || "未命名來源").trim() || "未命名來源";
+        grouped.set(label, (grouped.get(label) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, annualDividend]) => {
+          const value = holdingValueForDividendSource(label);
+          const yieldRate = value ? annualDividend / value * 100 : 0;
+          return { label, value: Math.abs(yieldRate), rawValue: yieldRate, color: value ? "var(--green)" : "var(--muted)" };
+        })
+        .filter(row => Number(row.value) > 0)
+        .sort((a, b) => b.rawValue - a.rawValue)
+        .slice(0, 8);
+    }
+    function dividendForecastRows() {
+      const today = new Date();
+      const end = new Date(today.getFullYear(), today.getMonth() + 12, today.getDate());
+      const grouped = new Map();
+      recentDividendRows().forEach(row => {
+        const sourceDate = new Date(row.date || "");
+        if (Number.isNaN(sourceDate.getTime())) return;
+        const projected = new Date(sourceDate.getFullYear() + 1, sourceDate.getMonth(), sourceDate.getDate());
+        if (projected < today || projected > end) return;
+        const label = localMonthString(projected);
+        grouped.set(label, (grouped.get(label) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => String(a.label).localeCompare(String(b.label)));
+    }
+    function monthlyExpenseEstimate() {
+      const safetyExpense = Number(data.safety?.monthlyExpense) || 0;
+      if (safetyExpense) return safetyExpense;
+      return sum(data.budget || [], row => {
+        const amount = Number(row.amount) || 0;
+        const cycle = String(row.cycle || "");
+        if (cycle.includes("年")) return amount / 12;
+        if (cycle.includes("季")) return amount / 3;
+        if (cycle.includes("週")) return amount * 4.33;
+        return amount;
+      });
+    }
+    function dividendCoverageRateRows() {
+      const annualDividend = sum(recentDividendRows(), dividendTwd);
+      const annualExpense = monthlyExpenseEstimate() * 12;
+      if (!annualExpense) return [];
+      const coverage = annualDividend / annualExpense * 100;
+      return [
+        { label: "配息覆蓋固定支出", value: Math.max(0, coverage), rawValue: coverage, color: coverage >= 100 ? "var(--green)" : "var(--amber)" },
+        { label: "尚未覆蓋比例", value: Math.max(0, 100 - coverage), rawValue: Math.max(0, 100 - coverage), color: "var(--red)" }
+      ];
+    }
+    function dividendFxImpactRows() {
+      const grouped = new Map();
+      (data.dividends || []).forEach(row => {
+        const currency = normalizeCurrency(row.currency || "TWD");
+        if (currency === "TWD") return;
+        grouped.set(currency, (grouped.get(currency) || 0) + dividendTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label: `${label} 匯率變動 1%`, value: Math.abs(value * 0.01), rawValue: value * 0.01, color: "var(--teal)" }))
+        .sort((a, b) => b.value - a.value);
+    }
+    function renderDividendPage() {
+      const rows = dividendRows();
+      const year = String(new Date().getFullYear());
+      const thisYearRows = rows.filter(row => String(row.date || "").startsWith(year));
+      const total = dividendTotalRows(rows);
+      const thisYear = dividendTotalRows(thisYearRows);
+      const monthly = dividendMonthlyRows();
+      const last12 = sum(monthly, row => row.value);
+      const sourceCount = new Set(rows.map(row => String(row.source || "").trim()).filter(Boolean)).size;
+      return `${section("dividend", "股息 / 配息紀錄", "集中管理各標的配息、股息與利息收入，金額會依匯率折算台幣。", `<button class="btn green small" data-add="dividends">+ 新增配息</button>`)}
+        <div class="cards">
+          ${card("今年配息收入", money(thisYear), "TWD", "dark")}
+          ${card("累計配息收入", money(total), "TWD")}
+          ${card("近 12 月配息", money(last12), "TWD")}
+          ${card("收入來源數", money(sourceCount, ""), "個標的 / 來源", "accent")}
+        </div>
+        <div class="chart-grid">
+          ${renderBarChart("月配息趨勢", monthly, "TWD")}
+          ${renderPieChart("配息來源占比", dividendBySourceRows(), "折合台幣", "TWD")}
+          ${renderPieChart("配息幣別占比", dividendByCurrencyRows(), "折合台幣", "TWD")}
+          ${renderBarChart("年度配息比較", dividendAnnualRows(), "TWD")}
+          ${renderBarChart("各標的殖利率排行", dividendYieldRows(), "%")}
+          ${renderBarChart("未來 12 個月預估配息", dividendForecastRows(), "TWD")}
+          ${renderBarChart("配息收入覆蓋支出比例", dividendCoverageRateRows(), "%")}
+          ${renderBarChart("外幣配息匯率影響", dividendFxImpactRows(), "TWD")}
+        </div>
+        ${renderDividendTable()}`;
+    }
     function annualSummaryRows() {
       const year = String(new Date().getFullYear());
       const summary = buildTradeSummary();
@@ -874,7 +1126,6 @@
           ${renderBarChart("3. 再平衡提醒", rebalanceRows, "%")}
           ${renderSafetySettings()}
           ${renderBarChart("5. 匯率敏感度", [{ label: "USD/TWD 每變動 1 元", value: Math.abs(usdImpact), rawValue: usdImpact, color: "var(--teal)" }], "TWD")}
-          ${renderDividendTable()}
           ${renderBarChart("7. 年度損益總結", annualSummaryRows(), "TWD")}
           ${renderHealthCheck()}
           ${renderPieChart("資產配置比例", [
@@ -992,6 +1243,7 @@
           ${card("未實現損益", money(gain, currency), `${cost ? (gain / cost * 100).toFixed(2) : "0.00"}%`, "accent")}
         </div>
         ${renderStockCharts(rows, currency)}
+        ${renderStockAnalysisCharts(kind, rows, currency)}
         <div class="toolbox toolbar"><input class="search" id="${kind}Search" placeholder="搜尋代號或名稱"><select id="${kind}Sort"><option value="code">依代號排序</option><option value="gain">依損益排序</option><option value="value">依市值排序</option></select></div>
         <article class="panel"><div class="table-wrap"><table>
           <thead><tr><th>股票代號</th><th>股票名稱</th><th>持股數</th><th>平均成本</th><th>目前股價</th><th>當前市值</th><th>未實現損益</th><th>報酬率</th><th>操作</th></tr></thead>
@@ -1017,6 +1269,7 @@
           ${card("信用卡待繳總額", `NT$${money(reserved)}`, "提醒用，不併入總資產")}
         </div>
         ${renderCashCharts()}
+        ${renderCashAnalysisCharts()}
         <article class="panel"><div class="panel-pad">
           <h3>預備金設定</h3>
           <div class="setting-grid">
@@ -1063,6 +1316,24 @@
           ).join("")}</tbody>
         </table></div></article>
       `;
+    }
+    function renderPreciousMetals() {
+      const goldValue = goldGram() * data.rates.goldGram;
+      const silverValue = silverOz() * data.rates.silverOz;
+      const goldCostValue = goldCost();
+      const silverCostValue = silverCost();
+      const totalValue = goldValue + silverValue;
+      const totalCost = goldCostValue + silverCostValue;
+      return `
+        ${section("metal", "貴金屬", "黃金與白銀集中管理；黃金表格在上，白銀表格在下。")}
+        <div class="cards">
+          ${card("貴金屬總市值", money(totalValue), "TWD", "dark")}
+          ${card("貴金屬投入成本", money(totalCost), "TWD")}
+          ${card("貴金屬未實現損益", money(totalValue - totalCost), `${totalCost ? ((totalValue - totalCost) / totalCost * 100).toFixed(2) : "0.00"}%`, "accent")}
+          ${card("黃金 / 白銀市值", `${money(goldValue)} / ${money(silverValue)}`, "TWD")}
+        </div>
+        ${renderMetals("gold")}
+        ${renderMetals("silver")}`;
     }
     function renderFund() {
       const cost = sum(data.funds, r => r.cost);
@@ -1169,6 +1440,67 @@
       });
       return { totals, realizedByIndex, positions: [...positions.values()] };
     }
+    function purchaseBuySellRows(summary) {
+      return [
+        { label: "累計買入成本", value: Math.max(0, summary.totals.buyTwd), rawValue: summary.totals.buyTwd, color: "var(--blue)" },
+        { label: "累計賣出金額", value: Math.max(0, summary.totals.sellTwd), rawValue: summary.totals.sellTwd, color: "var(--green)" }
+      ];
+    }
+    function purchaseRealizedRows(summary) {
+      return summary.positions
+        .map(row => ({
+          label: `${row.code || "-"} ${row.name || ""}`.trim(),
+          value: Math.abs(Number(row.realized) || 0),
+          rawValue: Number(row.realized) || 0,
+          color: (Number(row.realized) || 0) >= 0 ? "var(--green)" : "var(--red)"
+        }))
+        .filter(row => Number(row.value) > 0)
+        .sort((a, b) => Math.abs(b.rawValue) - Math.abs(a.rawValue));
+    }
+    function purchaseTradeAmountRows() {
+      const grouped = new Map();
+      (data.purchaseRecords || []).forEach(row => {
+        const key = `${String(row.code || "-").toUpperCase()} ${row.name || ""}`.trim();
+        grouped.set(key, (grouped.get(key) || 0) + purchaseCostTwd(row));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 8);
+    }
+    function purchaseMonthlyRows() {
+      const grouped = new Map();
+      (data.purchaseRecords || []).forEach(row => {
+        const month = String(row.date || "").slice(0, 7) || "未填月份";
+        const signed = tradeType(row) === "sell" ? purchaseCostTwd(row) : -purchaseCostTwd(row);
+        grouped.set(month, (grouped.get(month) || 0) + signed);
+      });
+      return [...grouped.entries()]
+        .map(([label, rawValue]) => ({ label, value: Math.abs(rawValue), rawValue, color: rawValue >= 0 ? "var(--green)" : "var(--blue)" }))
+        .sort((a, b) => String(a.label).localeCompare(String(b.label)))
+        .slice(-12);
+    }
+    function purchaseTypeRows() {
+      let buys = 0;
+      let sells = 0;
+      (data.purchaseRecords || []).forEach(row => {
+        if (tradeType(row) === "sell") sells += 1;
+        else buys += 1;
+      });
+      return [
+        { label: "買入筆數", value: buys },
+        { label: "賣出筆數", value: sells }
+      ];
+    }
+    function renderPurchaseAnalysisCharts(summary) {
+      return `<div class="chart-grid">
+        ${renderBarChart("買入 vs 賣出金額", purchaseBuySellRows(summary), "TWD")}
+        ${renderBarChart("各標的已實現損益", purchaseRealizedRows(summary), "TWD")}
+        ${renderBarChart("交易金額排行", purchaseTradeAmountRows(), "TWD")}
+        ${renderBarChart("月度交易現金流", purchaseMonthlyRows(), "TWD")}
+        ${renderPieChart("買入 / 賣出筆數", purchaseTypeRows(), "交易筆數", "")}
+      </div>`;
+    }
     function renderPurchaseRecords() {
       const summary = buildTradeSummary();
       const rate = summary.totals.soldBasisTwd ? summary.totals.realizedTwd / summary.totals.soldBasisTwd * 100 : 0;
@@ -1182,6 +1514,7 @@
           ${card("已實現損益", money(summary.totals.realizedTwd), "TWD", "accent")}
           ${card("已實現報酬率", `${rate.toFixed(2)}%`, "以賣出成本計")}
         </div>
+        ${renderPurchaseAnalysisCharts(summary)}
         <article class="panel"><div class="table-wrap"><table>
           <thead><tr><th>交易日期</th><th>類型</th><th>市場</th><th>幣別</th><th>股票代碼</th><th>股票名稱</th><th>股數</th><th>成交價</th><th>手續費</th><th>稅費</th><th>現金流</th><th>已實現損益</th><th>備註</th><th>操作</th></tr></thead>
           <tbody>${sortedRecords.map(({ row: r, index: i }) => {
@@ -1266,11 +1599,11 @@
       document.getElementById("tw").innerHTML = renderStock("tw", "台股", "TWD");
       document.getElementById("us").innerHTML = renderStock("us", "美股", "USD");
       document.getElementById("cash").innerHTML = renderCash();
-      document.getElementById("gold").innerHTML = renderMetals("gold");
-      document.getElementById("silver").innerHTML = renderMetals("silver");
+      document.getElementById("metal").innerHTML = renderPreciousMetals();
       document.getElementById("fund").innerHTML = renderFund();
       document.getElementById("dca").innerHTML = renderDcaEditable();
       document.getElementById("purchase").innerHTML = renderPurchaseRecords();
+      document.getElementById("dividend").innerHTML = renderDividendPage();
       document.getElementById("expense").innerHTML = renderGeneric("expense", "支出規畫");
       document.getElementById("allocation").innerHTML = renderGeneric("allocation", "額外資金分配");
       document.getElementById("chart").innerHTML = renderInfoCharts();
