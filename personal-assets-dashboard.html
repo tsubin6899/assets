@@ -223,7 +223,7 @@
       width: 240px;
       height: 240px;
       border-radius: 50%;
-      background: conic-gradient(var(--blue) 0 var(--tw), var(--green) var(--tw) var(--us), var(--amber) var(--us) var(--cash), var(--purple) var(--cash) 360deg);
+      background: var(--donut-bg, conic-gradient(var(--blue) 0 var(--tw), var(--green) var(--tw) var(--us), var(--amber) var(--us) var(--cash), var(--purple) var(--cash) 360deg));
       position: relative;
       margin: auto;
     }
@@ -2230,14 +2230,16 @@
     function renderOverview() {
       const t = allTotals();
       const parts = [
-        ["台股", t.tw, "--blue"], ["美股", t.us, "--green"], ["現金", t.cash, "--amber"], ["貴金屬/基金", t.gold + t.silver + t.fund, "--purple"]
+        ["台股", t.tw, "--blue"], ["美股", t.us, "--green"], ["現金", t.cash, "--amber"], ["貴金屬", t.gold + t.silver, "--purple"], ["基金", t.fund, "--teal"]
       ];
+      const chartTotal = sum(parts, p => Math.max(0, p[1]));
       let cursor = 0;
-      const stops = parts.map((p) => {
-        const deg = t.total ? cursor + p[1] / t.total * 360 : cursor;
+      const segments = parts.map((p) => {
+        const start = cursor;
+        const deg = chartTotal ? cursor + Math.max(0, p[1]) / chartTotal * 360 : cursor;
         cursor = deg;
-        return `${deg}deg`;
-      });
+        return `var(${p[2]}) ${start}deg ${deg}deg`;
+      }).join(", ");
       return `
         ${section("overview", "總覽儀表板", "跨資產總覽與配置比例。")}
         <div class="cards">
@@ -2247,7 +2249,7 @@
           ${card("信用卡待繳", `NT$${money(t.cards)}`, "不併入現金統計")}
         </div>
         <article class="panel"><div class="panel-pad asset-grid">
-          <div class="donut" style="--tw:${stops[0]};--us:${stops[1]};--cash:${stops[2]};"><div class="donut-text"><strong>${money(t.total)}</strong><span class="muted">淨資產</span></div></div>
+          <div class="donut" style="--donut-bg:conic-gradient(${segments});"><div class="donut-text"><strong>${money(t.total)}</strong><span class="muted">淨資產</span></div></div>
           <div class="legend">${parts.map((p, i) => `<div class="legend-row"><span class="dot" style="--c:var(${p[2]})"></span><strong>${p[0]}</strong><span>${money(p[1])} TWD</span></div>`).join("")}</div>
         </div></article>
         ${renderPnlCalendar()}
