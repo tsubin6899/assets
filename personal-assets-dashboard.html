@@ -960,24 +960,39 @@
     .app-header {
       position: fixed;
       top: 0;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 0;
+      right: 0;
+      transform: none;
       z-index: 20;
-      width: min(1480px, calc(100vw - 40px));
-      border: 1px solid rgba(58,69,90,.92);
-      border-radius: 0 0 10px 10px;
-      background: rgba(16,28,52,.96);
-      box-shadow: 0 18px 48px rgba(0,0,0,.26);
+      width: 100%;
+      border: 0;
+      border-radius: 0;
+      background: rgba(16,28,52,.97);
+      box-shadow: 0 18px 48px rgba(0,0,0,.24);
       backdrop-filter: blur(14px);
     }
     .shell {
-      padding-top: calc(26px + var(--app-header-height, 150px));
+      width: 100%;
+      margin: 0;
+      padding: calc(26px + var(--app-header-height, 150px)) 0 42px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+    .view {
+      width: min(1480px, calc(100vw - 40px));
+      margin-right: auto;
+      margin-left: auto;
     }
     .brand-row {
       display: grid;
       grid-template-columns: minmax(280px, 1fr) auto;
       gap: 18px;
       align-items: center;
+      width: min(1480px, calc(100vw - 40px));
+      margin: 0 auto;
       padding: 14px 16px 12px;
       border-bottom: 1px solid rgba(255,255,255,.12);
     }
@@ -1003,7 +1018,11 @@
       line-height: 1.45;
     }
     .app-header .actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
       justify-content: flex-end;
+      flex-wrap: wrap;
       margin: 0;
       padding: 0;
       border: 0;
@@ -1015,11 +1034,43 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding-right: 4px;
+      min-height: 44px;
+      padding: 5px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      background: rgba(255,255,255,.06);
+    }
+    .file-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      min-height: 44px;
+    }
+    .app-header .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
+      min-height: 36px;
+      border-radius: 8px;
+      padding: 0 13px;
+      line-height: 1;
+      box-shadow: 0 8px 18px rgba(0,0,0,.16);
+    }
+    .app-header .btn.small {
+      height: 36px;
+      min-height: 36px;
+      padding: 0 11px;
+      font-size: 13px;
+    }
+    .file-actions > .btn {
+      min-width: 100px;
     }
     .cloud-sync input {
       width: 170px;
-      min-height: 34px;
+      height: 36px;
+      min-height: 36px;
       border-color: rgba(255,255,255,.25);
       background: rgba(255,255,255,.1);
       color: #fffdf7;
@@ -1037,10 +1088,13 @@
       position: static;
       top: auto;
       z-index: auto;
+      width: min(1480px, calc(100vw - 40px));
       margin: 0;
+      margin-right: auto;
+      margin-left: auto;
       padding: 10px 12px 12px;
       border: 0;
-      border-radius: 0 0 10px 10px;
+      border-radius: 0;
       background: rgba(255,255,255,.04);
       box-shadow: none;
     }
@@ -1065,6 +1119,11 @@
         scrollbar-width: none;
       }
       .cloud-sync { flex: 0 0 auto; }
+      .file-actions {
+        flex: 0 0 auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+      }
       .app-header .actions::-webkit-scrollbar { display: none; }
     }
     .purchase-record-table th:nth-child(4),
@@ -1092,13 +1151,22 @@
         transform: none;
         border-left: 0;
         border-right: 0;
-        border-radius: 0 0 10px 10px;
+        border-radius: 0;
       }
       .shell { padding-top: calc(10px + var(--app-header-height, 170px)); }
-      .brand-row { padding: 12px 12px 10px; }
+      .view {
+        width: 100%;
+        padding-right: 10px;
+        padding-left: 10px;
+      }
+      .brand-row {
+        width: 100%;
+        padding: 12px 12px 10px;
+      }
       .brand-row h1 { font-size: 19px; }
       .brand-row .sub { font-size: 11px; }
       .app-header .tabs {
+        width: 100%;
         flex-wrap: nowrap;
         overflow-x: auto;
         padding: 8px 10px 10px;
@@ -1149,11 +1217,13 @@
             <button class="btn small dark" id="cloudLogout" type="button">登出</button>
             <span id="cloudStatus" class="cloud-status">雲端未設定</span>
           </div>
-          <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
-          <button class="btn green" id="saveData">匯入存檔</button>
-          <button class="btn blue" id="importPrices">更新股價與匯率</button>
-          <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
-          <button class="btn dark" id="resetData">清空資料</button>
+          <div class="file-actions" aria-label="檔案與價格工具">
+            <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
+            <button class="btn green" id="saveData">匯入存檔</button>
+            <button class="btn blue" id="importPrices">更新股價與匯率</button>
+            <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
+            <button class="btn dark" id="resetData">清空資料</button>
+          </div>
           <input type="file" id="importJson" accept="application/json" hidden>
           <input type="file" id="priceJson" accept="application/json" hidden>
         </section>
