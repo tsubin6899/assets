@@ -1011,6 +1011,28 @@
       box-shadow: none;
       min-height: 0;
     }
+    .cloud-sync {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-right: 4px;
+    }
+    .cloud-sync input {
+      width: 170px;
+      min-height: 34px;
+      border-color: rgba(255,255,255,.25);
+      background: rgba(255,255,255,.1);
+      color: #fffdf7;
+    }
+    .cloud-sync input::placeholder {
+      color: rgba(255,255,255,.58);
+    }
+    .cloud-status {
+      min-width: 78px;
+      color: rgba(255,255,255,.68);
+      font-size: 11px;
+      white-space: nowrap;
+    }
     .app-header .tabs {
       position: static;
       top: auto;
@@ -1042,6 +1064,7 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
       }
+      .cloud-sync { flex: 0 0 auto; }
       .app-header .actions::-webkit-scrollbar { display: none; }
     }
     .purchase-record-table th:nth-child(4),
@@ -1118,6 +1141,14 @@
           <p class="sub">台股、美股、現金、貴金屬、定期投入與支出規畫。</p>
         </div>
         <section class="actions" aria-label="操作工具">
+          <div class="cloud-sync" aria-label="雲端同步">
+            <input id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
+            <button class="btn small blue" id="cloudLogin" type="button">登入同步</button>
+            <button class="btn small green" id="cloudSave" type="button">儲存雲端</button>
+            <button class="btn small purple" id="cloudLoad" type="button">載入雲端</button>
+            <button class="btn small dark" id="cloudLogout" type="button">登出</button>
+            <span id="cloudStatus" class="cloud-status">雲端未設定</span>
+          </div>
           <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
           <button class="btn green" id="saveData">匯入存檔</button>
           <button class="btn blue" id="importPrices">更新股價與匯率</button>
@@ -1144,9 +1175,11 @@
     <section class="view" id="chart"></section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
   <script>
     const storageKey = "personal-assets-dashboard-tsubin-v2";
+    const cloudTable = "asset_dashboard_profiles";
     const tabs = [
       ["overview", "總覽儀表板"], ["tw", "台股部位"], ["us", "美股部位"], ["cash", "現金帳戶"],
       ["metal", "貴金屬"], ["fund", "基金"], ["dca", "定期投入"],
@@ -1181,6 +1214,9 @@
     let currentTab = "overview";
     if (["gold", "silver"].includes(currentTab)) currentTab = "metal";
     let calendarMonth = null;
+    let supabaseClient = null;
+    let cloudUser = null;
+    let cloudReady = false;
 
     function load() {
       try {
@@ -1203,6 +1239,122 @@
     }
     function saveState() {
       localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+    function setCloudStatus(text) {
+      const el = document.getElementById("cloudStatus");
+      if (el) el.textContent = text;
+    }
+    function updateCloudControls() {
+      const loggedIn = Boolean(cloudUser);
+      document.getElementById("cloudSave").disabled = !loggedIn;
+      document.getElementById("cloudLoad").disabled = !loggedIn;
+      document.getElementById("cloudLogout").disabled = !loggedIn;
+      document.getElementById("cloudLogin").disabled = !cloudReady;
+      if (!cloudReady) setCloudStatus("雲端未設定");
+      else if (loggedIn) setCloudStatus("已登入雲端");
+      else setCloudStatus("未登入");
+    }
+    async function loadPublicConfig() {
+      const fallback = {
+        supabaseUrl: window.SUPABASE_URL || "",
+        supabaseAnonKey: window.SUPABASE_ANON_KEY || ""
+      };
+      if (!location.protocol.startsWith("http")) return fallback;
+      try {
+        const response = await fetch(`/api/public-config?ts=${Date.now()}`, { cache: "no-store" });
+        if (!response.ok) return fallback;
+        const config = await response.json();
+        return {
+          supabaseUrl: config.supabaseUrl || fallback.supabaseUrl,
+          supabaseAnonKey: config.supabaseAnonKey || fallback.supabaseAnonKey
+        };
+      } catch {
+        return fallback;
+      }
+    }
+    async function initCloudSync() {
+      if (!window.supabase?.createClient) {
+        setCloudStatus("SDK 未載入");
+        updateCloudControls();
+        return;
+      }
+      const config = await loadPublicConfig();
+      if (!config.supabaseUrl || !config.supabaseAnonKey) {
+        cloudReady = false;
+        updateCloudControls();
+        return;
+      }
+      supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey);
+      cloudReady = true;
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      cloudUser = sessionData.session?.user || null;
+      supabaseClient.auth.onAuthStateChange((_event, session) => {
+        cloudUser = session?.user || null;
+        updateCloudControls();
+      });
+      updateCloudControls();
+    }
+    async function loginCloudSync() {
+      if (!supabaseClient) return;
+      const email = document.getElementById("cloudEmail").value.trim();
+      if (!email) {
+        toast("請先輸入 Email");
+        return;
+      }
+      const { error } = await supabaseClient.auth.signInWithOtp({
+        email,
+        options: { emailRedirectTo: location.href.split("#")[0] }
+      });
+      if (error) {
+        toast(`登入信寄送失敗：${error.message}`);
+        return;
+      }
+      toast("登入連結已寄出，請到信箱確認");
+    }
+    async function logoutCloudSync() {
+      if (!supabaseClient) return;
+      await supabaseClient.auth.signOut();
+      cloudUser = null;
+      updateCloudControls();
+      toast("已登出雲端同步");
+    }
+    async function saveCloudData() {
+      if (!supabaseClient || !cloudUser) {
+        toast("請先登入雲端同步");
+        return;
+      }
+      const payload = hydrateData(data);
+      const { error } = await supabaseClient
+        .from(cloudTable)
+        .upsert({ user_id: cloudUser.id, data: payload }, { onConflict: "user_id" });
+      if (error) {
+        toast(`雲端儲存失敗：${error.message}`);
+        return;
+      }
+      toast("已儲存到雲端");
+    }
+    async function loadCloudData() {
+      if (!supabaseClient || !cloudUser) {
+        toast("請先登入雲端同步");
+        return;
+      }
+      const { data: row, error } = await supabaseClient
+        .from(cloudTable)
+        .select("data, updated_at")
+        .eq("user_id", cloudUser.id)
+        .maybeSingle();
+      if (error) {
+        toast(`雲端載入失敗：${error.message}`);
+        return;
+      }
+      if (!row?.data) {
+        toast("雲端尚無資料，已保留本機資料");
+        return;
+      }
+      data = hydrateData(row.data);
+      saveState();
+      render();
+      toast("已載入雲端資料");
     }
     function hydrateData(payload) {
       return {
@@ -2671,6 +2823,10 @@
     document.getElementById("exportJson").addEventListener("click", () => download("personal-assets-demo.json", JSON.stringify(data, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
     document.getElementById("importPrices").addEventListener("click", updatePricesFromServer);
+    document.getElementById("cloudLogin").addEventListener("click", loginCloudSync);
+    document.getElementById("cloudSave").addEventListener("click", saveCloudData);
+    document.getElementById("cloudLoad").addEventListener("click", loadCloudData);
+    document.getElementById("cloudLogout").addEventListener("click", logoutCloudSync);
     document.getElementById("resetData").addEventListener("click", () => {
       if (confirm("確定要清除目前所有資料嗎？")) {
         data = structuredClone(seed);
@@ -2680,6 +2836,7 @@
     });
     render();
     window.addEventListener("resize", updateHeaderOffset);
+    initCloudSync();
     autoApplyLatestPrices();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
