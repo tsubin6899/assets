@@ -1678,7 +1678,11 @@
         localAccounting.entries.length ||
         (localAccounting.transfers || []).length ||
         (localAccounting.creditBills || []).length ||
-        (localAccounting.creditInstallments || []).length
+        (localAccounting.creditInstallments || []).length ||
+        (localAccounting.templates || []).length ||
+        (localAccounting.recurringRules || []).length ||
+        (localAccounting.budgets || []).length ||
+        (localAccounting.reconciliations || []).length
       );
       payload.accountingLedger = hasLocalAccounting ? localAccounting : existingRow?.data?.accountingLedger;
       const { error } = await supabaseClient
@@ -1806,10 +1810,14 @@
           entries: Array.isArray(saved.entries) ? saved.entries : [],
           transfers: Array.isArray(saved.transfers) ? saved.transfers : [],
           creditBills: Array.isArray(saved.creditBills) ? saved.creditBills : [],
-          creditInstallments: Array.isArray(saved.creditInstallments) ? saved.creditInstallments : []
+          creditInstallments: Array.isArray(saved.creditInstallments) ? saved.creditInstallments : [],
+          templates: Array.isArray(saved.templates) ? saved.templates : [],
+          recurringRules: Array.isArray(saved.recurringRules) ? saved.recurringRules : [],
+          budgets: Array.isArray(saved.budgets) ? saved.budgets : [],
+          reconciliations: Array.isArray(saved.reconciliations) ? saved.reconciliations : []
         };
       } catch {
-        return { entries: [], transfers: [], creditBills: [], creditInstallments: [] };
+        return { entries: [], transfers: [], creditBills: [], creditInstallments: [], templates: [], recurringRules: [], budgets: [], reconciliations: [] };
       }
     }
     function accountingRows(month = localMonthString()) {

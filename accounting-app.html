@@ -595,6 +595,43 @@
     .installment-grid .btn {
       min-height: 42px;
     }
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .template-button {
+      justify-items: start;
+      min-height: 54px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #fffdf8;
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+    .template-button small {
+      color: var(--muted);
+      font-weight: 650;
+    }
+    .budget-alert {
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff5df;
+      color: #72532c;
+      border: 1px solid #dfc997;
+    }
+    .budget-alert.danger {
+      background: #fae8e4;
+      color: #96392d;
+      border-color: #e1aaa1;
+    }
     .bill-status {
       display: inline-flex;
       align-items: center;
@@ -723,6 +760,7 @@
       .selected-day-head { align-items: flex-start; flex-direction: column; }
       .bill-grid { grid-template-columns: 1fr; }
       .installment-grid { grid-template-columns: 1fr; }
+      .tool-grid { grid-template-columns: 1fr; }
       .weekday, .day-stat, .day-note { font-size: 10px; }
       .ledger-day strong { font-size: 12px; }
       .filters input, .filters select { width: 100%; min-width: 0; }
@@ -803,6 +841,20 @@
               <button class="btn blue" id="scanInvoice" type="button">辨識發票</button>
               <div id="invoiceStatus" class="invoice-status">尚未選擇發票照片</div>
             </section>
+            <section class="invoice-box">
+              <h3>快速模板</h3>
+              <p class="hint">常用消費可一鍵帶入金額、分類、項目與帳戶，手機記帳會快很多。</p>
+              <form id="templateForm" class="form-grid">
+                <input id="templateName" placeholder="模板名稱，例如：早餐">
+                <input id="templateAmount" type="number" min="0" step="1" placeholder="金額">
+                <select id="templateCategory"></select>
+                <select id="templateItem"></select>
+                <select id="templateAccount"></select>
+                <input id="templateMerchant" placeholder="商家 / 對象">
+                <button class="btn blue full" type="submit">新增模板</button>
+              </form>
+              <div id="templateList" class="template-grid"></div>
+            </section>
           </div>
         </aside>
         <section>
@@ -840,6 +892,18 @@
             <button class="btn small green" type="submit">新增帳戶</button>
           </form>
           <div id="accountList" class="account-list"></div>
+          <div class="manager-block">
+            <h3>帳戶對帳 / 盤點</h3>
+            <p class="hint">輸入實際餘額，系統會算出與帳面餘額的差額，可一鍵建立盤點調整。</p>
+            <form id="reconcileForm" class="tool-grid">
+              <label>帳戶<select id="reconcileAccount" required></select></label>
+              <label>盤點日期<input id="reconcileDate" type="date" required></label>
+              <label>實際餘額<input id="reconcileActual" type="number" step="1" required></label>
+              <button class="btn green" type="submit">建立調整</button>
+            </form>
+            <div id="reconcilePreview" class="transfer-tip">選擇帳戶並輸入實際餘額後，會顯示差額。</div>
+            <div id="reconcileList" class="account-list"></div>
+          </div>
         </div>
       </article>
     </section>
@@ -856,6 +920,16 @@
             <button class="btn small green" type="submit">新增信用卡</button>
           </form>
           <div id="creditList" class="account-list"></div>
+          <div class="manager-block">
+            <h3>信用卡結帳日 / 繳款日</h3>
+            <p class="hint">設定每張卡的結帳日與繳款日，之後可用來判斷消費應落在哪個帳單月份。</p>
+            <form id="cardCycleForm" class="tool-grid">
+              <label>信用卡<select id="cycleCard" required></select></label>
+              <label>結帳日<input id="cycleStatementDay" type="number" min="1" max="31" placeholder="例如 20"></label>
+              <label>繳款日<input id="cyclePaymentDay" type="number" min="1" max="31" placeholder="例如 15"></label>
+              <button class="btn blue" type="submit">儲存日期</button>
+            </form>
+          </div>
           <div class="manager-block">
             <h3>信用卡分期付款</h3>
             <p class="hint">建立一次分期後，系統會自動拆到每個月帳單，並列入該月支出統計。</p>
@@ -972,6 +1046,35 @@
         </div>
       </div>
       <div class="cards" id="summaryCards"></div>
+      <article class="panel">
+        <div class="panel-pad">
+          <h3>固定收入 / 固定支出</h3>
+          <p class="hint">例如薪資、房租、保險、訂閱。設定後可一鍵產生本月待記錄項目。</p>
+          <form id="recurringForm" class="tool-grid">
+            <select id="recurringType"><option value="expense">支出</option><option value="income">收入</option></select>
+            <input id="recurringName" placeholder="名稱，例如：房租">
+            <input id="recurringAmount" type="number" min="0" step="1" placeholder="金額">
+            <select id="recurringCategory"></select>
+            <select id="recurringAccount"></select>
+            <input id="recurringDay" type="number" min="1" max="31" placeholder="每月幾號">
+            <button class="btn green" type="submit">新增固定項目</button>
+            <button class="btn blue" id="generateRecurring" type="button">產生本月項目</button>
+          </form>
+          <div id="recurringList" class="account-list"></div>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="panel-pad">
+          <h3>分類預算與警示</h3>
+          <p class="hint">設定月預算後，超過 80% 會提醒，超過 100% 會標紅。</p>
+          <form id="budgetForm" class="tool-grid">
+            <select id="budgetCategory"></select>
+            <input id="budgetAmount" type="number" min="0" step="1" placeholder="月預算">
+            <button class="btn purple" type="submit">儲存預算</button>
+          </form>
+          <div id="budgetAlerts" class="account-list"></div>
+        </div>
+      </article>
       <div class="chart-grid">
         <article class="chart-card">
           <h3>支出分類排行</h3>
@@ -982,6 +1085,13 @@
           <div id="itemBars" class="bar-list"></div>
         </article>
       </div>
+      <article class="panel">
+        <div class="panel-pad">
+          <h3>月度 / 年度報表</h3>
+          <p class="hint">比較近 6 個月收支、信用卡支出排行與帳戶現金流。</p>
+        </div>
+        <div id="enhancedReports" class="panel-pad"></div>
+      </article>
       <article class="panel">
         <div class="panel-pad">
           <h3>分析明細</h3>
@@ -1045,6 +1155,15 @@
     const installmentCardSelect = document.getElementById("installmentCard");
     const installmentCategorySelect = document.getElementById("installmentCategory");
     const installmentItemSelect = document.getElementById("installmentItem");
+    const templateCategorySelect = document.getElementById("templateCategory");
+    const templateItemSelect = document.getElementById("templateItem");
+    const templateAccountSelect = document.getElementById("templateAccount");
+    const reconcileAccountSelect = document.getElementById("reconcileAccount");
+    const cycleCardSelect = document.getElementById("cycleCard");
+    const recurringTypeSelect = document.getElementById("recurringType");
+    const recurringCategorySelect = document.getElementById("recurringCategory");
+    const recurringAccountSelect = document.getElementById("recurringAccount");
+    const budgetCategorySelect = document.getElementById("budgetCategory");
     const monthFilter = document.getElementById("monthFilter");
     const typeFilter = document.getElementById("typeFilter");
     const searchInput = document.getElementById("searchInput");
@@ -1149,11 +1268,19 @@
         const transfers = normalizeTransfers(saved.transfers);
         const creditBills = normalizeCreditBills(saved.creditBills);
         const creditInstallments = normalizeCreditInstallments(saved.creditInstallments);
+        const templates = normalizeTemplates(saved.templates);
+        const recurringRules = normalizeRecurringRules(saved.recurringRules);
+        const budgets = normalizeBudgets(saved.budgets);
+        const reconciliations = normalizeReconciliations(saved.reconciliations);
         return {
           entries,
           transfers,
           creditBills,
           creditInstallments,
+          templates,
+          recurringRules,
+          budgets,
+          reconciliations,
           categories: {
             income: normalizeList(saved.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
             expense: normalizeList(saved.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -1168,6 +1295,10 @@
           transfers: [],
           creditBills: [],
           creditInstallments: [],
+          templates: [],
+          recurringRules: [],
+          budgets: [],
+          reconciliations: [],
           categories: structuredClone(defaultCategories),
           items: structuredClone(defaultItems),
           accounts: structuredClone(defaultAccounts),
@@ -1205,7 +1336,9 @@
         name: String(row.name || "").trim(),
         type: String(row.type || "其他").trim(),
         currency: String(row.currency || "TWD").trim().toUpperCase(),
-        openingBalance: Number(row.openingBalance) || 0
+        openingBalance: Number(row.openingBalance) || 0,
+        statementDay: Number(row.statementDay) || 0,
+        paymentDay: Number(row.paymentDay) || 0
       })).filter(row => row.name && !seen.has(row.name) && seen.add(row.name));
     }
     function normalizeTransfers(saved) {
@@ -1250,6 +1383,49 @@
         note: String(row.note || "").trim(),
         createdAt: row.createdAt || new Date().toISOString()
       })).filter(row => row.card && row.totalAmount > 0 && row.months > 1 && row.startMonth);
+    }
+    function normalizeTemplates(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        id: row.id || uid(),
+        name: String(row.name || "").trim(),
+        amount: Number(row.amount) || 0,
+        category: String(row.category || "其他支出").trim(),
+        item: String(row.item || "").trim(),
+        account: String(row.account || "").trim(),
+        merchant: String(row.merchant || "").trim(),
+        createdAt: row.createdAt || new Date().toISOString()
+      })).filter(row => row.name && row.amount > 0);
+    }
+    function normalizeRecurringRules(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        id: row.id || uid(),
+        type: row.type === "income" ? "income" : "expense",
+        name: String(row.name || "").trim(),
+        amount: Number(row.amount) || 0,
+        category: String(row.category || "").trim(),
+        account: String(row.account || "").trim(),
+        day: Math.min(31, Math.max(1, Number(row.day) || 1)),
+        createdAt: row.createdAt || new Date().toISOString()
+      })).filter(row => row.name && row.amount > 0 && row.category && row.account);
+    }
+    function normalizeBudgets(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        id: row.id || uid(),
+        category: String(row.category || "").trim(),
+        amount: Number(row.amount) || 0
+      })).filter(row => row.category && row.amount > 0);
+    }
+    function normalizeReconciliations(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        id: row.id || uid(),
+        date: row.date || today(),
+        account: String(row.account || "").trim(),
+        bookBalance: Number(row.bookBalance) || 0,
+        actualBalance: Number(row.actualBalance) || 0,
+        diff: Number(row.diff) || 0,
+        entryId: row.entryId || "",
+        createdAt: row.createdAt || new Date().toISOString()
+      })).filter(row => row.account);
     }
     function saveLedger() {
       localStorage.setItem(accountingKey, JSON.stringify(ledger));
@@ -1387,6 +1563,10 @@
         transfers: normalizeTransfers(payload.transfers),
         creditBills: normalizeCreditBills(payload.creditBills),
         creditInstallments: normalizeCreditInstallments(payload.creditInstallments),
+        templates: normalizeTemplates(payload.templates),
+        recurringRules: normalizeRecurringRules(payload.recurringRules),
+        budgets: normalizeBudgets(payload.budgets),
+        reconciliations: normalizeReconciliations(payload.reconciliations),
         categories: {
           income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
           expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -1440,6 +1620,7 @@
       renderAccountOptions(transferFeeAccountSelect, transferFeeAccountSelect.value, true);
       renderCreditBillOptions();
       renderInstallmentOptions();
+      renderUtilityOptions();
       document.getElementById("categoryPills").innerHTML = (ledger.categories[currentType] || []).map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-category="${escapeHtml(item)}">×</button></span>`).join("");
       const currentCategory = itemCategorySelect.value || categories[0] || "";
       const items = currentCategory ? (ledger.items?.[currentType]?.[currentCategory] || []) : [];
@@ -1481,6 +1662,32 @@
       const items = category ? (ledger.items?.expense?.[category] || []) : [];
       installmentItemSelect.innerHTML = [`<option value="">未指定</option>`, ...items.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`)].join("");
       if (selectedItem && items.includes(selectedItem)) installmentItemSelect.value = selectedItem;
+    }
+    function renderUtilityOptions() {
+      const expenseCategories = ledger.categories.expense || [];
+      const accountOptions = ledger.accounts.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.type)}</option>`).join("");
+      const cardOptions = ledger.accounts.filter(account => account.type === "信用卡").map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}</option>`).join("");
+      const selectedTemplateCategory = templateCategorySelect.value;
+      const selectedTemplateItem = templateItemSelect.value;
+      templateCategorySelect.innerHTML = expenseCategories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      if (selectedTemplateCategory && expenseCategories.includes(selectedTemplateCategory)) templateCategorySelect.value = selectedTemplateCategory;
+      const templateItems = ledger.items?.expense?.[templateCategorySelect.value] || [];
+      templateItemSelect.innerHTML = [`<option value="">未指定</option>`, ...templateItems.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`)].join("");
+      if (selectedTemplateItem && templateItems.includes(selectedTemplateItem)) templateItemSelect.value = selectedTemplateItem;
+      templateAccountSelect.innerHTML = accountOptions;
+      reconcileAccountSelect.innerHTML = accountOptions;
+      cycleCardSelect.innerHTML = cardOptions;
+      recurringCategorySelect.innerHTML = (ledger.categories[recurringTypeSelect.value] || []).map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      recurringAccountSelect.innerHTML = accountOptions;
+      budgetCategorySelect.innerHTML = expenseCategories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      updateReconcilePreview();
+      updateCycleFields();
+    }
+    function updateCycleFields() {
+      const account = ledger.accounts.find(row => row.name === cycleCardSelect.value);
+      if (!account) return;
+      document.getElementById("cycleStatementDay").value = account.statementDay || "";
+      document.getElementById("cyclePaymentDay").value = account.paymentDay || "";
     }
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -1544,7 +1751,7 @@
       document.getElementById("creditList").innerHTML = creditCards.map(account => {
         const balance = accountBalance(account);
         return `<div class="account-tile">
-          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.currency)}｜目前已刷 / 起始 ${money(account.openingBalance)}</small></div>
+          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.currency)}｜目前已刷 / 起始 ${money(account.openingBalance)}｜結帳日 ${account.statementDay || "-"}｜繳款日 ${account.paymentDay || "-"}</small></div>
           <span class="account-balance">${money(Math.abs(balance))} ${escapeHtml(account.currency)}</span>
           <div class="account-actions"><button type="button" data-remove-account="${escapeHtml(account.name)}">刪除</button></div>
         </div>`;
@@ -1795,6 +2002,70 @@
         }).join("")}</tbody>
       </table></div>`;
     }
+    function renderTemplates() {
+      const target = document.getElementById("templateList");
+      target.innerHTML = (ledger.templates || []).length
+        ? ledger.templates.map(row => `<button class="template-button" type="button" data-use-template="${escapeHtml(row.id)}"><strong>${escapeHtml(row.name)}</strong><small>${money(row.amount)}｜${escapeHtml(row.category)}${row.item ? `/${escapeHtml(row.item)}` : ""}</small></button>`).join("")
+        : `<div class="empty">尚未建立快速模板</div>`;
+    }
+    function updateReconcilePreview() {
+      if (!reconcileAccountSelect) return;
+      const account = ledger.accounts.find(row => row.name === reconcileAccountSelect.value);
+      const actual = Number(document.getElementById("reconcileActual")?.value) || 0;
+      const book = account ? accountBalance(account) : 0;
+      const diff = actual - book;
+      const preview = document.getElementById("reconcilePreview");
+      if (preview) preview.textContent = account && actual ? `帳面 ${money(book)}，實際 ${money(actual)}，差額 ${diff >= 0 ? "+" : ""}${money(diff)}` : "選擇帳戶並輸入實際餘額後，會顯示差額。";
+    }
+    function renderReconciliations() {
+      const target = document.getElementById("reconcileList");
+      const rows = [...(ledger.reconciliations || [])].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 6);
+      target.innerHTML = rows.length
+        ? rows.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.account)}｜${escapeHtml(row.date)}</strong><small>帳面 ${money(row.bookBalance)}｜實際 ${money(row.actualBalance)}</small></div><span class="account-balance">${row.diff >= 0 ? "+" : ""}${money(row.diff)}</span><div class="account-actions"><button type="button" data-remove-reconcile="${escapeHtml(row.id)}">刪除</button></div></div>`).join("")
+        : `<div class="empty">尚未建立盤點紀錄</div>`;
+    }
+    function renderRecurringRules() {
+      const target = document.getElementById("recurringList");
+      target.innerHTML = (ledger.recurringRules || []).length
+        ? ledger.recurringRules.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜每月 ${row.day} 日｜${escapeHtml(row.category)}｜${escapeHtml(row.account)}</small></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions"><button type="button" data-remove-recurring="${escapeHtml(row.id)}">刪除</button></div></div>`).join("")
+        : `<div class="empty">尚未建立固定收支</div>`;
+    }
+    function renderBudgetAlerts(rows) {
+      const target = document.getElementById("budgetAlerts");
+      const expenseRows = rows.filter(row => row.type === "expense");
+      target.innerHTML = (ledger.budgets || []).length
+        ? ledger.budgets.map(budget => {
+          const used = sum(expenseRows.filter(row => row.category === budget.category), row => row.amount);
+          const ratio = budget.amount ? used / budget.amount * 100 : 0;
+          const cls = ratio >= 100 ? "danger" : "";
+          const state = ratio >= 100 ? "已超支" : ratio >= 80 ? "接近上限" : "正常";
+          return `<div class="budget-alert ${cls}"><strong>${escapeHtml(budget.category)}｜${state}</strong><br>已用 ${money(used)} / 預算 ${money(budget.amount)}（${ratio.toFixed(0)}%） <button type="button" data-remove-budget="${escapeHtml(budget.id)}">刪除</button></div>`;
+        }).join("")
+        : `<div class="empty">尚未設定分類預算</div>`;
+    }
+    function renderEnhancedReports() {
+      const rows = allEntryRows();
+      const months = Array.from({ length: 6 }, (_, index) => shiftMonth(monthOf(), index - 5));
+      const monthly = months.map(month => {
+        const monthRows = rows.filter(row => String(row.date || "").startsWith(month));
+        const income = sum(monthRows.filter(row => row.type === "income"), row => row.amount);
+        const expense = sum(monthRows.filter(row => row.type === "expense"), row => row.amount);
+        return { label: month, value: expense, income, expense, balance: income - expense };
+      });
+      const creditRows = rows.filter(row => row.type === "expense" && (ledger.accounts.find(account => account.name === row.account)?.type === "信用卡"));
+      const creditGroups = groupRows(creditRows, "account").slice(0, 6);
+      const cashFlow = ledger.accounts.slice(0, 8).map(account => ({ label: account.name, value: accountBalance(account) }));
+      document.getElementById("enhancedReports").innerHTML = `
+        <div class="chart-grid">
+          ${renderBarMarkup("近 6 個月支出趨勢", monthly, "TWD")}
+          ${renderBarMarkup("信用卡支出排行", creditGroups, "TWD")}
+          ${renderBarMarkup("帳戶目前餘額", cashFlow, "目前餘額")}
+        </div>`;
+    }
+    function renderBarMarkup(title, rows, unit) {
+      const max = Math.max(1, ...rows.map(row => Math.abs(Number(row.value) || 0)));
+      return `<article class="chart-card"><h3>${title}</h3><div class="bar-list">${rows.length ? rows.map(row => `<div class="bar-row"><strong>${escapeHtml(row.label)}</strong><span class="bar-track"><i class="bar-fill" style="--w:${Math.max(4, Math.abs(row.value) / max * 100).toFixed(1)}%;--c:var(--blue)"></i></span><span>${money(row.value)} ${unit === "TWD" ? "" : ""}</span></div>`).join("") : `<div class="empty">尚無資料</div>`}</div></article>`;
+    }
     function render() {
       renderTabs();
       refreshLists();
@@ -1806,6 +2077,11 @@
       renderTable("analysisTable", rows);
       renderLedgerCalendar();
       renderTransfers();
+      renderTemplates();
+      renderReconciliations();
+      renderRecurringRules();
+      renderBudgetAlerts(rows);
+      renderEnhancedReports();
     }
     function download(filename, content, type) {
       const blob = new Blob([content], { type });
@@ -1946,6 +2222,21 @@
         document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
+      const useTemplate = event.target.closest("[data-use-template]");
+      if (useTemplate) {
+        const tpl = (ledger.templates || []).find(row => row.id === useTemplate.dataset.useTemplate);
+        if (tpl) {
+          setType("expense");
+          document.getElementById("amount").value = tpl.amount;
+          categorySelect.value = tpl.category;
+          refreshLists();
+          itemSelect.value = tpl.item || "";
+          accountSelect.value = tpl.account || accountSelect.value;
+          document.getElementById("merchant").value = tpl.merchant || "";
+          document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        return;
+      }
       if (event.target.closest("[data-calendar-prev]")) {
         ledgerCalendarMonth = shiftMonth(ledgerCalendarMonth || monthOf(), -1);
         selectedLedgerDate = `${ledgerCalendarMonth}-01`;
@@ -1989,6 +2280,27 @@
         saveLedger();
         render();
         toast("已刪除帳戶");
+      }
+      const removeReconcile = event.target.closest("[data-remove-reconcile]");
+      if (removeReconcile) {
+        ledger.reconciliations = (ledger.reconciliations || []).filter(row => row.id !== removeReconcile.dataset.removeReconcile);
+        saveLedger();
+        render();
+        toast("已刪除盤點紀錄");
+      }
+      const removeRecurring = event.target.closest("[data-remove-recurring]");
+      if (removeRecurring) {
+        ledger.recurringRules = (ledger.recurringRules || []).filter(row => row.id !== removeRecurring.dataset.removeRecurring);
+        saveLedger();
+        render();
+        toast("已刪除固定收支");
+      }
+      const removeBudget = event.target.closest("[data-remove-budget]");
+      if (removeBudget) {
+        ledger.budgets = (ledger.budgets || []).filter(row => row.id !== removeBudget.dataset.removeBudget);
+        saveLedger();
+        render();
+        toast("已刪除預算");
       }
     });
     document.getElementById("categoryForm").addEventListener("submit", event => {
@@ -2042,6 +2354,65 @@
       accountSelect.value = name;
       toast("已新增帳戶");
     });
+    document.getElementById("templateForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const name = document.getElementById("templateName").value.trim();
+      const amount = Number(document.getElementById("templateAmount").value) || 0;
+      if (!name || !amount) {
+        toast("請輸入模板名稱與金額");
+        return;
+      }
+      ledger.templates = ledger.templates || [];
+      ledger.templates.push({
+        id: uid(),
+        name,
+        amount,
+        category: templateCategorySelect.value || "其他支出",
+        item: templateItemSelect.value,
+        account: templateAccountSelect.value,
+        merchant: document.getElementById("templateMerchant").value.trim(),
+        createdAt: new Date().toISOString()
+      });
+      document.getElementById("templateForm").reset();
+      saveLedger();
+      render();
+      toast("已新增快速模板");
+    });
+    templateCategorySelect.addEventListener("change", renderUtilityOptions);
+    reconcileAccountSelect.addEventListener("change", updateReconcilePreview);
+    document.getElementById("reconcileActual").addEventListener("input", updateReconcilePreview);
+    document.getElementById("reconcileForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const account = ledger.accounts.find(row => row.name === reconcileAccountSelect.value);
+      const actual = Number(document.getElementById("reconcileActual").value) || 0;
+      if (!account) return;
+      const book = accountBalance(account);
+      const diff = actual - book;
+      const date = document.getElementById("reconcileDate").value || today();
+      let entryId = "";
+      if (diff) {
+        entryId = uid();
+        ledger.entries.push({
+          id: entryId,
+          type: diff > 0 ? "income" : "expense",
+          date,
+          amount: Math.abs(diff),
+          category: "現金盤點調整",
+          item: diff > 0 ? "現金多出" : "現金短少",
+          account: account.name,
+          merchant: "帳戶盤點",
+          note: `盤點調整：帳面 ${money(book)}，實際 ${money(actual)}`,
+          createdAt: new Date().toISOString()
+        });
+      }
+      ledger.reconciliations = ledger.reconciliations || [];
+      ledger.reconciliations.push({ id: uid(), date, account: account.name, bookBalance: book, actualBalance: actual, diff, entryId, createdAt: new Date().toISOString() });
+      document.getElementById("reconcileForm").reset();
+      document.getElementById("reconcileDate").value = today();
+      saveLedger();
+      render();
+      toast(diff ? "已建立盤點調整" : "已記錄盤點，沒有差額");
+    });
     document.getElementById("creditForm").addEventListener("submit", event => {
       event.preventDefault();
       const name = document.getElementById("newCreditName").value.trim();
@@ -2063,6 +2434,17 @@
       render();
       accountSelect.value = name;
       toast("已新增信用卡");
+    });
+    cycleCardSelect.addEventListener("change", updateCycleFields);
+    document.getElementById("cardCycleForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const account = ledger.accounts.find(row => row.name === cycleCardSelect.value);
+      if (!account) return;
+      account.statementDay = Number(document.getElementById("cycleStatementDay").value) || 0;
+      account.paymentDay = Number(document.getElementById("cyclePaymentDay").value) || 0;
+      saveLedger();
+      render();
+      toast("已儲存信用卡日期");
     });
     installmentCategorySelect.addEventListener("change", renderInstallmentOptions);
     installmentForm.addEventListener("submit", event => {
@@ -2131,6 +2513,72 @@
       saveLedger();
       render();
       toast("已新增信用卡帳單");
+    });
+    recurringTypeSelect.addEventListener("change", renderUtilityOptions);
+    document.getElementById("recurringForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const name = document.getElementById("recurringName").value.trim();
+      const amount = Number(document.getElementById("recurringAmount").value) || 0;
+      if (!name || !amount || !recurringCategorySelect.value || !recurringAccountSelect.value) {
+        toast("請完整輸入固定收支");
+        return;
+      }
+      ledger.recurringRules = ledger.recurringRules || [];
+      ledger.recurringRules.push({
+        id: uid(),
+        type: recurringTypeSelect.value === "income" ? "income" : "expense",
+        name,
+        amount,
+        category: recurringCategorySelect.value,
+        account: recurringAccountSelect.value,
+        day: Math.min(31, Math.max(1, Number(document.getElementById("recurringDay").value) || 1)),
+        createdAt: new Date().toISOString()
+      });
+      document.getElementById("recurringForm").reset();
+      saveLedger();
+      render();
+      toast("已新增固定收支");
+    });
+    document.getElementById("generateRecurring").addEventListener("click", () => {
+      const month = monthFilter.value || monthOf();
+      let created = 0;
+      (ledger.recurringRules || []).forEach(rule => {
+        const date = `${month}-${String(Math.min(rule.day, new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate())).padStart(2, "0")}`;
+        const exists = ledger.entries.some(row => row.recurringId === rule.id && row.date === date);
+        if (exists) return;
+        ledger.entries.push({
+          id: uid(),
+          type: rule.type,
+          date,
+          amount: rule.amount,
+          category: rule.category,
+          item: "",
+          account: rule.account,
+          merchant: rule.name,
+          note: "固定收支自動產生",
+          recurringId: rule.id,
+          createdAt: new Date().toISOString()
+        });
+        created += 1;
+      });
+      saveLedger();
+      render();
+      toast(created ? `已產生 ${created} 筆固定收支` : "本月固定收支已產生過");
+    });
+    document.getElementById("budgetForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const category = budgetCategorySelect.value;
+      const amount = Number(document.getElementById("budgetAmount").value) || 0;
+      if (!category || !amount) {
+        toast("請選擇分類並輸入預算");
+        return;
+      }
+      ledger.budgets = (ledger.budgets || []).filter(row => row.category !== category);
+      ledger.budgets.push({ id: uid(), category, amount });
+      document.getElementById("budgetForm").reset();
+      saveLedger();
+      render();
+      toast("已儲存分類預算");
     });
     function payCreditBill(id) {
       const bill = (ledger.creditBills || []).find(row => row.id === id);
@@ -2245,6 +2693,10 @@
         transfers: normalizeTransfers(payload.transfers),
         creditBills: normalizeCreditBills(payload.creditBills),
         creditInstallments: normalizeCreditInstallments(payload.creditInstallments),
+        templates: normalizeTemplates(payload.templates),
+        recurringRules: normalizeRecurringRules(payload.recurringRules),
+        budgets: normalizeBudgets(payload.budgets),
+        reconciliations: normalizeReconciliations(payload.reconciliations),
         categories: {
           income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...payload.entries.filter(row => row.type === "income").map(row => row.category)]),
           expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...payload.entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -2265,6 +2717,10 @@
         transfers: [],
         creditBills: [],
         creditInstallments: [],
+        templates: [],
+        recurringRules: [],
+        budgets: [],
+        reconciliations: [],
         categories: structuredClone(defaultCategories),
         items: structuredClone(defaultItems),
         accounts: structuredClone(defaultAccounts),
