@@ -419,6 +419,22 @@
       background: #fffdf8;
       outline: 0;
     }
+    input[type="file"] {
+      padding: 5px 8px;
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    input[type="file"]::file-selector-button {
+      min-height: 28px;
+      margin-right: 8px;
+      padding: 0 8px;
+      border: 1px solid #aaa297;
+      border-radius: 4px;
+      color: var(--ink);
+      background: #f7f4ed;
+      font: inherit;
+      cursor: pointer;
+    }
     textarea { min-height: 76px; resize: vertical; }
     input:focus, select:focus, textarea:focus {
       border-color: var(--blue);
