@@ -515,6 +515,7 @@
               <label>日期<input id="date" type="date" required></label>
               <label>金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" required></label>
               <label>分類<select id="category" required></select></label>
+              <label>項目<select id="item"></select></label>
               <label>付款帳戶<select id="account" required></select></label>
               <label>付款方式<select id="method"></select></label>
               <label>商家 / 對象<input id="merchant" placeholder="超商、餐廳、薪資等"></label>
@@ -598,6 +599,16 @@
               <button class="btn small blue" type="submit">新增</button>
             </form>
             <div id="categoryPills" class="pill-list"></div>
+            <div class="manager-block">
+              <h3>目前分類的項目</h3>
+              <p class="hint">先選擇要管理的分類，再新增早餐、中餐、晚餐、下午茶等項目。</p>
+              <label>選擇分類<select id="itemCategory"></select></label>
+              <form id="itemForm" class="manager-form">
+                <input id="newItem" placeholder="新增項目，例如：早餐、中餐、晚餐、下午茶">
+                <button class="btn small green" type="submit">新增</button>
+              </form>
+              <div id="itemPills" class="pill-list"></div>
+            </div>
           </div>
         </article>
         <article class="panel">
@@ -640,6 +651,10 @@
           <h3>付款方式占比</h3>
           <div id="methodBars" class="bar-list"></div>
         </article>
+        <article class="chart-card">
+          <h3>支出項目排行</h3>
+          <div id="itemBars" class="bar-list"></div>
+        </article>
       </div>
       <article class="panel">
         <div class="panel-pad">
@@ -669,6 +684,8 @@
     const entryTypeButtons = [...document.querySelectorAll("[data-type]")];
     const form = document.getElementById("entryForm");
     const categorySelect = document.getElementById("category");
+    const itemSelect = document.getElementById("item");
+    const itemCategorySelect = document.getElementById("itemCategory");
     const accountSelect = document.getElementById("account");
     const methodSelect = document.getElementById("method");
     const monthFilter = document.getElementById("monthFilter");
@@ -681,6 +698,20 @@
     const defaultCategories = {
       income: ["薪資", "股息", "利息", "獎金", "退款", "其他收入"],
       expense: ["餐飲", "交通", "生活用品", "房租房貸", "水電瓦斯", "保險", "醫療", "娛樂", "教育", "投資費用", "其他支出"]
+    };
+    const defaultItems = {
+      income: {
+        薪資: ["本薪", "加班費", "津貼"],
+        股息: ["台股股息", "美股股息", "基金配息"],
+        退款: ["購物退款", "信用卡回饋"]
+      },
+      expense: {
+        餐飲: ["早餐", "中餐", "晚餐", "下午茶", "咖啡", "宵夜"],
+        交通: ["捷運", "公車", "計程車", "高鐵", "停車", "加油"],
+        生活用品: ["日用品", "清潔用品", "衣物", "3C"],
+        娛樂: ["電影", "訂閱", "遊戲", "聚餐"],
+        醫療: ["門診", "藥品", "保健品"]
+      }
     };
     const defaultMethods = ["現金", "信用卡", "轉帳", "行動支付", "其他"];
     const defaultAccounts = [
@@ -715,6 +746,7 @@
             income: normalizeList(saved.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
             expense: normalizeList(saved.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
           },
+          items: normalizeItems(saved.items, entries),
           accounts: normalizeAccounts(saved.accounts, entries),
           methods: normalizeList(saved.methods, [...defaultMethods, ...entries.map(row => row.method)])
         };
@@ -722,6 +754,7 @@
         return {
           entries: [],
           categories: structuredClone(defaultCategories),
+          items: structuredClone(defaultItems),
           accounts: structuredClone(defaultAccounts),
           methods: [...defaultMethods]
         };
@@ -729,6 +762,24 @@
     }
     function normalizeList(saved, fallback) {
       return [...new Set([...(Array.isArray(saved) ? saved : []), ...fallback].map(item => String(item || "").trim()).filter(Boolean))];
+    }
+    function normalizeItems(saved, entries) {
+      const merged = structuredClone(defaultItems);
+      ["income", "expense"].forEach(type => {
+        merged[type] = { ...(merged[type] || {}), ...((saved && saved[type]) || {}) };
+      });
+      entries.forEach(row => {
+        const type = row.type === "income" ? "income" : "expense";
+        const category = row.category || (type === "income" ? "其他收入" : "其他支出");
+        if (!merged[type][category]) merged[type][category] = [];
+        if (row.item) merged[type][category].push(row.item);
+      });
+      ["income", "expense"].forEach(type => {
+        Object.keys(merged[type]).forEach(category => {
+          merged[type][category] = normalizeList(merged[type][category], []);
+        });
+      });
+      return merged;
     }
     function normalizeAccounts(saved, entries) {
       const used = entries.map(row => row.account).filter(Boolean).map(name => ({ id: uid(), name, type: "其他", currency: "TWD", openingBalance: 0 }));
@@ -769,8 +820,17 @@
     }
     function refreshLists() {
       const selectedCategory = categorySelect.value;
-      categorySelect.innerHTML = (ledger.categories[currentType] || []).map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
-      if (selectedCategory && (ledger.categories[currentType] || []).includes(selectedCategory)) categorySelect.value = selectedCategory;
+      const categories = ledger.categories[currentType] || [];
+      categorySelect.innerHTML = categories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      if (selectedCategory && categories.includes(selectedCategory)) categorySelect.value = selectedCategory;
+      const selectedManageCategory = itemCategorySelect.value;
+      itemCategorySelect.innerHTML = categories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      if (selectedManageCategory && categories.includes(selectedManageCategory)) itemCategorySelect.value = selectedManageCategory;
+      const selectedItem = itemSelect.value;
+      const entryCategory = categorySelect.value || categories[0] || "";
+      const entryItems = entryCategory ? (ledger.items?.[currentType]?.[entryCategory] || []) : [];
+      itemSelect.innerHTML = [`<option value="">未指定</option>`, ...entryItems.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`)].join("");
+      if (selectedItem && entryItems.includes(selectedItem)) itemSelect.value = selectedItem;
       const selectedAccount = accountSelect.value;
       accountSelect.innerHTML = ledger.accounts.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.type)}｜${escapeHtml(account.currency)}</option>`).join("");
       if (selectedAccount && ledger.accounts.some(account => account.name === selectedAccount)) accountSelect.value = selectedAccount;
@@ -778,6 +838,11 @@
       methodSelect.innerHTML = ledger.methods.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
       if (selectedMethod && ledger.methods.includes(selectedMethod)) methodSelect.value = selectedMethod;
       document.getElementById("categoryPills").innerHTML = (ledger.categories[currentType] || []).map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-category="${escapeHtml(item)}">×</button></span>`).join("");
+      const currentCategory = itemCategorySelect.value || categories[0] || "";
+      const items = currentCategory ? (ledger.items?.[currentType]?.[currentCategory] || []) : [];
+      document.getElementById("itemPills").innerHTML = currentCategory
+        ? `<span class="pill">${escapeHtml(currentCategory)}</span>` + (items.map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-item="${escapeHtml(item)}">×</button></span>`).join("") || `<span class="pill">尚未建立項目</span>`)
+        : `<span class="pill">請先建立分類</span>`;
       document.getElementById("methodPills").innerHTML = ledger.methods.map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-method="${escapeHtml(item)}">×</button></span>`).join("");
       renderAccounts();
     }
@@ -793,7 +858,7 @@
         .filter(row => type === "all" || row.type === type)
         .filter(row => {
           if (!keyword) return true;
-          return [row.category, row.account, row.method, row.merchant, row.note].some(value => String(value || "").toLowerCase().includes(keyword));
+          return [row.category, row.item, row.account, row.method, row.merchant, row.note].some(value => String(value || "").toLowerCase().includes(keyword));
         })
         .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
     }
@@ -862,13 +927,14 @@
         return;
       }
       document.getElementById(target).innerHTML = `<div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>金額</th><th>付款帳戶</th><th>方式</th><th>商家 / 對象</th><th>備註</th><th>操作</th></tr></thead>
+        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>項目</th><th>金額</th><th>付款帳戶</th><th>方式</th><th>商家 / 對象</th><th>備註</th><th>操作</th></tr></thead>
         <tbody>${rows.map(row => {
           const account = ledger.accounts.find(item => item.name === row.account);
           return `<tr>
           <td>${escapeHtml(row.date)}</td>
           <td>${row.type === "income" ? "收入" : "支出"}</td>
           <td>${escapeHtml(row.category)}</td>
+          <td>${escapeHtml(row.item || "-")}</td>
           <td class="${row.type === "income" ? "amount-income" : "amount-expense"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</td>
           <td>${escapeHtml(row.account)}${account ? `<br><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}</small>` : ""}</td>
           <td>${escapeHtml(row.method)}</td>
@@ -888,6 +954,7 @@
         .slice(0, 12);
       renderCards(rows);
       renderBars("categoryBars", groupRows(rows.filter(row => row.type === "expense"), "category"), "var(--blue)");
+      renderBars("itemBars", groupRows(rows.filter(row => row.type === "expense"), "item"), "var(--amber)");
       renderBars("methodBars", groupRows(rows, "method"), "var(--green)");
       renderTable("entryTable", recentRows);
       renderTable("analysisTable", rows);
@@ -959,6 +1026,7 @@
         date: document.getElementById("date").value || today(),
         amount,
         category: categorySelect.value || (currentType === "income" ? "其他收入" : "其他支出"),
+        item: itemSelect.value,
         account: accountSelect.value,
         method: document.getElementById("method").value,
         merchant: document.getElementById("merchant").value.trim(),
@@ -991,9 +1059,19 @@
       if (removeCategory) {
         const value = removeCategory.dataset.removeCategory;
         ledger.categories[currentType] = (ledger.categories[currentType] || []).filter(item => item !== value);
+        if (ledger.items?.[currentType]) delete ledger.items[currentType][value];
         saveLedger();
         render();
         toast("已刪除分類");
+      }
+      const removeItem = event.target.closest("[data-remove-item]");
+      if (removeItem) {
+        const value = removeItem.dataset.removeItem;
+        const category = categorySelect.value;
+        ledger.items[currentType][category] = (ledger.items[currentType][category] || []).filter(item => item !== value);
+        saveLedger();
+        render();
+        toast("已刪除項目");
       }
       const removeMethod = event.target.closest("[data-remove-method]");
       if (removeMethod) {
@@ -1019,11 +1097,28 @@
       const value = input.value.trim();
       if (!value) return;
       ledger.categories[currentType] = normalizeList([...(ledger.categories[currentType] || []), value], []);
+      if (!ledger.items[currentType][value]) ledger.items[currentType][value] = [];
       input.value = "";
       saveLedger();
       render();
       categorySelect.value = value;
+      itemCategorySelect.value = value;
+      refreshLists();
       toast("已新增分類");
+    });
+    document.getElementById("itemForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const input = document.getElementById("newItem");
+      const value = input.value.trim();
+      const category = categorySelect.value;
+      if (!value || !category) return;
+      if (!ledger.items[currentType]) ledger.items[currentType] = {};
+      ledger.items[currentType][category] = normalizeList([...(ledger.items[currentType][category] || []), value], []);
+      input.value = "";
+      saveLedger();
+      render();
+      itemSelect.value = value;
+      toast("已新增項目");
     });
     document.getElementById("accountForm").addEventListener("submit", event => {
       event.preventDefault();
@@ -1093,11 +1188,13 @@
       setInvoiceStatus("已選擇發票照片，可按「辨識發票」嘗試自動帶入。");
     });
     document.getElementById("scanInvoice").addEventListener("click", recognizeInvoice);
+    categorySelect.addEventListener("change", refreshLists);
+    itemCategorySelect.addEventListener("change", refreshLists);
     [monthFilter, typeFilter, searchInput].forEach(el => el.addEventListener("input", render));
     document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", () => {
-      const header = ["日期", "類型", "分類", "金額", "帳戶", "方式", "商家/對象", "備註"];
-      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.amount, row.account, row.method, row.merchant, row.note].map(csvEscape).join(","))];
+      const header = ["日期", "類型", "分類", "項目", "金額", "帳戶", "方式", "商家/對象", "備註"];
+      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.item || "", row.amount, row.account, row.method, row.merchant, row.note].map(csvEscape).join(","))];
       download("tsubin-accounting-data.csv", "\ufeff" + lines.join("\n"), "text/csv;charset=utf-8");
     });
     document.getElementById("importButton").addEventListener("click", () => document.getElementById("importFile").click());
@@ -1115,6 +1212,7 @@
           income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...payload.entries.filter(row => row.type === "income").map(row => row.category)]),
           expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...payload.entries.filter(row => row.type !== "income").map(row => row.category)])
         },
+        items: normalizeItems(payload.items, payload.entries),
         accounts: normalizeAccounts(payload.accounts, payload.entries),
         methods: normalizeList(payload.methods, [...defaultMethods, ...payload.entries.map(row => row.method)])
       };
@@ -1128,6 +1226,7 @@
       ledger = {
         entries: [],
         categories: structuredClone(defaultCategories),
+        items: structuredClone(defaultItems),
         accounts: structuredClone(defaultAccounts),
         methods: [...defaultMethods]
       };
