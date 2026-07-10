@@ -2199,12 +2199,12 @@
           ${card("最新資產快照", money(Number(latestSnapshot.net ?? latestSnapshot.total) || 0), latestSnapshot.date || "今日估算", "accent")}
         </div>
         <div class="chart-grid">
-          ${renderTrendChart("1. 資產快照歷史", snapshots.map(row => ({ date: row.date, totalGain: Number(row.net ?? row.total) || 0 })))}
-          ${renderPieChart("2. 目標配置 vs 實際配置", target.map(row => ({ label: `${row.label} 實際`, value: Math.max(0, row.actualValue) })), "實際配置", "TWD")}
-          ${renderBarChart("3. 再平衡提醒", rebalanceRows, "%")}
+          ${renderTrendChart("資產快照歷史", snapshots.map(row => ({ date: row.date, totalGain: Number(row.net ?? row.total) || 0 })))}
+          ${renderPieChart("目標配置 vs 實際配置", target.map(row => ({ label: `${row.label} 實際`, value: Math.max(0, row.actualValue) })), "實際配置", "TWD")}
+          ${renderBarChart("再平衡提醒", rebalanceRows, "%")}
           ${renderSafetySettings()}
-          ${renderBarChart("5. 匯率敏感度", [{ label: "USD/TWD 每變動 1 元", value: Math.abs(usdImpact), rawValue: usdImpact, color: "var(--teal)" }], "TWD")}
-          ${renderBarChart("7. 年度損益總結", annualSummaryRows(), "TWD")}
+          ${renderBarChart("匯率敏感度", [{ label: "USD/TWD 每變動 1 元", value: Math.abs(usdImpact), rawValue: usdImpact, color: "var(--teal)" }], "TWD")}
+          ${renderBarChart("年度損益總結", annualSummaryRows(), "TWD")}
           ${renderHealthCheck()}
           ${renderPieChart("資產配置比例", [
             { label: "台股", value: t.tw },
