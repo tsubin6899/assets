@@ -410,6 +410,8 @@
     body.privacy-mode .legend-row span:last-child,
     body.privacy-mode .compare-line em,
     body.privacy-mode .compare-delta,
+    body.privacy-mode .day-card .delta,
+    body.privacy-mode .snapshot-amount,
     body.privacy-mode td,
     body.privacy-mode input[type="number"] {
       color: transparent !important;
@@ -2853,7 +2855,7 @@
         const row = byDate[date];
         const prev = rows.filter(r => r.date < date).at(-1);
         const dayDelta = row && prev ? row.totalGain - prev.totalGain : 0;
-        cells.push(`<div class="day-card"><strong>${day}</strong>${row ? `<span class="delta ${dayDelta >= 0 ? "ok" : "gain"}">${dayDelta >= 0 ? "+" : ""}${money(dayDelta)}</span><small>未實現損益：${money(row.totalGain)}<br>${row.note || ""}</small>` : `<small>尚未記錄</small>`}</div>`);
+        cells.push(`<div class="day-card"><strong>${day}</strong>${row ? `<span class="delta ${dayDelta >= 0 ? "ok" : "gain"}">${dayDelta >= 0 ? "+" : ""}${money(dayDelta)}</span><small>未實現損益：<span class="snapshot-amount">${money(row.totalGain)}</span><br>${row.note || ""}</small>` : `<small>尚未記錄</small>`}</div>`);
       }
       return `${section("pnlCalendar", "一鍵記錄今日快照", "記錄每日未實現損益變化，方便回看每月波動。", `<button class="btn small" data-calendar-prev>上個月</button><button class="btn small" data-calendar-next>下個月</button><button class="btn blue small" data-snapshot-pnl>一鍵記錄今日快照</button>`)}
         <div class="cards">
