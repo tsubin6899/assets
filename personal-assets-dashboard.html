@@ -353,6 +353,71 @@
       background: #fbfcfe;
       line-height: 1.7;
     }
+    .dashboard-alerts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .alert-tile {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 13px 14px;
+      border: 1px solid rgba(222,210,191,.9);
+      border-radius: 8px;
+      background: rgba(255,253,247,.92);
+      box-shadow: 0 10px 28px rgba(0,0,0,.08);
+    }
+    .alert-tile strong {
+      display: block;
+      margin-bottom: 3px;
+      color: var(--ink);
+    }
+    .alert-tile span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .alert-tile.accent {
+      border-color: rgba(201,134,43,.5);
+      background: #fff6e6;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .meta-item {
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .meta-item small {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+    .meta-item strong {
+      font-size: 14px;
+    }
+    body.privacy-mode .number,
+    body.privacy-mode .donut-text strong,
+    body.privacy-mode .legend-row span:last-child,
+    body.privacy-mode .compare-line em,
+    body.privacy-mode .compare-delta,
+    body.privacy-mode td,
+    body.privacy-mode input[type="number"] {
+      color: transparent !important;
+      text-shadow: 0 0 9px rgba(32,36,44,.5);
+    }
+    .mobile-quick-nav {
+      display: none;
+    }
     .setting-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -631,6 +696,36 @@
         width: 30px;
         height: 30px;
         font-size: 12px;
+      }
+      .mobile-quick-nav {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        z-index: 30;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 6px;
+        padding: 7px;
+        border: 1px solid rgba(23,32,51,.18);
+        border-radius: 12px;
+        background: rgba(255,253,247,.95);
+        box-shadow: 0 18px 42px rgba(0,0,0,.22);
+        backdrop-filter: blur(12px);
+      }
+      .mobile-quick-nav button {
+        min-height: 42px;
+        border: 0;
+        border-radius: 8px;
+        background: transparent;
+        color: #172033;
+        font-size: 11px;
+        font-weight: 750;
+      }
+      .mobile-quick-nav button.active,
+      .mobile-quick-nav button.primary {
+        background: #172033;
+        color: #fffdf7;
       }
     }
     @media (max-width: 420px) {
@@ -1313,6 +1408,7 @@
             <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
             <button class="btn green" id="saveData">匯入存檔</button>
             <button class="btn blue" id="importPrices">更新股價與匯率</button>
+            <button class="btn blue" id="privacyToggle" type="button">隱私模式</button>
             <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
             <button class="btn dark" id="resetData">清空資料</button>
           </div>
@@ -1334,20 +1430,29 @@
     <section class="view" id="dividend"></section>
     <section class="view" id="expense"></section>
     <section class="view" id="allocation"></section>
+    <section class="view" id="annual"></section>
     <section class="view" id="chart"></section>
   </main>
+  <nav class="mobile-quick-nav" aria-label="手機快速操作">
+    <button type="button" data-tab="overview">總覽</button>
+    <button type="button" data-tab="cash">現金</button>
+    <button type="button" data-tab="purchase">交易</button>
+    <button type="button" data-mobile-snapshot>快照</button>
+    <button type="button" class="primary" data-mobile-prices>更新</button>
+  </nav>
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
   <script>
     const storageKey = "personal-assets-dashboard-tsubin-v2";
+    const metaKey = "personal-assets-dashboard-tsubin-ui-meta-v1";
     const cloudTable = "asset_dashboard_profiles";
     const tabs = [
       ["overview", "總覽儀表板"], ["tw", "台股部位"], ["us", "美股部位"], ["cash", "現金帳戶"],
       ["metal", "貴金屬"], ["fund", "基金"], ["dca", "定期投入"],
       ["purchase", "購買股票紀錄"], ["dividend", "股息 / 配息紀錄"],
-      ["expense", "支出規畫"], ["allocation", "額外資金分配"],
+      ["expense", "支出規畫"], ["allocation", "額外資金分配"], ["annual", "年度報表"],
       ["chart", "資訊圖表庫"]
     ];
     const tabIcons = {
@@ -1362,6 +1467,7 @@
       dividend: "badge-dollar-sign",
       expense: "clipboard-list",
       allocation: "split",
+      annual: "calendar-days",
       chart: "chart-no-axes-combined"
     };
     const tabGlyphs = {
@@ -1376,6 +1482,7 @@
       dividend: "$",
       expense: "☑",
       allocation: "⫶",
+      annual: "年",
       chart: "▥"
     };
     const seed = {
@@ -1408,6 +1515,7 @@
     let supabaseClient = null;
     let cloudUser = null;
     let cloudReady = false;
+    let uiMeta = loadMeta();
 
     function load() {
       try {
@@ -1430,6 +1538,36 @@
     }
     function saveState() {
       localStorage.setItem(storageKey, JSON.stringify(data));
+    }
+    function loadMeta() {
+      try {
+        return { privacyMode: false, ...JSON.parse(localStorage.getItem(metaKey) || "{}") };
+      } catch {
+        return { privacyMode: false };
+      }
+    }
+    function saveMeta() {
+      localStorage.setItem(metaKey, JSON.stringify(uiMeta));
+    }
+    function markMeta(key) {
+      uiMeta[key] = new Date().toISOString();
+      saveMeta();
+    }
+    function formatDateTime(value) {
+      if (!value) return "尚未記錄";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "尚未記錄";
+      return date.toLocaleString("zh-TW", { hour12: false });
+    }
+    function backupMetaItems() {
+      return [
+        ["本機匯出", formatDateTime(uiMeta.lastExportAt)],
+        ["雲端儲存", formatDateTime(uiMeta.lastCloudSaveAt)],
+        ["雲端載入", formatDateTime(uiMeta.lastCloudLoadAt)]
+      ];
+    }
+    function renderBackupMeta() {
+      return `<div class="meta-grid">${backupMetaItems().map(([label, value]) => `<div class="meta-item"><small>${label}</small><strong>${value}</strong></div>`).join("")}</div>`;
     }
     function setCloudStatus(text) {
       const el = document.getElementById("cloudStatus");
@@ -1522,7 +1660,9 @@
         toast(`雲端儲存失敗：${error.message}`);
         return;
       }
+      markMeta("lastCloudSaveAt");
       toast("已儲存到雲端");
+      render();
     }
     async function loadCloudData() {
       if (!supabaseClient || !cloudUser) {
@@ -1544,6 +1684,7 @@
       }
       data = hydrateData(row.data);
       saveState();
+      markMeta("lastCloudLoadAt");
       render();
       toast("已載入雲端資料");
     }
@@ -2127,6 +2268,38 @@
         { label: "目前未實現損益", value: Math.abs(Math.round(allTotals().gain)), rawValue: Math.round(allTotals().gain) }
       ];
     }
+    function renderAnnualReport() {
+      const year = String(new Date().getFullYear());
+      const summary = buildTradeSummary();
+      const trades = (data.purchaseRecords || []).filter(row => String(row.date || "").startsWith(year));
+      const buy = sum(trades.filter(row => tradeType(row) !== "sell"), purchaseCostTwd);
+      const sell = sum(trades.filter(row => tradeType(row) === "sell"), purchaseCostTwd);
+      const dividends = sum((data.dividends || []).filter(row => String(row.date || "").startsWith(year)), dividendTwd);
+      const snapshots = assetSnapshotRows().filter(row => String(row.date || "").startsWith(year));
+      const first = snapshots[0];
+      const last = snapshots.at(-1);
+      const netGrowth = first && last ? (Number(last.net ?? last.total) || 0) - (Number(first.net ?? first.total) || 0) : 0;
+      const positions = [...summary.positions].sort((a, b) => (b.shares || 0) - (a.shares || 0)).slice(0, 6);
+      const realizedRows = [...summary.positions]
+        .filter(row => Number(row.realized))
+        .sort((a, b) => Math.abs(b.realized) - Math.abs(a.realized))
+        .slice(0, 6);
+      return `${section("annual", `${year} 年度報表`, "彙整今年投入、賣出、股息、已實現損益與資產變化。")}
+        <div class="cards">
+          ${card("今年買入成本", money(buy), "TWD", "dark")}
+          ${card("今年賣出金額", money(sell), "TWD")}
+          ${card("已實現損益", money(summary.totals.realizedTwd), "TWD", "accent")}
+          ${card("股息 / 配息收入", money(dividends), "TWD")}
+          ${card("資產快照變化", `${netGrowth >= 0 ? "+" : ""}${money(netGrowth)}`, "TWD")}
+          ${card("今年交易筆數", money(trades.length, ""), "筆")}
+        </div>
+        <div class="chart-grid">
+          ${renderBarChart("年度損益與收入", annualSummaryRows(), "TWD")}
+          <article class="chart-card"><h3>目前主要持股摘要</h3><div class="table-wrap"><table><thead><tr><th>市場</th><th>代碼</th><th>名稱</th><th>剩餘股數</th><th>已實現損益</th></tr></thead><tbody>${positions.map(row => `<tr><td>${row.market}</td><td>${row.code}</td><td>${row.name}</td><td>${money(row.shares, "")}</td><td class="${row.realized >= 0 ? "ok" : "gain"}">${money(row.realized, row.currency)}</td></tr>`).join("")}</tbody></table></div></article>
+          <article class="chart-card"><h3>已實現損益來源</h3>${realizedRows.length ? `<div class="bar-list">${realizedRows.map((row, i) => `<div class="legend-row"><span class="dot" style="--c:${chartColors[i % chartColors.length]}"></span><strong>${row.code || "-"}</strong><span>${money(row.realized, row.currency)}</span></div>`).join("")}</div>` : `<div class="chart-empty">今年尚無已實現損益資料</div>`}</article>
+          <article class="chart-card"><h3>備份與同步紀錄</h3>${renderBackupMeta()}</article>
+        </div>`;
+    }
     function dataHealthItems() {
       const issues = [];
       const checkStock = (rows, market) => rows.forEach(row => {
@@ -2281,6 +2454,25 @@
         delete row[oldCode];
       });
     }
+    function hasTodayPnlSnapshot() {
+      const today = localDateString();
+      return (data.pnlCalendar || []).some(row => row.date === today);
+    }
+    function hasTodayAssetSnapshot() {
+      const today = localDateString();
+      return (data.assetSnapshots || []).some(row => row.date === today);
+    }
+    function renderOverviewAlerts() {
+      const issues = dataHealthItems();
+      const pnlReady = hasTodayPnlSnapshot();
+      const assetReady = hasTodayAssetSnapshot();
+      const backup = uiMeta.lastCloudSaveAt || uiMeta.lastExportAt;
+      return `<div class="dashboard-alerts">
+        <div class="alert-tile ${issues.length ? "accent" : ""}"><div><strong>${issues.length ? `資料提醒 ${issues.length} 筆` : "資料檢查正常"}</strong><span>${issues.length ? issues.slice(0, 2).join("；") : "目前沒有明顯資料問題。"}</span></div><button class="btn small blue" data-tab="chart">查看</button></div>
+        <div class="alert-tile ${pnlReady && assetReady ? "" : "accent"}"><div><strong>${pnlReady && assetReady ? "今日快照已完成" : "今日快照待記錄"}</strong><span>損益快照：${pnlReady ? "已記錄" : "未記錄"}｜資產快照：${assetReady ? "已記錄" : "未記錄"}</span></div><button class="btn small green" data-snapshot-all>記錄</button></div>
+        <div class="alert-tile ${backup ? "" : "accent"}"><div><strong>備份同步狀態</strong><span>最近備份：${formatDateTime(backup)}</span></div><button class="btn small purple" data-tab="annual">詳情</button></div>
+      </div>`;
+    }
     function renderOverview() {
       const t = allTotals();
       const parts = [
@@ -2296,6 +2488,7 @@
       }).join(", ");
       return `
         ${section("overview", "總覽儀表板", "跨資產總覽與配置比例。")}
+        ${renderOverviewAlerts()}
         <div class="cards">
           ${card("總資產淨值", money(t.total), "TWD", "dark")}
           ${card("投入成本估算", money(t.cost), "TWD")}
@@ -2694,6 +2887,18 @@
       if (!header) return;
       document.documentElement.style.setProperty("--app-header-height", `${Math.ceil(header.getBoundingClientRect().height)}px`);
     }
+    function applyUiState() {
+      document.body.classList.toggle("privacy-mode", Boolean(uiMeta.privacyMode));
+      const privacyButton = document.getElementById("privacyToggle");
+      if (privacyButton) {
+        privacyButton.textContent = uiMeta.privacyMode ? "顯示金額" : "隱私模式";
+        privacyButton.classList.toggle("purple", Boolean(uiMeta.privacyMode));
+        privacyButton.classList.toggle("blue", !uiMeta.privacyMode);
+      }
+      document.querySelectorAll(".mobile-quick-nav [data-tab]").forEach(button => {
+        button.classList.toggle("active", button.dataset.tab === currentTab);
+      });
+    }
     function render() {
       renderTabs();
       document.querySelectorAll(".view").forEach(v => v.classList.toggle("active", v.id === currentTab));
@@ -2708,8 +2913,10 @@
       document.getElementById("dividend").innerHTML = renderDividendPage();
       document.getElementById("expense").innerHTML = renderGeneric("expense", "支出規畫");
       document.getElementById("allocation").innerHTML = renderGeneric("allocation", "額外資金分配");
+      document.getElementById("annual").innerHTML = renderAnnualReport();
       document.getElementById("chart").innerHTML = renderInfoCharts();
       wireInputs();
+      applyUiState();
       requestAnimationFrame(updateHeaderOffset);
     }
     function setPath(path, value) {
@@ -2794,6 +3001,20 @@
       saveState();
       render();
     }
+    function recordTodayFullSnapshot() {
+      const pnl = makeTodaySnapshot();
+      const pnlIndex = data.pnlCalendar.findIndex(row => row.date === pnl.date);
+      if (pnlIndex >= 0) data.pnlCalendar[pnlIndex] = { ...data.pnlCalendar[pnlIndex], ...pnl };
+      else data.pnlCalendar.push(pnl);
+      const asset = makeAssetSnapshot();
+      const assetIndex = data.assetSnapshots.findIndex(row => row.date === asset.date);
+      if (assetIndex >= 0) data.assetSnapshots[assetIndex] = { ...data.assetSnapshots[assetIndex], ...asset };
+      else data.assetSnapshots.push(asset);
+      calendarMonth = pnl.date.slice(0, 7);
+      saveState();
+      render();
+      toast("已記錄今日損益與資產快照");
+    }
     function wireInputs() {
       document.querySelectorAll("[data-path]").forEach(el => {
         el.addEventListener("input", () => {
@@ -2820,6 +3041,7 @@
       document.querySelectorAll("[data-del]").forEach(el => el.addEventListener("click", () => delPath(el.dataset.del)));
       document.querySelectorAll("[data-add]").forEach(el => el.addEventListener("click", () => addRow(el.dataset.add)));
       document.querySelectorAll("[data-snapshot-pnl]").forEach(el => el.addEventListener("click", recordTodaySnapshot));
+      document.querySelectorAll("[data-snapshot-all]").forEach(el => el.addEventListener("click", recordTodayFullSnapshot));
       document.querySelectorAll("[data-asset-snapshot]").forEach(el => el.addEventListener("click", recordAssetSnapshot));
       document.querySelectorAll("[data-calendar-prev]").forEach(el => el.addEventListener("click", () => { calendarMonth = shiftMonth(calendarMonth || localMonthString(), -1); render(); }));
       document.querySelectorAll("[data-calendar-next]").forEach(el => el.addEventListener("click", () => { calendarMonth = shiftMonth(calendarMonth || localMonthString(), 1); render(); }));
@@ -2842,6 +3064,8 @@
       data.purchaseRecords.forEach((r, i) => rows.push(["股票交易紀錄", r.code, `${r.date} ${tradeType(r) === "sell" ? "賣出" : "買入"} ${r.market} ${r.name}`, r.shares, purchaseCost(r), r.price, tradeSummary.realizedByIndex.get(i) ?? ""]));
       data.pnlCalendar.forEach(r => rows.push(["損益快照", r.date, r.note, "", r.twGain, r.usGain, r.totalGain]));
       download("personal-assets-demo.csv", rows.map(r => r.map(v => `"${String(v).replaceAll('"', '""')}"`).join(",")).join("\n"), "text/csv;charset=utf-8");
+      markMeta("lastExportAt");
+      render();
     }
     function exportSymbols() {
       const payload = {
@@ -2994,6 +3218,14 @@
         currentTab = tab.dataset.tab;
         render();
       }
+      if (e.target.closest("[data-mobile-snapshot]")) recordTodayFullSnapshot();
+      if (e.target.closest("[data-mobile-prices]")) document.getElementById("importPrices").click();
+    });
+    document.getElementById("privacyToggle").addEventListener("click", () => {
+      uiMeta.privacyMode = !uiMeta.privacyMode;
+      saveMeta();
+      applyUiState();
+      toast(uiMeta.privacyMode ? "已開啟隱私模式" : "已關閉隱私模式");
     });
     document.getElementById("saveData").addEventListener("click", () => document.getElementById("importJson").click());
     document.getElementById("importJson").addEventListener("change", async (e) => {
@@ -3022,7 +3254,11 @@
       }
       e.target.value = "";
     });
-    document.getElementById("exportJson").addEventListener("click", () => download("personal-assets-demo.json", JSON.stringify(data, null, 2), "application/json"));
+    document.getElementById("exportJson").addEventListener("click", () => {
+      download("personal-assets-demo.json", JSON.stringify(data, null, 2), "application/json");
+      markMeta("lastExportAt");
+      render();
+    });
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
     document.getElementById("importPrices").addEventListener("click", updatePricesFromServer);
     document.getElementById("cloudLogin").addEventListener("click", loginCloudSync);
