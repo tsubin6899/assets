@@ -601,6 +601,21 @@
       background: #dff1e8;
       color: #287353;
     }
+    .account-tile .bill-pay-button {
+      min-height: 32px;
+      padding: 0 12px;
+      border-radius: 8px;
+      color: #fffdf8;
+      background: var(--green);
+      box-shadow: 0 8px 18px rgba(63,155,118,.18);
+    }
+    .account-tile .bill-delete-button {
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 8px;
+      color: #fffdf8;
+      background: var(--red);
+    }
     .toast {
       position: fixed;
       right: 18px;
@@ -1437,7 +1452,7 @@
         .sort((a, b) => String(a.paid).localeCompare(String(b.paid)) || String(b.billMonth || "").localeCompare(String(a.billMonth || "")) || String(a.dueDate || "").localeCompare(String(b.dueDate || "")));
       const target = document.getElementById("creditBillList");
       if (!rows.length) {
-        target.innerHTML = `<div class="empty">尚未建立信用卡帳單</div>`;
+        target.innerHTML = `<div class="empty">尚未建立信用卡帳單；先新增帳單後，這裡會出現「已繳款」按鈕。</div>`;
         return;
       }
       target.innerHTML = rows.map(row => `
@@ -1449,8 +1464,8 @@
           <span class="account-balance">${money(row.amount)} TWD</span>
           <div class="account-actions">
             <span class="bill-status ${row.paid ? "paid" : ""}">${row.paid ? "已繳" : "待繳"}</span>
-            ${row.paid ? "" : `<button type="button" data-pay-bill="${escapeHtml(row.id)}">已繳款</button>`}
-            <button type="button" data-remove-bill="${escapeHtml(row.id)}">刪除</button>
+            ${row.paid ? "" : `<button class="bill-pay-button" type="button" data-pay-bill="${escapeHtml(row.id)}">已繳款</button>`}
+            <button class="bill-delete-button" type="button" data-remove-bill="${escapeHtml(row.id)}">刪除</button>
           </div>
         </div>`).join("");
     }
