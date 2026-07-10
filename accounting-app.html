@@ -886,6 +886,15 @@
       }
       .mobile-actions .btn { min-height: 42px; font-size: 12px; padding: 0 8px; }
     }
+    #analyticsView.active {
+      display: grid;
+      gap: 16px;
+    }
+    #analyticsView.active > * { margin: 0; }
+    #analyticsView.active .cards, #analyticsView.active .chart-grid { margin-bottom: 0; }
+    @media (max-width: 860px) {
+      #analyticsView.active { gap: 12px; }
+    }
     body, button, input, select, textarea, table, .sub, .hint, .tab-icon, .cloud-status, .account-tile, .weekday, .day-stat, .day-note, .budget-alert, .notice-item, .backup-item {
       font-weight: 350;
     }
