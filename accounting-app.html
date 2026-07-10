@@ -583,7 +583,16 @@
       gap: 8px;
       margin-top: 14px;
     }
+    .installment-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 14px;
+    }
     .bill-grid .btn {
+      min-height: 42px;
+    }
+    .installment-grid .btn {
       min-height: 42px;
     }
     .bill-status {
@@ -713,6 +722,7 @@
       }
       .selected-day-head { align-items: flex-start; flex-direction: column; }
       .bill-grid { grid-template-columns: 1fr; }
+      .installment-grid { grid-template-columns: 1fr; }
       .weekday, .day-stat, .day-note { font-size: 10px; }
       .ledger-day strong { font-size: 12px; }
       .filters input, .filters select { width: 100%; min-width: 0; }
@@ -846,6 +856,23 @@
             <button class="btn small green" type="submit">新增信用卡</button>
           </form>
           <div id="creditList" class="account-list"></div>
+          <div class="manager-block">
+            <h3>信用卡分期付款</h3>
+            <p class="hint">建立一次分期後，系統會自動拆到每個月帳單，並列入該月支出統計。</p>
+            <form id="installmentForm" class="installment-grid">
+              <label>信用卡<select id="installmentCard" required></select></label>
+              <label>消費日期<input id="installmentDate" type="date" required></label>
+              <label>商家 / 對象<input id="installmentMerchant" placeholder="例如：Apple、家電、旅費"></label>
+              <label>分類<select id="installmentCategory" required></select></label>
+              <label>項目<select id="installmentItem"></select></label>
+              <label>總金額<input id="installmentTotal" type="number" min="0" step="1" inputmode="decimal" required></label>
+              <label>分期期數<input id="installmentMonths" type="number" min="2" step="1" value="3" required></label>
+              <label>第一期月份<input id="installmentStartMonth" type="month" required></label>
+              <label class="full">備註<textarea id="installmentNote" placeholder="可填訂單編號、分期方案或提醒"></textarea></label>
+              <button class="btn green full" type="submit">新增分期</button>
+            </form>
+            <div id="installmentList" class="account-list"></div>
+          </div>
           <div class="manager-block">
             <h3>信用卡帳單繳款</h3>
             <p class="hint">建立某張信用卡某月份應繳金額，指定從哪個銀行帳戶繳；按「已繳款」後會自動記錄轉帳並扣除銀行餘額。</p>
@@ -1014,6 +1041,10 @@
     const creditBillForm = document.getElementById("creditBillForm");
     const billCardSelect = document.getElementById("billCard");
     const billPayAccountSelect = document.getElementById("billPayAccount");
+    const installmentForm = document.getElementById("installmentForm");
+    const installmentCardSelect = document.getElementById("installmentCard");
+    const installmentCategorySelect = document.getElementById("installmentCategory");
+    const installmentItemSelect = document.getElementById("installmentItem");
     const monthFilter = document.getElementById("monthFilter");
     const typeFilter = document.getElementById("typeFilter");
     const searchInput = document.getElementById("searchInput");
@@ -1067,11 +1098,49 @@
       const date = new Date(year, monthNumber - 1 + delta, 1);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     }
+    function firstDayOfMonth(month) {
+      return `${month || monthOf()}-01`;
+    }
     function uid() {
       return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
     }
     function money(value) {
       return Math.round(Number(value) || 0).toLocaleString("zh-TW");
+    }
+    function installmentAmount(row, index) {
+      const total = Math.round(Number(row.totalAmount) || 0);
+      const months = Math.max(1, Number(row.months) || 1);
+      const base = Math.floor(total / months);
+      const remainder = total - base * months;
+      return base + (index < remainder ? 1 : 0);
+    }
+    function installmentSchedule(row) {
+      return Array.from({ length: Math.max(1, Number(row.months) || 1) }, (_, index) => ({
+        installmentId: row.id,
+        index,
+        month: shiftMonth(row.startMonth, index),
+        amount: installmentAmount(row, index)
+      }));
+    }
+    function installmentEntries() {
+      return (ledger.creditInstallments || []).flatMap(row => installmentSchedule(row).map(part => ({
+        id: `${row.id}-${part.index + 1}`,
+        type: "expense",
+        date: firstDayOfMonth(part.month),
+        amount: part.amount,
+        category: row.category,
+        item: row.item,
+        account: row.card,
+        merchant: row.merchant,
+        note: `${row.note ? `${row.note}｜` : ""}分期 ${part.index + 1}/${row.months}`,
+        createdAt: row.createdAt,
+        virtualInstallment: true,
+        installmentId: row.id,
+        billMonth: part.month
+      })));
+    }
+    function allEntryRows() {
+      return [...ledger.entries, ...installmentEntries()];
     }
     function loadLedger() {
       try {
@@ -1079,10 +1148,12 @@
         const entries = Array.isArray(saved.entries) ? saved.entries : [];
         const transfers = normalizeTransfers(saved.transfers);
         const creditBills = normalizeCreditBills(saved.creditBills);
+        const creditInstallments = normalizeCreditInstallments(saved.creditInstallments);
         return {
           entries,
           transfers,
           creditBills,
+          creditInstallments,
           categories: {
             income: normalizeList(saved.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
             expense: normalizeList(saved.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -1096,6 +1167,7 @@
           entries: [],
           transfers: [],
           creditBills: [],
+          creditInstallments: [],
           categories: structuredClone(defaultCategories),
           items: structuredClone(defaultItems),
           accounts: structuredClone(defaultAccounts),
@@ -1163,6 +1235,21 @@
         transferId: row.transferId || "",
         createdAt: row.createdAt || new Date().toISOString()
       })).filter(row => row.card && row.billMonth && row.amount > 0 && row.payAccount);
+    }
+    function normalizeCreditInstallments(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        id: row.id || uid(),
+        card: String(row.card || "").trim(),
+        purchaseDate: row.purchaseDate || today(),
+        merchant: String(row.merchant || "").trim(),
+        category: String(row.category || "其他支出").trim(),
+        item: String(row.item || "").trim(),
+        totalAmount: Number(row.totalAmount) || 0,
+        months: Math.max(2, Number(row.months) || 2),
+        startMonth: String(row.startMonth || monthOf()).trim(),
+        note: String(row.note || "").trim(),
+        createdAt: row.createdAt || new Date().toISOString()
+      })).filter(row => row.card && row.totalAmount > 0 && row.months > 1 && row.startMonth);
     }
     function saveLedger() {
       localStorage.setItem(accountingKey, JSON.stringify(ledger));
@@ -1299,6 +1386,7 @@
         entries,
         transfers: normalizeTransfers(payload.transfers),
         creditBills: normalizeCreditBills(payload.creditBills),
+        creditInstallments: normalizeCreditInstallments(payload.creditInstallments),
         categories: {
           income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
           expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -1351,6 +1439,7 @@
       renderAccountOptions(transferToSelect, transferToSelect.value);
       renderAccountOptions(transferFeeAccountSelect, transferFeeAccountSelect.value, true);
       renderCreditBillOptions();
+      renderInstallmentOptions();
       document.getElementById("categoryPills").innerHTML = (ledger.categories[currentType] || []).map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-category="${escapeHtml(item)}">×</button></span>`).join("");
       const currentCategory = itemCategorySelect.value || categories[0] || "";
       const items = currentCategory ? (ledger.items?.[currentType]?.[currentCategory] || []) : [];
@@ -1378,6 +1467,21 @@
       if (selectedCard && cards.some(account => account.name === selectedCard)) billCardSelect.value = selectedCard;
       if (selectedPayAccount && payAccounts.some(account => account.name === selectedPayAccount)) billPayAccountSelect.value = selectedPayAccount;
     }
+    function renderInstallmentOptions() {
+      const cards = ledger.accounts.filter(account => account.type === "信用卡");
+      const selectedCard = installmentCardSelect.value;
+      const selectedCategory = installmentCategorySelect.value;
+      const selectedItem = installmentItemSelect.value;
+      installmentCardSelect.innerHTML = cards.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.currency)}</option>`).join("");
+      if (selectedCard && cards.some(account => account.name === selectedCard)) installmentCardSelect.value = selectedCard;
+      const categories = ledger.categories.expense || [];
+      installmentCategorySelect.innerHTML = categories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      if (selectedCategory && categories.includes(selectedCategory)) installmentCategorySelect.value = selectedCategory;
+      const category = installmentCategorySelect.value || categories[0] || "";
+      const items = category ? (ledger.items?.expense?.[category] || []) : [];
+      installmentItemSelect.innerHTML = [`<option value="">未指定</option>`, ...items.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`)].join("");
+      if (selectedItem && items.includes(selectedItem)) installmentItemSelect.value = selectedItem;
+    }
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
     }
@@ -1385,7 +1489,7 @@
       const month = monthFilter.value;
       const type = typeFilter.value;
       const keyword = searchInput.value.trim().toLowerCase();
-      return ledger.entries
+      return allEntryRows()
         .filter(row => !month || String(row.date || "").startsWith(month))
         .filter(row => type === "all" || row.type === type)
         .filter(row => {
@@ -1406,7 +1510,7 @@
       return [...grouped.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
     }
     function accountBalance(account) {
-      const entryTotal = ledger.entries.reduce((total, row) => {
+      const entryTotal = allEntryRows().reduce((total, row) => {
         if (row.account !== account.name) return total;
         const amount = Number(row.amount) || 0;
         return total + (row.type === "income" ? amount : -amount);
@@ -1445,10 +1549,67 @@
           <div class="account-actions"><button type="button" data-remove-account="${escapeHtml(account.name)}">刪除</button></div>
         </div>`;
       }).join("") || `<div class="empty">尚未建立信用卡</div>`;
+      renderInstallments();
       renderCreditBills();
     }
+    function renderInstallments() {
+      const rows = [...(ledger.creditInstallments || [])]
+        .sort((a, b) => String(b.startMonth || "").localeCompare(String(a.startMonth || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+      const target = document.getElementById("installmentList");
+      if (!rows.length) {
+        target.innerHTML = `<div class="empty">尚未建立分期付款</div>`;
+        return;
+      }
+      target.innerHTML = rows.map(row => {
+        const schedule = installmentSchedule(row);
+        const first = schedule[0]?.month || row.startMonth;
+        const last = schedule.at(-1)?.month || row.startMonth;
+        return `<div class="account-tile">
+          <div class="account-meta">
+            <strong>${escapeHtml(row.card)}｜${escapeHtml(row.merchant || row.category)}</strong>
+            <small>${escapeHtml(row.category)}${row.item ? ` / ${escapeHtml(row.item)}` : ""}｜${row.months} 期｜${first} 至 ${last}｜每期約 ${money(schedule[0]?.amount || 0)}</small>
+          </div>
+          <span class="account-balance">${money(row.totalAmount)} TWD</span>
+          <div class="account-actions"><button class="bill-delete-button" type="button" data-remove-installment="${escapeHtml(row.id)}">刪除</button></div>
+        </div>`;
+      }).join("");
+    }
     function renderCreditBills() {
-      const rows = [...(ledger.creditBills || [])]
+      const installmentBillRows = installmentEntries().reduce((rows, entry) => {
+        const key = `${entry.account}__${entry.billMonth}`;
+        const row = rows.get(key) || { card: entry.account, billMonth: entry.billMonth, amount: 0, sources: [] };
+        row.amount += Number(entry.amount) || 0;
+        row.sources.push(entry);
+        rows.set(key, row);
+        return rows;
+      }, new Map());
+      const manualBills = [...(ledger.creditBills || [])].map(row => {
+        const key = `${row.card}__${row.billMonth}`;
+        const installment = installmentBillRows.get(key);
+        if (installment) installmentBillRows.delete(key);
+        return {
+          ...row,
+          manualAmount: Number(row.amount) || 0,
+          installmentAmount: installment?.amount || 0,
+          amount: (Number(row.amount) || 0) + (installment?.amount || 0),
+          autoInstallment: false
+        };
+      });
+      const autoBills = [...installmentBillRows.values()].map(row => ({
+        id: `auto-${row.card}-${row.billMonth}`,
+        card: row.card,
+        billMonth: row.billMonth,
+        dueDate: "",
+        amount: row.amount,
+        manualAmount: 0,
+        installmentAmount: row.amount,
+        payAccount: "",
+        paid: false,
+        paidAt: "",
+        transferId: "",
+        autoInstallment: true
+      }));
+      const rows = [...manualBills, ...autoBills]
         .sort((a, b) => String(a.paid).localeCompare(String(b.paid)) || String(b.billMonth || "").localeCompare(String(a.billMonth || "")) || String(a.dueDate || "").localeCompare(String(b.dueDate || "")));
       const target = document.getElementById("creditBillList");
       if (!rows.length) {
@@ -1458,16 +1619,23 @@
       target.innerHTML = rows.map(row => `
         <div class="account-tile">
           <div class="account-meta">
-            <strong>${escapeHtml(row.card)}｜${escapeHtml(row.billMonth)}</strong>
-            <small>截止 ${escapeHtml(row.dueDate || "未設定")}｜由 ${escapeHtml(row.payAccount)} 繳款${row.paidAt ? `｜已繳 ${escapeHtml(row.paidAt.slice(0, 10))}` : ""}</small>
+            <strong>${escapeHtml(row.card)}｜${escapeHtml(row.billMonth)}${row.autoInstallment ? "｜分期自動帳單" : ""}</strong>
+            <small>截止 ${escapeHtml(row.dueDate || "未設定")}｜${row.payAccount ? `由 ${escapeHtml(row.payAccount)} 繳款` : "請先選擇繳款帳戶"}${row.installmentAmount ? `｜含分期 ${money(row.installmentAmount)}` : ""}${row.paidAt ? `｜已繳 ${escapeHtml(row.paidAt.slice(0, 10))}` : ""}</small>
           </div>
           <span class="account-balance">${money(row.amount)} TWD</span>
           <div class="account-actions">
             <span class="bill-status ${row.paid ? "paid" : ""}">${row.paid ? "已繳" : "待繳"}</span>
             ${row.paid ? "" : `<button class="bill-pay-button" type="button" data-pay-bill="${escapeHtml(row.id)}">已繳款</button>`}
-            <button class="bill-delete-button" type="button" data-remove-bill="${escapeHtml(row.id)}">刪除</button>
+            ${row.autoInstallment ? "" : `<button class="bill-delete-button" type="button" data-remove-bill="${escapeHtml(row.id)}">刪除</button>`}
           </div>
         </div>`).join("");
+    }
+    function billTotalAmount(bill) {
+      if (!bill) return 0;
+      const installmentTotal = installmentEntries()
+        .filter(row => row.account === bill.card && row.billMonth === bill.billMonth)
+        .reduce((total, row) => total + (Number(row.amount) || 0), 0);
+      return (Number(bill.amount) || 0) + installmentTotal;
     }
     function renderCards(rows) {
       const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
@@ -1507,14 +1675,14 @@
           <td>${escapeHtml(row.account)}${account ? `<br><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}</small>` : ""}</td>
           <td>${escapeHtml(row.merchant)}</td>
           <td>${escapeHtml(row.note)}</td>
-          <td><button class="btn small dark" type="button" data-delete="${row.id}">刪除</button></td>
+          <td>${row.virtualInstallment ? `<span class="bill-status">分期</span>` : `<button class="btn small dark" type="button" data-delete="${row.id}">刪除</button>`}</td>
         </tr>`;
         }).join("")}</tbody>
       </table></div>`;
     }
     function dailySummaryRows(month) {
       const grouped = new Map();
-      ledger.entries
+      allEntryRows()
         .filter(row => String(row.date || "").startsWith(month))
         .forEach(row => {
           const date = row.date;
@@ -1569,7 +1737,7 @@
         <div class="ledger-calendar">${cells.join("")}</div>`;
     }
     function selectedDayRows() {
-      return [...ledger.entries]
+      return [...allEntryRows()]
         .filter(row => row.date === selectedLedgerDate)
         .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
     }
@@ -1755,6 +1923,15 @@
         toast("已刪除帳單");
         return;
       }
+      const removeInstallment = event.target.closest("[data-remove-installment]");
+      if (removeInstallment) {
+        if (!confirm("確定刪除這筆分期付款？刪除後每月帳單與統計中的分期金額也會移除。")) return;
+        ledger.creditInstallments = (ledger.creditInstallments || []).filter(row => row.id !== removeInstallment.dataset.removeInstallment);
+        saveLedger();
+        render();
+        toast("已刪除分期");
+        return;
+      }
       const scroll = event.target.closest("[data-scroll]");
       if (scroll) document.getElementById(scroll.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "start" });
       const ledgerDate = event.target.closest("[data-ledger-date]");
@@ -1887,6 +2064,42 @@
       accountSelect.value = name;
       toast("已新增信用卡");
     });
+    installmentCategorySelect.addEventListener("change", renderInstallmentOptions);
+    installmentForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const card = installmentCardSelect.value;
+      const totalAmount = Number(document.getElementById("installmentTotal").value) || 0;
+      const months = Number(document.getElementById("installmentMonths").value) || 0;
+      if (!card) {
+        toast("請先選擇信用卡");
+        return;
+      }
+      if (!totalAmount || months < 2) {
+        toast("請輸入總金額與至少 2 期");
+        return;
+      }
+      ledger.creditInstallments = ledger.creditInstallments || [];
+      ledger.creditInstallments.push({
+        id: uid(),
+        card,
+        purchaseDate: document.getElementById("installmentDate").value || today(),
+        merchant: document.getElementById("installmentMerchant").value.trim(),
+        category: installmentCategorySelect.value || "其他支出",
+        item: installmentItemSelect.value,
+        totalAmount,
+        months,
+        startMonth: document.getElementById("installmentStartMonth").value || monthOf(),
+        note: document.getElementById("installmentNote").value.trim(),
+        createdAt: new Date().toISOString()
+      });
+      installmentForm.reset();
+      document.getElementById("installmentDate").value = today();
+      document.getElementById("installmentStartMonth").value = monthOf();
+      document.getElementById("installmentMonths").value = 3;
+      saveLedger();
+      render();
+      toast("已新增信用卡分期");
+    });
     creditBillForm.addEventListener("submit", event => {
       event.preventDefault();
       const card = billCardSelect.value;
@@ -1921,9 +2134,18 @@
     });
     function payCreditBill(id) {
       const bill = (ledger.creditBills || []).find(row => row.id === id);
+      if (!bill && String(id || "").startsWith("auto-")) {
+        toast("請先新增這個月份的信用卡帳單並選擇繳款帳戶");
+        return;
+      }
       if (!bill || bill.paid) return;
       if (!ledger.accounts.some(account => account.name === bill.card) || !ledger.accounts.some(account => account.name === bill.payAccount)) {
         toast("找不到信用卡或繳款帳戶");
+        return;
+      }
+      const amount = billTotalAmount(bill);
+      if (!amount) {
+        toast("這筆帳單沒有可繳金額");
         return;
       }
       const transferId = uid();
@@ -1933,8 +2155,8 @@
         date: today(),
         fromAccount: bill.payAccount,
         toAccount: bill.card,
-        fromAmount: bill.amount,
-        toAmount: bill.amount,
+        fromAmount: amount,
+        toAmount: amount,
         feeAmount: 0,
         feeAccount: bill.payAccount,
         note: `${bill.billMonth} ${bill.card} 信用卡帳單繳款`,
@@ -2022,6 +2244,7 @@
         entries: payload.entries,
         transfers: normalizeTransfers(payload.transfers),
         creditBills: normalizeCreditBills(payload.creditBills),
+        creditInstallments: normalizeCreditInstallments(payload.creditInstallments),
         categories: {
           income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...payload.entries.filter(row => row.type === "income").map(row => row.category)]),
           expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...payload.entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -2041,6 +2264,7 @@
         entries: [],
         transfers: [],
         creditBills: [],
+        creditInstallments: [],
         categories: structuredClone(defaultCategories),
         items: structuredClone(defaultItems),
         accounts: structuredClone(defaultAccounts),
@@ -2052,6 +2276,8 @@
     });
     document.getElementById("date").value = today();
     document.getElementById("transferDate").value = today();
+    document.getElementById("installmentDate").value = today();
+    document.getElementById("installmentStartMonth").value = monthOf();
     document.getElementById("billMonth").value = monthOf();
     monthFilter.value = monthOf();
     setType("expense");
