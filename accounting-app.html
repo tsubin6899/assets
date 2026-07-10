@@ -781,13 +781,17 @@
         justify-content: flex-start;
         gap: 8px;
       }
-      .cloud-sync, .file-actions {
+      .top-actions > .cloud-sync, .top-actions > .file-actions {
         width: 100%;
+        max-width: 100%;
         flex-wrap: nowrap;
         justify-content: flex-start;
         overflow-x: auto;
+        overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
       }
       .file-actions > .btn { min-width: 0; }
       .cloud-sync::-webkit-scrollbar, .file-actions::-webkit-scrollbar { display: none; }
