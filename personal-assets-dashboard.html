@@ -412,6 +412,7 @@
     body.privacy-mode .compare-delta,
     body.privacy-mode .day-card .delta,
     body.privacy-mode .snapshot-amount,
+    body.privacy-mode .accounting-amount,
     body.privacy-mode td,
     body.privacy-mode input[type="number"] {
       color: transparent !important;
@@ -1417,6 +1418,7 @@
             <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
             <button class="btn green" id="saveData">匯入存檔</button>
             <button class="btn blue" id="importPrices">更新股價與匯率</button>
+            <a class="btn green" href="accounting-app.html">開啟記帳 App</a>
             <button class="btn blue" id="privacyToggle" type="button">隱私模式</button>
             <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
             <button class="btn dark" id="resetData">清空資料</button>
@@ -1437,6 +1439,7 @@
     <section class="view" id="dca"></section>
     <section class="view" id="purchase"></section>
     <section class="view" id="dividend"></section>
+    <section class="view" id="bookkeeping"></section>
     <section class="view" id="expense"></section>
     <section class="view" id="allocation"></section>
     <section class="view" id="annual"></section>
@@ -1455,12 +1458,13 @@
   <script src="market-data-config.js"></script>
   <script>
     const storageKey = "personal-assets-dashboard-tsubin-v2";
+    const accountingStorageKey = "personal-accounting-tsubin-v1";
     const metaKey = "personal-assets-dashboard-tsubin-ui-meta-v1";
     const cloudTable = "asset_dashboard_profiles";
     const tabs = [
       ["overview", "總覽儀表板"], ["tw", "台股部位"], ["us", "美股部位"], ["cash", "現金帳戶"],
       ["metal", "貴金屬"], ["fund", "基金"], ["dca", "定期投入"],
-      ["purchase", "購買股票紀錄"], ["dividend", "股息 / 配息紀錄"],
+      ["purchase", "購買股票紀錄"], ["dividend", "股息 / 配息紀錄"], ["bookkeeping", "記帳總覽"],
       ["expense", "支出規畫"], ["allocation", "額外資金分配"], ["annual", "年度報表"],
       ["chart", "資訊圖表庫"]
     ];
@@ -1474,6 +1478,7 @@
       dca: "calendar-sync",
       purchase: "receipt-text",
       dividend: "badge-dollar-sign",
+      bookkeeping: "notebook-tabs",
       expense: "clipboard-list",
       allocation: "split",
       annual: "calendar-days",
@@ -1489,6 +1494,7 @@
       dca: "↻",
       purchase: "▤",
       dividend: "$",
+      bookkeeping: "帳",
       expense: "☑",
       allocation: "⫶",
       annual: "年",
@@ -1775,6 +1781,29 @@
     }
     function settingTile(label, value, unit) {
       return `<div class="setting-tile"><span class="label">${label}</span>${value}<span class="unit">${unit}</span></div>`;
+    }
+    function loadAccountingLedger() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(accountingStorageKey) || "{}");
+        return { entries: Array.isArray(saved.entries) ? saved.entries : [] };
+      } catch {
+        return { entries: [] };
+      }
+    }
+    function accountingRows(month = localMonthString()) {
+      return loadAccountingLedger().entries
+        .filter(row => String(row.date || "").startsWith(month))
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    }
+    function accountingGroup(rows, key, type = "") {
+      const grouped = new Map();
+      rows.filter(row => !type || row.type === type).forEach(row => {
+        const label = row[key] || "未分類";
+        grouped.set(label, (grouped.get(label) || 0) + (Number(row.amount) || 0));
+      });
+      return [...grouped.entries()]
+        .map(([label, value]) => ({ label, value, rawValue: value }))
+        .sort((a, b) => b.value - a.value);
     }
     function localDateString(date = new Date()) {
       const year = date.getFullYear();
@@ -2875,6 +2904,34 @@
           }).join("")}</tbody>
         </table></div></article>`;
     }
+    function renderBookkeepingOverview() {
+      const month = localMonthString();
+      const rows = accountingRows(month);
+      const income = sum(rows.filter(row => row.type === "income"), row => Number(row.amount) || 0);
+      const expense = sum(rows.filter(row => row.type === "expense"), row => Number(row.amount) || 0);
+      const balance = income - expense;
+      const expenseGroups = accountingGroup(rows, "category", "expense");
+      const methodGroups = accountingGroup(rows, "method");
+      const topExpense = expenseGroups[0];
+      const recent = rows.slice(0, 8);
+      const empty = !rows.length ? `<div class="notice">目前尚無本月記帳資料。請先開啟獨立記帳 App 新增收入或支出，這裡會自動讀取同一份資料。</div>` : "";
+      return `${section("bookkeeping", "記帳總覽", "從獨立記帳 App 讀取本月收入、支出、結餘與分類排行。", `<a class="btn green small" href="accounting-app.html">開啟記帳 App</a>`)}
+        ${empty}
+        <div class="cards">
+          ${card("本月收入", `<span class="accounting-amount">${money(income)}</span>`, "TWD", "dark")}
+          ${card("本月支出", `<span class="accounting-amount">${money(expense)}</span>`, "TWD")}
+          ${card("本月結餘", `<span class="accounting-amount">${balance >= 0 ? "+" : ""}${money(balance)}</span>`, "TWD", "accent")}
+          ${card("最大支出分類", topExpense ? topExpense.label : "-", topExpense ? `${money(topExpense.value)} TWD` : "尚無支出")}
+        </div>
+        <div class="chart-grid">
+          ${renderBarChart("本月支出分類排行", expenseGroups.slice(0, 8), "TWD")}
+          ${renderPieChart("本月付款方式占比", methodGroups, "收支金額", "TWD")}
+        </div>
+        <article class="panel"><div class="panel-pad"><h3>近期記帳明細</h3><p class="section-note">最新資料排在最上方；新增與刪除請到獨立記帳 App 操作。</p></div>
+          <div class="table-wrap"><table><thead><tr><th>日期</th><th>類型</th><th>分類</th><th>金額</th><th>帳戶</th><th>方式</th><th>商家 / 對象</th></tr></thead>
+          <tbody>${recent.map(row => `<tr><td>${row.date || ""}</td><td>${row.type === "income" ? "收入" : "支出"}</td><td>${row.category || "-"}</td><td class="accounting-amount ${row.type === "income" ? "ok" : "gain"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</td><td>${row.account || "-"}</td><td>${row.method || "-"}</td><td>${row.merchant || "-"}</td></tr>`).join("")}</tbody></table></div>
+        </article>`;
+    }
     function renderGeneric(key, title) {
       if (key === "expense") {
         return `${section(key, title, "規畫固定或週期性支出。", `<button class="btn green small" data-add="budget">+ 新增支出</button>`)}
@@ -2920,6 +2977,7 @@
       document.getElementById("dca").innerHTML = renderDcaEditable();
       document.getElementById("purchase").innerHTML = renderPurchaseRecords();
       document.getElementById("dividend").innerHTML = renderDividendPage();
+      document.getElementById("bookkeeping").innerHTML = renderBookkeepingOverview();
       document.getElementById("expense").innerHTML = renderGeneric("expense", "支出規畫");
       document.getElementById("allocation").innerHTML = renderGeneric("allocation", "額外資金分配");
       document.getElementById("annual").innerHTML = renderAnnualReport();
@@ -3282,6 +3340,12 @@
       }
     });
     render();
+    window.addEventListener("focus", () => {
+      if (currentTab === "bookkeeping") render();
+    });
+    window.addEventListener("storage", (event) => {
+      if (event.key === accountingStorageKey && currentTab === "bookkeeping") render();
+    });
     window.addEventListener("resize", updateHeaderOffset);
     initCloudSync();
     autoApplyLatestPrices();

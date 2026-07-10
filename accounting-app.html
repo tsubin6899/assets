@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>日常記帳 App｜阿斌 Tsubin</title>
+  <meta name="theme-color" content="#142033">
+  <style>
+    :root {
+      --ink: #1f2633;
+      --muted: #697386;
+      --line: #d9d3c8;
+      --paper: #fffdf8;
+      --soft: #f3efe6;
+      --navy: #172033;
+      --blue: #347996;
+      --green: #3f9b76;
+      --purple: #9b5ca8;
+      --red: #b44a3f;
+      --amber: #d18a29;
+      --shadow: 0 18px 48px rgba(31,38,51,.14);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+      background: #edf0f2;
+      letter-spacing: 0;
+    }
+    button, input, select, textarea { font: inherit; }
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 18px;
+      border-radius: 8px;
+      color: #fffdf8;
+      background: var(--navy);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      align-items: center;
+    }
+    .kicker {
+      display: block;
+      margin-bottom: 4px;
+      color: #d7bf8f;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.16;
+    }
+    .sub {
+      margin: 6px 0 0;
+      color: rgba(255,253,248,.72);
+      font-size: 14px;
+    }
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .btn {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--blue);
+      font-weight: 750;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-grid;
+      place-items: center;
+      box-shadow: 0 8px 20px rgba(22,32,51,.14);
+    }
+    .btn.green { background: var(--green); }
+    .btn.purple { background: var(--purple); }
+    .btn.dark { background: #2f3745; }
+    .btn.light {
+      color: var(--ink);
+      background: #fffdf8;
+    }
+    .btn.small {
+      min-height: 34px;
+      padding: 0 10px;
+      font-size: 13px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 380px) 1fr;
+      gap: 16px;
+      margin-top: 16px;
+      align-items: start;
+    }
+    .panel, .card, .chart-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255,253,248,.94);
+      box-shadow: var(--shadow);
+    }
+    .panel-pad { padding: 16px; }
+    h2, h3 { margin: 0; }
+    h2 { font-size: 24px; }
+    h3 { font-size: 17px; }
+    .hint {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    input, select, textarea {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid #cfc6b8;
+      border-radius: 8px;
+      padding: 9px 11px;
+      color: var(--ink);
+      background: #fffdf8;
+      outline: 0;
+    }
+    textarea { min-height: 76px; resize: vertical; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(52,121,150,.14);
+    }
+    .full { grid-column: 1 / -1; }
+    .segmented {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      margin-top: 14px;
+    }
+    .segmented button {
+      min-height: 38px;
+      border: 0;
+      border-radius: 7px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .segmented button.active {
+      color: #fffdf8;
+      background: var(--navy);
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .card {
+      padding: 16px;
+      min-height: 112px;
+      display: grid;
+      align-content: center;
+      gap: 8px;
+    }
+    .card.dark {
+      color: #fffdf8;
+      background: linear-gradient(135deg, #172033, #315e71);
+    }
+    .card.accent { background: #fff3dc; }
+    .label {
+      color: inherit;
+      opacity: .72;
+      font-size: 13px;
+    }
+    .number {
+      font-size: 28px;
+      font-weight: 850;
+      line-height: 1;
+    }
+    .unit { color: var(--muted); font-size: 12px; }
+    .card.dark .unit { color: rgba(255,253,248,.72); }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters input, .filters select { width: auto; min-width: 150px; }
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .chart-card { padding: 15px; }
+    .bar-list { display: grid; gap: 10px; margin-top: 14px; }
+    .bar-row {
+      display: grid;
+      grid-template-columns: minmax(90px, 1fr) minmax(120px, 2fr) auto;
+      gap: 10px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .bar-row strong { color: var(--ink); overflow-wrap: anywhere; }
+    .bar-track {
+      height: 10px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #eadfce;
+    }
+    .bar-fill {
+      display: block;
+      height: 100%;
+      width: var(--w);
+      border-radius: inherit;
+      background: var(--c, var(--blue));
+    }
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+    }
+    table {
+      width: 100%;
+      min-width: 820px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #e8e0d5;
+      text-align: left;
+      white-space: nowrap;
+    }
+    th {
+      color: #6c6256;
+      background: #eee6d9;
+      font-size: 12px;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .amount-income { color: var(--green); font-weight: 800; }
+    .amount-expense { color: var(--red); font-weight: 800; }
+    .empty {
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 20;
+      padding: 12px 14px;
+      border-radius: 8px;
+      color: #fffdf8;
+      background: var(--navy);
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition: .2s ease;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .mobile-actions { display: none; }
+    @media (max-width: 860px) {
+      .app { padding: 10px 10px 94px; }
+      .topbar {
+        grid-template-columns: 1fr;
+        border-radius: 0 0 8px 8px;
+        margin: -10px -10px 0;
+      }
+      h1 { font-size: 26px; }
+      .top-actions { justify-content: flex-start; }
+      .layout { grid-template-columns: 1fr; }
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .filters input, .filters select { width: 100%; min-width: 0; }
+      .toolbar { align-items: stretch; }
+      .filters { width: 100%; }
+      .mobile-actions {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        z-index: 15;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        padding: 7px;
+        border: 1px solid rgba(23,32,51,.18);
+        border-radius: 12px;
+        background: rgba(255,253,248,.95);
+        box-shadow: 0 18px 42px rgba(0,0,0,.22);
+        backdrop-filter: blur(12px);
+      }
+      .mobile-actions .btn { min-height: 42px; font-size: 12px; padding: 0 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <span class="kicker">Daily Ledger</span>
+        <h1>日常記帳 App｜阿斌 Tsubin</h1>
+        <p class="sub">快速記錄收入與支出，並同步提供個人資產儀表板的記帳總覽。</p>
+      </div>
+      <div class="top-actions">
+        <a class="btn light" href="personal-assets-dashboard.html">回資產儀表板</a>
+        <button class="btn purple" id="exportJson" type="button">匯出 JSON</button>
+        <button class="btn blue" id="exportCsv" type="button">匯出 CSV</button>
+        <button class="btn green" id="importButton" type="button">匯入資料</button>
+        <button class="btn dark" id="clearData" type="button">清空</button>
+        <input id="importFile" type="file" accept="application/json" hidden>
+      </div>
+    </header>
+
+    <section class="layout">
+      <aside class="panel">
+        <div class="panel-pad">
+          <h2>快速新增</h2>
+          <p class="hint">日常支出用手機也能快速輸入；資料會保存在此瀏覽器，並讓資產儀表板讀取總覽。</p>
+          <div class="segmented" aria-label="收支類型">
+            <button type="button" class="active" data-type="expense">支出</button>
+            <button type="button" data-type="income">收入</button>
+          </div>
+          <form id="entryForm" class="form-grid">
+            <label>日期<input id="date" type="date" required></label>
+            <label>金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" required></label>
+            <label>分類<input id="category" list="categoryList" required></label>
+            <label>帳戶<input id="account" list="accountList" placeholder="現金 / 銀行 / 信用卡"></label>
+            <label>付款方式
+              <select id="method">
+                <option>現金</option>
+                <option>信用卡</option>
+                <option>轉帳</option>
+                <option>行動支付</option>
+                <option>其他</option>
+              </select>
+            </label>
+            <label>商家 / 對象<input id="merchant" placeholder="超商、餐廳、薪資等"></label>
+            <label class="full">備註<textarea id="note" placeholder="可填發票、用途或提醒"></textarea></label>
+            <button class="btn green full" type="submit">新增記帳</button>
+          </form>
+          <datalist id="categoryList"></datalist>
+          <datalist id="accountList"></datalist>
+        </div>
+      </aside>
+
+      <section>
+        <div class="toolbar">
+          <div>
+            <h2>月度總覽</h2>
+            <p class="hint">預設顯示本月，可依月份、類型或關鍵字篩選。</p>
+          </div>
+          <div class="filters">
+            <input id="monthFilter" type="month">
+            <select id="typeFilter">
+              <option value="all">全部</option>
+              <option value="expense">支出</option>
+              <option value="income">收入</option>
+            </select>
+            <input id="searchInput" type="search" placeholder="搜尋分類、商家、備註">
+          </div>
+        </div>
+        <div class="cards" id="summaryCards"></div>
+        <div class="chart-grid">
+          <article class="chart-card">
+            <h3>支出分類排行</h3>
+            <div id="categoryBars" class="bar-list"></div>
+          </article>
+          <article class="chart-card">
+            <h3>付款方式占比</h3>
+            <div id="methodBars" class="bar-list"></div>
+          </article>
+        </div>
+        <article class="panel">
+          <div class="panel-pad">
+            <h3>記帳明細</h3>
+            <p class="hint">最新資料排在最上方，可直接刪除錯誤紀錄。</p>
+          </div>
+          <div id="entryTable"></div>
+        </article>
+      </section>
+    </section>
+  </main>
+  <nav class="mobile-actions" aria-label="手機快速操作">
+    <button class="btn green" type="button" data-scroll="entryForm">新增</button>
+    <button class="btn blue" type="button" data-scroll="summaryCards">總覽</button>
+    <a class="btn dark" href="personal-assets-dashboard.html">儀表板</a>
+  </nav>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const accountingKey = "personal-accounting-tsubin-v1";
+    const entryTypeButtons = [...document.querySelectorAll("[data-type]")];
+    const form = document.getElementById("entryForm");
+    const categoryList = document.getElementById("categoryList");
+    const accountList = document.getElementById("accountList");
+    const monthFilter = document.getElementById("monthFilter");
+    const typeFilter = document.getElementById("typeFilter");
+    const searchInput = document.getElementById("searchInput");
+    const toastEl = document.getElementById("toast");
+    let currentType = "expense";
+    let ledger = loadLedger();
+
+    function today() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    }
+    function monthOf(date = today()) {
+      return String(date).slice(0, 7);
+    }
+    function uid() {
+      return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+    function money(value) {
+      return Math.round(Number(value) || 0).toLocaleString("zh-TW");
+    }
+    function loadLedger() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(accountingKey) || "{}");
+        return { entries: Array.isArray(saved.entries) ? saved.entries : [] };
+      } catch {
+        return { entries: [] };
+      }
+    }
+    function saveLedger() {
+      localStorage.setItem(accountingKey, JSON.stringify(ledger));
+    }
+    function toast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      clearTimeout(toastEl._timer);
+      toastEl._timer = setTimeout(() => toastEl.classList.remove("show"), 1700);
+    }
+    function setType(type) {
+      currentType = type;
+      entryTypeButtons.forEach(button => button.classList.toggle("active", button.dataset.type === type));
+      document.getElementById("category").placeholder = type === "income" ? "薪資 / 股息 / 退款" : "餐飲 / 交通 / 生活";
+    }
+    function categoryDefaults() {
+      const defaults = currentType === "income"
+        ? ["薪資", "股息", "利息", "獎金", "退款", "其他收入"]
+        : ["餐飲", "交通", "生活用品", "房租房貸", "水電瓦斯", "保險", "醫療", "娛樂", "教育", "投資費用", "其他支出"];
+      const used = ledger.entries.filter(row => row.type === currentType).map(row => row.category).filter(Boolean);
+      return [...new Set([...defaults, ...used])];
+    }
+    function refreshLists() {
+      categoryList.innerHTML = categoryDefaults().map(item => `<option value="${escapeHtml(item)}"></option>`).join("");
+      const accounts = [...new Set(["現金", "銀行帳戶", "信用卡", ...ledger.entries.map(row => row.account).filter(Boolean)])];
+      accountList.innerHTML = accounts.map(item => `<option value="${escapeHtml(item)}"></option>`).join("");
+    }
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
+    }
+    function filteredEntries() {
+      const month = monthFilter.value;
+      const type = typeFilter.value;
+      const keyword = searchInput.value.trim().toLowerCase();
+      return ledger.entries
+        .filter(row => !month || String(row.date || "").startsWith(month))
+        .filter(row => type === "all" || row.type === type)
+        .filter(row => {
+          if (!keyword) return true;
+          return [row.category, row.account, row.method, row.merchant, row.note].some(value => String(value || "").toLowerCase().includes(keyword));
+        })
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    }
+    function sum(rows, fn) {
+      return rows.reduce((total, row) => total + (Number(fn(row)) || 0), 0);
+    }
+    function groupRows(rows, key) {
+      const grouped = new Map();
+      rows.forEach(row => {
+        const label = row[key] || "未分類";
+        grouped.set(label, (grouped.get(label) || 0) + Number(row.amount || 0));
+      });
+      return [...grouped.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+    }
+    function renderCards(rows) {
+      const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
+      const expense = sum(rows.filter(row => row.type === "expense"), row => row.amount);
+      const balance = income - expense;
+      const days = new Set(rows.map(row => row.date)).size || 1;
+      document.getElementById("summaryCards").innerHTML = [
+        card("本月收入", money(income), "TWD", "dark"),
+        card("本月支出", money(expense), "TWD"),
+        card("本月結餘", `${balance >= 0 ? "+" : ""}${money(balance)}`, "TWD", "accent"),
+        card("日均支出", money(expense / days), "TWD / 有紀錄日")
+      ].join("");
+    }
+    function card(label, value, unit, cls = "") {
+      return `<article class="card ${cls}"><span class="label">${label}</span><strong class="number">${value}</strong><span class="unit">${unit}</span></article>`;
+    }
+    function renderBars(target, rows, color) {
+      const max = Math.max(1, ...rows.map(row => row.value));
+      document.getElementById(target).innerHTML = rows.length
+        ? rows.slice(0, 8).map(row => `<div class="bar-row"><strong>${escapeHtml(row.label)}</strong><span class="bar-track"><i class="bar-fill" style="--w:${Math.max(4, row.value / max * 100).toFixed(1)}%;--c:${color}"></i></span><span>${money(row.value)}</span></div>`).join("")
+        : `<div class="empty">目前沒有可呈現資料</div>`;
+    }
+    function renderTable(rows) {
+      if (!rows.length) {
+        document.getElementById("entryTable").innerHTML = `<div class="empty">目前沒有符合條件的記帳資料</div>`;
+        return;
+      }
+      document.getElementById("entryTable").innerHTML = `<div class="table-wrap"><table>
+        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>金額</th><th>帳戶</th><th>方式</th><th>商家 / 對象</th><th>備註</th><th>操作</th></tr></thead>
+        <tbody>${rows.map(row => `<tr>
+          <td>${escapeHtml(row.date)}</td>
+          <td>${row.type === "income" ? "收入" : "支出"}</td>
+          <td>${escapeHtml(row.category)}</td>
+          <td class="${row.type === "income" ? "amount-income" : "amount-expense"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</td>
+          <td>${escapeHtml(row.account)}</td>
+          <td>${escapeHtml(row.method)}</td>
+          <td>${escapeHtml(row.merchant)}</td>
+          <td>${escapeHtml(row.note)}</td>
+          <td><button class="btn small dark" type="button" data-delete="${row.id}">刪除</button></td>
+        </tr>`).join("")}</tbody>
+      </table></div>`;
+    }
+    function render() {
+      refreshLists();
+      const rows = filteredEntries();
+      renderCards(rows);
+      renderBars("categoryBars", groupRows(rows.filter(row => row.type === "expense"), "category"), "var(--blue)");
+      renderBars("methodBars", groupRows(rows, "method"), "var(--green)");
+      renderTable(rows);
+    }
+    function download(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = Object.assign(document.createElement("a"), { href: url, download: filename });
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 500);
+    }
+    function csvEscape(value) {
+      return `"${String(value ?? "").replace(/"/g, '""')}"`;
+    }
+    entryTypeButtons.forEach(button => button.addEventListener("click", () => setType(button.dataset.type)));
+    form.addEventListener("submit", event => {
+      event.preventDefault();
+      const amount = Number(document.getElementById("amount").value);
+      if (!amount) {
+        toast("請輸入金額");
+        return;
+      }
+      ledger.entries.push({
+        id: uid(),
+        type: currentType,
+        date: document.getElementById("date").value || today(),
+        amount,
+        category: document.getElementById("category").value.trim() || (currentType === "income" ? "其他收入" : "其他支出"),
+        account: document.getElementById("account").value.trim(),
+        method: document.getElementById("method").value,
+        merchant: document.getElementById("merchant").value.trim(),
+        note: document.getElementById("note").value.trim(),
+        createdAt: new Date().toISOString()
+      });
+      saveLedger();
+      form.reset();
+      document.getElementById("date").value = today();
+      setType(currentType);
+      render();
+      toast("已新增記帳");
+    });
+    document.addEventListener("click", event => {
+      const del = event.target.closest("[data-delete]");
+      if (del && confirm("確定刪除此筆記帳？")) {
+        ledger.entries = ledger.entries.filter(row => row.id !== del.dataset.delete);
+        saveLedger();
+        render();
+        toast("已刪除");
+      }
+      const scroll = event.target.closest("[data-scroll]");
+      if (scroll) document.getElementById(scroll.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    [monthFilter, typeFilter, searchInput].forEach(el => el.addEventListener("input", render));
+    document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
+    document.getElementById("exportCsv").addEventListener("click", () => {
+      const header = ["日期", "類型", "分類", "金額", "帳戶", "方式", "商家/對象", "備註"];
+      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.amount, row.account, row.method, row.merchant, row.note].map(csvEscape).join(","))];
+      download("tsubin-accounting-data.csv", "\ufeff" + lines.join("\n"), "text/csv;charset=utf-8");
+    });
+    document.getElementById("importButton").addEventListener("click", () => document.getElementById("importFile").click());
+    document.getElementById("importFile").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const payload = JSON.parse(await file.text());
+      if (!Array.isArray(payload.entries)) {
+        toast("匯入格式不正確");
+        return;
+      }
+      ledger = { entries: payload.entries };
+      saveLedger();
+      render();
+      toast("已匯入記帳資料");
+      event.target.value = "";
+    });
+    document.getElementById("clearData").addEventListener("click", () => {
+      if (!confirm("確定清空所有記帳資料？")) return;
+      ledger = { entries: [] };
+      saveLedger();
+      render();
+      toast("已清空記帳資料");
+    });
+    document.getElementById("date").value = today();
+    monthFilter.value = monthOf();
+    setType("expense");
+    render();
+  </script>
+</body>
+</html>
