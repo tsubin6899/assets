@@ -301,6 +301,7 @@
       display: flex;
       align-items: center;
       justify-content: flex-end;
+      flex-wrap: wrap;
       gap: 10px;
       min-width: 0;
     }
@@ -760,14 +761,14 @@
         <section>
           <div class="toolbar">
             <div>
-              <h2>近期明細</h2>
-              <p class="hint">最新資料排在最上方，可直接刪除錯誤紀錄。</p>
+              <h2>行事曆明細</h2>
+              <p class="hint">點擊日期即可查看當天收支明細，避免近期消費列表越累積越長。</p>
             </div>
           </div>
-          <article class="panel"><div id="entryTable"></div></article>
           <article class="panel calendar-panel">
             <div class="panel-pad" id="ledgerCalendar"></div>
           </article>
+          <article class="panel selected-day-details"><div id="entryTable"></div></article>
         </section>
       </div>
     </section>
@@ -1026,6 +1027,7 @@
     let currentType = "expense";
     let currentView = "entryView";
     let ledgerCalendarMonth = monthOf();
+    let selectedLedgerDate = today();
     let ledger = loadLedger();
 
     function today() {
@@ -1281,6 +1283,29 @@
           <div class="account-actions"><button type="button" data-remove-account="${escapeHtml(account.name)}">刪除</button></div>
         </div>`;
       }).join("") || `<div class="empty">尚未建立信用卡</div>`;
+      renderCreditBills();
+    }
+    function renderCreditBills() {
+      const rows = [...(ledger.creditBills || [])]
+        .sort((a, b) => String(a.paid).localeCompare(String(b.paid)) || String(b.billMonth || "").localeCompare(String(a.billMonth || "")) || String(a.dueDate || "").localeCompare(String(b.dueDate || "")));
+      const target = document.getElementById("creditBillList");
+      if (!rows.length) {
+        target.innerHTML = `<div class="empty">尚未建立信用卡帳單</div>`;
+        return;
+      }
+      target.innerHTML = rows.map(row => `
+        <div class="account-tile">
+          <div class="account-meta">
+            <strong>${escapeHtml(row.card)}｜${escapeHtml(row.billMonth)}</strong>
+            <small>截止 ${escapeHtml(row.dueDate || "未設定")}｜由 ${escapeHtml(row.payAccount)} 繳款${row.paidAt ? `｜已繳 ${escapeHtml(row.paidAt.slice(0, 10))}` : ""}</small>
+          </div>
+          <span class="account-balance">${money(row.amount)} TWD</span>
+          <div class="account-actions">
+            <span class="bill-status ${row.paid ? "paid" : ""}">${row.paid ? "已繳" : "待繳"}</span>
+            ${row.paid ? "" : `<button type="button" data-pay-bill="${escapeHtml(row.id)}">已繳款</button>`}
+            <button type="button" data-remove-bill="${escapeHtml(row.id)}">刪除</button>
+          </div>
+        </div>`).join("");
     }
     function renderCards(rows) {
       const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
@@ -1302,12 +1327,12 @@
         ? rows.slice(0, 8).map(row => `<div class="bar-row"><strong>${escapeHtml(row.label)}</strong><span class="bar-track"><i class="bar-fill" style="--w:${Math.max(4, row.value / max * 100).toFixed(1)}%;--c:${color}"></i></span><span>${money(row.value)}</span></div>`).join("")
         : `<div class="empty">目前沒有可呈現資料</div>`;
     }
-    function renderTable(target, rows) {
+    function renderTable(target, rows, prefix = "") {
       if (!rows.length) {
-        document.getElementById(target).innerHTML = `<div class="empty">目前沒有符合條件的記帳資料</div>`;
+        document.getElementById(target).innerHTML = `${prefix}<div class="empty">目前沒有符合條件的記帳資料</div>`;
         return;
       }
-      document.getElementById(target).innerHTML = `<div class="table-wrap"><table>
+      document.getElementById(target).innerHTML = `${prefix}<div class="table-wrap"><table>
         <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>項目</th><th>金額</th><th>付款帳戶</th><th>方式</th><th>商家 / 對象</th><th>備註</th><th>操作</th></tr></thead>
         <tbody>${rows.map(row => {
           const account = ledger.accounts.find(item => item.name === row.account);
@@ -1355,19 +1380,20 @@
       for (let day = 1; day <= days; day++) {
         const date = `${month}-${String(day).padStart(2, "0")}`;
         const row = daily.get(date);
+        const selectedClass = date === selectedLedgerDate ? " selected" : "";
         if (!row) {
-          cells.push(`<div class="ledger-day"><strong>${day}</strong><div class="day-note">尚無紀錄</div></div>`);
+          cells.push(`<button type="button" class="ledger-day${selectedClass}" data-ledger-date="${date}"><strong>${day}</strong><div class="day-note">尚無紀錄</div></button>`);
           continue;
         }
         const balance = row.income - row.expense;
         const labels = [...new Set(row.labels)].slice(0, 2).join("、");
-        cells.push(`<div class="ledger-day">
+        cells.push(`<button type="button" class="ledger-day${selectedClass}" data-ledger-date="${date}">
           <strong>${day}</strong>
           <div class="day-stat income"><span>收</span><span>${money(row.income)}</span></div>
           <div class="day-stat expense"><span>支</span><span>${money(row.expense)}</span></div>
           <div class="day-stat balance"><span>餘</span><span>${balance >= 0 ? "+" : ""}${money(balance)}</span></div>
           <div class="day-note">${row.count} 筆${labels ? `｜${escapeHtml(labels)}` : ""}</div>
-        </div>`);
+        </button>`);
       }
       document.getElementById("ledgerCalendar").innerHTML = `
         <div class="calendar-head">
@@ -1382,6 +1408,28 @@
           </div>
         </div>
         <div class="ledger-calendar">${cells.join("")}</div>`;
+    }
+    function selectedDayRows() {
+      return [...ledger.entries]
+        .filter(row => row.date === selectedLedgerDate)
+        .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    }
+    function renderSelectedDayDetails() {
+      const rows = selectedDayRows();
+      const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
+      const expense = sum(rows.filter(row => row.type === "expense"), row => row.amount);
+      const header = `<div class="panel-pad selected-day-head">
+        <div>
+          <h3>${escapeHtml(selectedLedgerDate)} 收支明細</h3>
+          <p class="hint">收入 ${money(income)}｜支出 ${money(expense)}｜結餘 ${income - expense >= 0 ? "+" : ""}${money(income - expense)}</p>
+        </div>
+        <button class="btn small blue" type="button" data-set-entry-date="${escapeHtml(selectedLedgerDate)}">用這天新增</button>
+      </div>`;
+      if (!rows.length) {
+        document.getElementById("entryTable").innerHTML = `${header}<div class="empty">這一天目前沒有收支紀錄</div>`;
+        return;
+      }
+      renderTable("entryTable", rows, header);
     }
     function sortedTransfers() {
       return [...(ledger.transfers || [])]
@@ -1424,14 +1472,11 @@
       renderTabs();
       refreshLists();
       const rows = filteredEntries();
-      const recentRows = [...ledger.entries]
-        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
-        .slice(0, 12);
       renderCards(rows);
       renderBars("categoryBars", groupRows(rows.filter(row => row.type === "expense"), "category"), "var(--blue)");
       renderBars("itemBars", groupRows(rows.filter(row => row.type === "expense"), "item"), "var(--amber)");
       renderBars("methodBars", groupRows(rows, "method"), "var(--green)");
-      renderTable("entryTable", recentRows);
+      renderSelectedDayDetails();
       renderTable("analysisTable", rows);
       renderLedgerCalendar();
       renderTransfers();
@@ -1533,22 +1578,53 @@
       const transferDel = event.target.closest("[data-delete-transfer]");
       if (transferDel && confirm("確定要刪除這筆轉帳？")) {
         ledger.transfers = (ledger.transfers || []).filter(row => row.id !== transferDel.dataset.deleteTransfer);
+        ledger.creditBills = (ledger.creditBills || []).map(row => row.transferId === transferDel.dataset.deleteTransfer ? { ...row, paid: false, paidAt: "", transferId: "" } : row);
         saveLedger();
         render();
         toast("已刪除轉帳");
       }
+      const payBill = event.target.closest("[data-pay-bill]");
+      if (payBill) {
+        payCreditBill(payBill.dataset.payBill);
+        return;
+      }
+      const removeBill = event.target.closest("[data-remove-bill]");
+      if (removeBill) {
+        const bill = (ledger.creditBills || []).find(row => row.id === removeBill.dataset.removeBill);
+        if (bill?.paid && !confirm("這筆帳單已繳款，刪除帳單不會刪除已產生的轉帳紀錄。確定刪除？")) return;
+        ledger.creditBills = (ledger.creditBills || []).filter(row => row.id !== removeBill.dataset.removeBill);
+        saveLedger();
+        render();
+        toast("已刪除帳單");
+        return;
+      }
       const scroll = event.target.closest("[data-scroll]");
       if (scroll) document.getElementById(scroll.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const ledgerDate = event.target.closest("[data-ledger-date]");
+      if (ledgerDate) {
+        selectedLedgerDate = ledgerDate.dataset.ledgerDate;
+        render();
+        return;
+      }
+      const setEntryDate = event.target.closest("[data-set-entry-date]");
+      if (setEntryDate) {
+        document.getElementById("date").value = setEntryDate.dataset.setEntryDate;
+        document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
       if (event.target.closest("[data-calendar-prev]")) {
         ledgerCalendarMonth = shiftMonth(ledgerCalendarMonth || monthOf(), -1);
+        selectedLedgerDate = `${ledgerCalendarMonth}-01`;
         render();
       }
       if (event.target.closest("[data-calendar-this]")) {
         ledgerCalendarMonth = monthOf();
+        selectedLedgerDate = today();
         render();
       }
       if (event.target.closest("[data-calendar-next]")) {
         ledgerCalendarMonth = shiftMonth(ledgerCalendarMonth || monthOf(), 1);
+        selectedLedgerDate = `${ledgerCalendarMonth}-01`;
         render();
       }
       const removeCategory = event.target.closest("[data-remove-category]");
@@ -1582,6 +1658,7 @@
         const value = removeAccount.dataset.removeAccount;
         if (ledger.entries.some(row => row.account === value) && !confirm("這個帳戶已有記帳紀錄，刪除後舊紀錄仍會保留帳戶名稱。確定刪除？")) return;
         if ((ledger.transfers || []).some(row => row.fromAccount === value || row.toAccount === value || row.feeAccount === value) && !confirm("這個帳戶已有轉帳紀錄，刪除後舊轉帳仍會保留帳戶名稱。確定刪除？")) return;
+        if ((ledger.creditBills || []).some(row => row.card === value || row.payAccount === value) && !confirm("這個帳戶已有信用卡帳單紀錄，刪除後舊帳單仍會保留帳戶名稱。確定刪除？")) return;
         ledger.accounts = ledger.accounts.filter(item => item.name !== value);
         saveLedger();
         render();
@@ -1661,6 +1738,66 @@
       accountSelect.value = name;
       toast("已新增信用卡");
     });
+    creditBillForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const card = billCardSelect.value;
+      const payAccount = billPayAccountSelect.value;
+      const amount = Number(document.getElementById("billAmount").value) || 0;
+      if (!card || !payAccount) {
+        toast("請選擇信用卡與繳款帳戶");
+        return;
+      }
+      if (!amount) {
+        toast("請輸入應繳金額");
+        return;
+      }
+      ledger.creditBills = ledger.creditBills || [];
+      ledger.creditBills.push({
+        id: uid(),
+        card,
+        billMonth: document.getElementById("billMonth").value || monthOf(),
+        dueDate: document.getElementById("billDueDate").value,
+        amount,
+        payAccount,
+        paid: false,
+        paidAt: "",
+        transferId: "",
+        createdAt: new Date().toISOString()
+      });
+      creditBillForm.reset();
+      document.getElementById("billMonth").value = monthOf();
+      saveLedger();
+      render();
+      toast("已新增信用卡帳單");
+    });
+    function payCreditBill(id) {
+      const bill = (ledger.creditBills || []).find(row => row.id === id);
+      if (!bill || bill.paid) return;
+      if (!ledger.accounts.some(account => account.name === bill.card) || !ledger.accounts.some(account => account.name === bill.payAccount)) {
+        toast("找不到信用卡或繳款帳戶");
+        return;
+      }
+      const transferId = uid();
+      ledger.transfers = ledger.transfers || [];
+      ledger.transfers.push({
+        id: transferId,
+        date: today(),
+        fromAccount: bill.payAccount,
+        toAccount: bill.card,
+        fromAmount: bill.amount,
+        toAmount: bill.amount,
+        feeAmount: 0,
+        feeAccount: bill.payAccount,
+        note: `${bill.billMonth} ${bill.card} 信用卡帳單繳款`,
+        createdAt: new Date().toISOString()
+      });
+      bill.paid = true;
+      bill.paidAt = new Date().toISOString();
+      bill.transferId = transferId;
+      saveLedger();
+      render();
+      toast("已記錄信用卡繳款");
+    }
     transferForm.addEventListener("submit", event => {
       event.preventDefault();
       const fromAccount = transferFromSelect.value;
@@ -1743,6 +1880,7 @@
       ledger = {
         entries: payload.entries,
         transfers: normalizeTransfers(payload.transfers),
+        creditBills: normalizeCreditBills(payload.creditBills),
         categories: {
           income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...payload.entries.filter(row => row.type === "income").map(row => row.category)]),
           expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...payload.entries.filter(row => row.type !== "income").map(row => row.category)])
@@ -1761,6 +1899,7 @@
       ledger = {
         entries: [],
         transfers: [],
+        creditBills: [],
         categories: structuredClone(defaultCategories),
         items: structuredClone(defaultItems),
         accounts: structuredClone(defaultAccounts),
@@ -1772,6 +1911,7 @@
     });
     document.getElementById("date").value = today();
     document.getElementById("transferDate").value = today();
+    document.getElementById("billMonth").value = monthOf();
     monthFilter.value = monthOf();
     setType("expense");
     render();
