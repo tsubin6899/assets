@@ -1062,7 +1062,13 @@
             <input id="recurringAmount" type="number" min="0" step="1" placeholder="金額">
             <select id="recurringCategory"></select>
             <select id="recurringAccount"></select>
-            <input id="recurringDay" type="number" min="1" max="31" placeholder="每月幾號">
+            <select id="recurringCycle">
+              <option value="monthly">每月</option>
+              <option value="weekly">每週</option>
+              <option value="yearly">每年</option>
+            </select>
+            <input id="recurringDay" type="number" min="1" max="31" placeholder="日期；每週用 1-7">
+            <input id="recurringEndDate" type="date" title="停止日期">
             <button class="btn green" type="submit">新增固定項目</button>
             <button class="btn blue" id="generateRecurring" type="button">產生本月項目</button>
           </form>
@@ -1236,6 +1242,29 @@
       const [year, monthNumber] = month.split("-").map(Number);
       const date = new Date(year, monthNumber - 1 + delta, 1);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+    function daysInMonth(month) {
+      return new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate();
+    }
+    function recurringDatesForMonth(rule, month) {
+      const cycle = rule.cycle || "monthly";
+      const endDate = rule.endDate || "";
+      const dates = [];
+      if (cycle === "weekly") {
+        const targetDow = Number(rule.day) >= 7 ? 0 : Math.max(1, Number(rule.day) || 1);
+        for (let day = 1; day <= daysInMonth(month); day += 1) {
+          const date = `${month}-${String(day).padStart(2, "0")}`;
+          const dow = new Date(`${date}T00:00:00`).getDay();
+          if (dow === targetDow && (!endDate || date <= endDate)) dates.push(date);
+        }
+        return dates;
+      }
+      if (cycle === "yearly") {
+        const startMonth = String(rule.startMonth || rule.createdAt || month).slice(5, 7);
+        if (month.slice(5, 7) !== startMonth) return [];
+      }
+      const date = `${month}-${String(Math.min(Number(rule.day) || 1, daysInMonth(month))).padStart(2, "0")}`;
+      return !endDate || date <= endDate ? [date] : [];
     }
     function firstDayOfMonth(month) {
       return `${month || monthOf()}-01`;
@@ -1457,7 +1486,10 @@
         amount: Number(row.amount) || 0,
         category: String(row.category || "").trim(),
         account: String(row.account || "").trim(),
+        cycle: ["weekly", "monthly", "yearly"].includes(row.cycle) ? row.cycle : "monthly",
         day: Math.min(31, Math.max(1, Number(row.day) || 1)),
+        endDate: String(row.endDate || "").trim(),
+        startMonth: String(row.startMonth || row.createdAt || monthOf()).slice(0, 7),
         createdAt: row.createdAt || new Date().toISOString()
       })).filter(row => row.name && row.amount > 0 && row.category && row.account);
     }
@@ -2119,8 +2151,9 @@
     }
     function renderRecurringRules() {
       const target = document.getElementById("recurringList");
+      const cycleLabels = { weekly: "每週", monthly: "每月", yearly: "每年" };
       target.innerHTML = (ledger.recurringRules || []).length
-        ? ledger.recurringRules.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜每月 ${row.day} 日｜${escapeHtml(row.category)}｜${escapeHtml(row.account)}</small></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions"><button type="button" data-remove-recurring="${escapeHtml(row.id)}">刪除</button></div></div>`).join("")
+        ? ledger.recurringRules.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜${cycleLabels[row.cycle || "monthly"] || "每月"} ${row.day} 日｜${escapeHtml(row.category)}｜${escapeHtml(row.account)}${row.endDate ? `｜到 ${escapeHtml(row.endDate)} 停止` : ""}</small></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions"><button type="button" data-remove-recurring="${escapeHtml(row.id)}">刪除</button></div></div>`).join("")
         : `<div class="empty">尚未建立固定收支</div>`;
     }
     function renderBudgetAlerts(rows) {
@@ -2632,7 +2665,10 @@
         amount,
         category: recurringCategorySelect.value,
         account: recurringAccountSelect.value,
+        cycle: document.getElementById("recurringCycle").value || "monthly",
         day: Math.min(31, Math.max(1, Number(document.getElementById("recurringDay").value) || 1)),
+        endDate: document.getElementById("recurringEndDate").value || "",
+        startMonth: monthOf(),
         createdAt: new Date().toISOString()
       });
       document.getElementById("recurringForm").reset();
@@ -2644,23 +2680,24 @@
       const month = monthFilter.value || monthOf();
       let created = 0;
       (ledger.recurringRules || []).forEach(rule => {
-        const date = `${month}-${String(Math.min(rule.day, new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate())).padStart(2, "0")}`;
-        const exists = ledger.entries.some(row => row.recurringId === rule.id && row.date === date);
-        if (exists) return;
-        ledger.entries.push({
-          id: uid(),
-          type: rule.type,
-          date,
-          amount: rule.amount,
-          category: rule.category,
-          item: "",
-          account: rule.account,
-          merchant: rule.name,
-          note: "固定收支自動產生",
-          recurringId: rule.id,
-          createdAt: new Date().toISOString()
+        recurringDatesForMonth(rule, month).forEach(date => {
+          const exists = ledger.entries.some(row => row.recurringId === rule.id && row.date === date);
+          if (exists) return;
+          ledger.entries.push({
+            id: uid(),
+            type: rule.type,
+            date,
+            amount: rule.amount,
+            category: rule.category,
+            item: "",
+            account: rule.account,
+            merchant: rule.name,
+            note: "固定收支自動產生",
+            recurringId: rule.id,
+            createdAt: new Date().toISOString()
+          });
+          created += 1;
         });
-        created += 1;
       });
       saveLedger();
       render();

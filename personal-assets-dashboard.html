@@ -1811,7 +1811,7 @@
       const tw = stockValue(data.tw);
       const us = stockValue(data.us, data.rates.usd);
       const cash = sum(cashRows(), twdCash) + (Number(data.rates.reserve) || 0);
-      const cards = sum(data.cards, r => r.amount);
+      const cards = accountingCreditLiability();
       const gold = goldGram() * data.rates.goldGram;
       const silver = silverOz() * data.rates.silverOz;
       const fundTwd = sum(data.funds, r => r.units * r.nav);
@@ -1893,6 +1893,14 @@
         if (feeAmount && feeAccount === account.name) next -= feeAmount;
         return next;
       }, entryTotal);
+    }
+    function accountingCreditLiability() {
+      const ledger = loadAccountingLedger();
+      const cards = (ledger.accounts || []).filter(account => account.type === "信用卡");
+      return cards.reduce((total, account) => {
+        const balance = accountingAccountBalance(account, ledger);
+        return total + Math.max(0, -balance);
+      }, 0);
     }
     function cashRows() {
       const ledger = loadAccountingLedger();
@@ -2106,7 +2114,7 @@
     function cashPressureRows() {
       const bank = sum(cashRows(), twdCash);
       const reserve = Number(data.rates.reserve) || 0;
-      const cards = sum(data.cards, row => Number(row.amount) || 0);
+      const cards = accountingCreditLiability();
       const available = Math.max(0, bank + reserve - cards);
       return [
         { label: "可動用現金", value: available, rawValue: available, color: "var(--green)" },
@@ -2686,7 +2694,7 @@
     }
     function renderCash() {
       const bank = sum(cashRows(), twdCash);
-      const reserved = sum(data.cards, r => r.amount);
+      const reserved = accountingCreditLiability();
       const reserve = Number(data.rates.reserve) || 0;
       const cashAccounts = cashRows();
       const currencies = [...new Set(["TWD", ...cashAccounts.map(row => normalizeCurrency(row.currency)).filter(Boolean)])];
@@ -2716,9 +2724,6 @@
           <thead><tr><th>銀行名稱</th><th>幣別</th><th>匯率</th><th>現金餘額</th><th>折台幣</th><th>操作</th></tr></thead>
           <tbody>${cashAccounts.map((r, i) => `<tr><td>${r.source === "accounting" ? escapeHtml(r.bank || "") : textInput(r.bank, `cash.${i}.bank`)}</td><td>${r.source === "accounting" ? escapeHtml(normalizeCurrency(r.currency)) : textInput(normalizeCurrency(r.currency), `cash.${i}.currency`)}</td><td>${rateText(fxRate(r.currency))}</td><td>${r.source === "accounting" ? money(r.amount, normalizeCurrency(r.currency)) : textInput(r.amount, `cash.${i}.amount`, "number")}</td><td>${money(twdCash(r))}</td><td>${r.source === "accounting" ? "記帳 App" : `<button class="icon-btn" data-del="cash.${i}">刪</button>`}</td></tr>`).join("")}</tbody>
         </table></div></article>
-        <article class="panel"><div class="panel-pad">${section("cards", "信用卡款項紀錄", "只記錄信用卡本期待繳總額，提醒用，不併入總資產與銀行現金統計。", `<button class="btn green small" data-add="cards">+ 新增信用卡款項</button>`)}
-          <div class="table-wrap"><table><thead><tr><th>信用卡 / 銀行</th><th>本期待繳金額</th><th>繳款期限</th><th>備註</th><th>操作</th></tr></thead><tbody>${data.cards.map((r, i) => `<tr><td>${textInput(r.card, `cards.${i}.card`)}</td><td>${textInput(r.amount, `cards.${i}.amount`, "number")}</td><td>${textInput(r.due, `cards.${i}.due`)}</td><td>${textInput(r.note, `cards.${i}.note`)}</td><td><button class="icon-btn" data-del="cards.${i}">刪</button></td></tr>`).join("")}</tbody></table></div>
-        </div></article>
       `;
     }
     function renderMetals(kind) {
