@@ -1100,7 +1100,7 @@
       <article class="panel">
         <div class="panel-pad">
           <h2>固定收入 / 固定支出</h2>
-          <p class="hint">設定薪資、房租、房貸、保險、訂閱等週期項目；到期日後便不再產生記帳資料。</p>
+          <p class="hint">設定薪資、房租、房貸、保險、訂閱等週期項目；可設為無限制持續，或指定到期日後停止。</p>
           <form id="recurringForm" class="tool-grid">
             <select id="recurringType"><option value="expense">支出</option><option value="income">收入</option></select>
             <input id="recurringName" placeholder="名稱，例如：房租">
@@ -1113,7 +1113,11 @@
               <option value="yearly">每年</option>
             </select>
             <input id="recurringDay" type="number" min="1" max="31" placeholder="日期；每週用 1-7">
-            <input id="recurringEndDate" type="date" title="停止日期">
+            <select id="recurringEndMode" title="停止方式">
+              <option value="unlimited">無限制</option>
+              <option value="end-date">指定停止日期</option>
+            </select>
+            <input id="recurringEndDate" type="date" title="停止日期" disabled>
             <button class="btn green" type="submit">新增固定項目</button>
             <button class="btn blue" id="generateRecurring" type="button">產生本月項目</button>
           </form>
@@ -1256,6 +1260,8 @@
     const recurringTypeSelect = document.getElementById("recurringType");
     const recurringCategorySelect = document.getElementById("recurringCategory");
     const recurringAccountSelect = document.getElementById("recurringAccount");
+    const recurringEndModeSelect = document.getElementById("recurringEndMode");
+    const recurringEndDateInput = document.getElementById("recurringEndDate");
     const budgetCategorySelect = document.getElementById("budgetCategory");
     const monthFilter = document.getElementById("monthFilter");
     const typeFilter = document.getElementById("typeFilter");
@@ -2238,7 +2244,7 @@
       const target = document.getElementById("recurringList");
       const cycleLabels = { weekly: "每週", monthly: "每月", yearly: "每年" };
       target.innerHTML = (ledger.recurringRules || []).length
-        ? ledger.recurringRules.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜${cycleLabels[row.cycle || "monthly"] || "每月"} ${row.day} 日｜${escapeHtml(row.category)}｜${escapeHtml(row.account)}${row.endDate ? `｜到 ${escapeHtml(row.endDate)} 停止` : ""}</small></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions"><button type="button" data-remove-recurring="${escapeHtml(row.id)}">刪除</button></div></div>`).join("")
+        ? ledger.recurringRules.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜${cycleLabels[row.cycle || "monthly"] || "每月"} ${row.day} 日｜${escapeHtml(row.category)}｜${escapeHtml(row.account)}｜${row.endDate ? `到 ${escapeHtml(row.endDate)} 停止` : "無限制"}</small></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions"><button type="button" data-remove-recurring="${escapeHtml(row.id)}">刪除</button></div></div>`).join("")
         : `<div class="empty">尚未建立固定收支</div>`;
     }
     function renderBudgetAlerts(rows) {
@@ -2733,7 +2739,13 @@
       render();
       toast("已新增信用卡帳單");
     });
+    function updateRecurringEndDate() {
+      const hasEndDate = recurringEndModeSelect.value === "end-date";
+      recurringEndDateInput.disabled = !hasEndDate;
+      if (!hasEndDate) recurringEndDateInput.value = "";
+    }
     recurringTypeSelect.addEventListener("change", renderUtilityOptions);
+    recurringEndModeSelect.addEventListener("change", updateRecurringEndDate);
     document.getElementById("recurringForm").addEventListener("submit", event => {
       event.preventDefault();
       const name = document.getElementById("recurringName").value.trim();
@@ -2752,11 +2764,12 @@
         account: recurringAccountSelect.value,
         cycle: document.getElementById("recurringCycle").value || "monthly",
         day: Math.min(31, Math.max(1, Number(document.getElementById("recurringDay").value) || 1)),
-        endDate: document.getElementById("recurringEndDate").value || "",
+        endDate: recurringEndModeSelect.value === "end-date" ? recurringEndDateInput.value || "" : "",
         startMonth: monthOf(),
         createdAt: new Date().toISOString()
       });
       document.getElementById("recurringForm").reset();
+      updateRecurringEndDate();
       saveLedger();
       render();
       toast("已新增固定收支");
@@ -2960,6 +2973,7 @@
     document.getElementById("installmentStartMonth").value = monthOf();
     document.getElementById("billMonth").value = monthOf();
     monthFilter.value = monthOf();
+    updateRecurringEndDate();
     loadSharedFxRates();
     setType("expense");
     render();
