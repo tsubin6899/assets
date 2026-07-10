@@ -135,10 +135,10 @@
       font-size: 13px;
     }
     .top-actions {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 6px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      justify-items: end;
+      gap: 8px;
       margin: 0;
       padding: 0;
       border: 0;
@@ -161,6 +161,9 @@
       gap: 8px;
       min-height: 44px;
     }
+    .top-actions > .cloud-sync,
+    .top-actions > .file-actions { width: max-content; }
+    .file-actions > .btn { min-width: 100px; }
     .btn {
       min-height: 36px;
       padding: 0 13px;
@@ -747,6 +750,8 @@
       .brand-row h1 { font-size: 23px; line-height: 1.2; }
       .sub { margin-top: 5px; font-size: 11px; }
       .top-actions {
+        display: flex;
+        flex-wrap: wrap;
         justify-content: flex-start;
         gap: 8px;
       }
@@ -758,6 +763,7 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
       }
+      .file-actions > .btn { min-width: 0; }
       .cloud-sync::-webkit-scrollbar, .file-actions::-webkit-scrollbar { display: none; }
       .top-actions .btn {
         min-height: 34px;
