@@ -128,6 +128,79 @@
       gap: 10px;
       margin-top: 14px;
     }
+    .manager-grid {
+      display: grid;
+      gap: 14px;
+      margin-top: 16px;
+    }
+    .manager-block {
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+    .manager-form {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .account-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .account-form .btn { grid-column: 1 / -1; }
+    .pill-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 10px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 30px;
+      padding: 5px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fffdf8;
+      color: var(--ink);
+      font-size: 12px;
+    }
+    .pill button,
+    .account-tile button {
+      border: 0;
+      color: var(--red);
+      background: transparent;
+      cursor: pointer;
+      font-weight: 850;
+    }
+    .account-list {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .account-tile {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fffdf8;
+    }
+    .account-tile strong,
+    .account-tile span {
+      display: block;
+    }
+    .account-tile small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+    .account-balance {
+      font-weight: 850;
+      text-align: right;
+    }
     label {
       display: grid;
       gap: 6px;
@@ -363,23 +436,53 @@
           <form id="entryForm" class="form-grid">
             <label>日期<input id="date" type="date" required></label>
             <label>金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" required></label>
-            <label>分類<input id="category" list="categoryList" required></label>
-            <label>帳戶<input id="account" list="accountList" placeholder="現金 / 銀行 / 信用卡"></label>
+            <label>分類<select id="category" required></select></label>
+            <label>付款帳戶<select id="account" required></select></label>
             <label>付款方式
-              <select id="method">
-                <option>現金</option>
-                <option>信用卡</option>
-                <option>轉帳</option>
-                <option>行動支付</option>
-                <option>其他</option>
-              </select>
+              <select id="method"></select>
             </label>
             <label>商家 / 對象<input id="merchant" placeholder="超商、餐廳、薪資等"></label>
             <label class="full">備註<textarea id="note" placeholder="可填發票、用途或提醒"></textarea></label>
             <button class="btn green full" type="submit">新增記帳</button>
           </form>
-          <datalist id="categoryList"></datalist>
-          <datalist id="accountList"></datalist>
+          <section class="manager-grid" aria-label="自訂設定">
+            <div class="manager-block">
+              <h3>自訂分類</h3>
+              <p class="hint">分類會依收入 / 支出分開管理。</p>
+              <form id="categoryForm" class="manager-form">
+                <input id="newCategory" placeholder="新增分類，例如：咖啡、學費、薪資">
+                <button class="btn small blue" type="submit">新增</button>
+              </form>
+              <div id="categoryPills" class="pill-list"></div>
+            </div>
+            <div class="manager-block">
+              <h3>自訂付款帳戶</h3>
+              <p class="hint">可建立現金、外幣現金、銀行帳戶、信用卡與行動支付；記帳時會依指定帳戶自動計算餘額。</p>
+              <form id="accountForm" class="manager-form account-form">
+                <input id="newAccountName" placeholder="帳戶名稱，例如：台新銀行、LINE Pay">
+                <select id="newAccountType">
+                  <option>現金</option>
+                  <option>外幣現金</option>
+                  <option>銀行帳戶</option>
+                  <option>信用卡</option>
+                  <option>行動支付</option>
+                  <option>其他</option>
+                </select>
+                <input id="newAccountCurrency" placeholder="幣別，例如 TWD / USD" value="TWD">
+                <input id="newAccountBalance" type="number" step="1" placeholder="起始餘額">
+                <button class="btn small green" type="submit">新增帳戶</button>
+              </form>
+              <div id="accountList" class="account-list"></div>
+            </div>
+            <div class="manager-block">
+              <h3>自訂付款方式</h3>
+              <form id="methodForm" class="manager-form">
+                <input id="newMethod" placeholder="新增方式，例如：悠遊付、街口、Apple Pay">
+                <button class="btn small purple" type="submit">新增</button>
+              </form>
+              <div id="methodPills" class="pill-list"></div>
+            </div>
+          </section>
         </div>
       </aside>
 
@@ -431,12 +534,23 @@
     const accountingKey = "personal-accounting-tsubin-v1";
     const entryTypeButtons = [...document.querySelectorAll("[data-type]")];
     const form = document.getElementById("entryForm");
-    const categoryList = document.getElementById("categoryList");
-    const accountList = document.getElementById("accountList");
+    const categorySelect = document.getElementById("category");
+    const accountSelect = document.getElementById("account");
+    const methodSelect = document.getElementById("method");
     const monthFilter = document.getElementById("monthFilter");
     const typeFilter = document.getElementById("typeFilter");
     const searchInput = document.getElementById("searchInput");
     const toastEl = document.getElementById("toast");
+    const defaultCategories = {
+      income: ["薪資", "股息", "利息", "獎金", "退款", "其他收入"],
+      expense: ["餐飲", "交通", "生活用品", "房租房貸", "水電瓦斯", "保險", "醫療", "娛樂", "教育", "投資費用", "其他支出"]
+    };
+    const defaultMethods = ["現金", "信用卡", "轉帳", "行動支付", "其他"];
+    const defaultAccounts = [
+      { id: "cash-twd", name: "現金", type: "現金", currency: "TWD", openingBalance: 0 },
+      { id: "bank-main", name: "銀行帳戶", type: "銀行帳戶", currency: "TWD", openingBalance: 0 },
+      { id: "credit-card", name: "信用卡", type: "信用卡", currency: "TWD", openingBalance: 0 }
+    ];
     let currentType = "expense";
     let ledger = loadLedger();
 
@@ -456,10 +570,39 @@
     function loadLedger() {
       try {
         const saved = JSON.parse(localStorage.getItem(accountingKey) || "{}");
-        return { entries: Array.isArray(saved.entries) ? saved.entries : [] };
+        const entries = Array.isArray(saved.entries) ? saved.entries : [];
+        return {
+          entries,
+          categories: {
+            income: normalizeList(saved.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
+            expense: normalizeList(saved.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
+          },
+          accounts: normalizeAccounts(saved.accounts, entries),
+          methods: normalizeList(saved.methods, [...defaultMethods, ...entries.map(row => row.method)])
+        };
       } catch {
-        return { entries: [] };
+        return {
+          entries: [],
+          categories: structuredClone(defaultCategories),
+          accounts: structuredClone(defaultAccounts),
+          methods: [...defaultMethods]
+        };
       }
+    }
+    function normalizeList(saved, fallback) {
+      return [...new Set([...(Array.isArray(saved) ? saved : []), ...fallback].map(item => String(item || "").trim()).filter(Boolean))];
+    }
+    function normalizeAccounts(saved, entries) {
+      const used = entries.map(row => row.account).filter(Boolean).map(name => ({ id: uid(), name, type: "其他", currency: "TWD", openingBalance: 0 }));
+      const rows = Array.isArray(saved) && saved.length ? saved : [...defaultAccounts, ...used];
+      const seen = new Set();
+      return rows.map(row => ({
+        id: row.id || uid(),
+        name: String(row.name || "").trim(),
+        type: String(row.type || "其他").trim(),
+        currency: String(row.currency || "TWD").trim().toUpperCase(),
+        openingBalance: Number(row.openingBalance) || 0
+      })).filter(row => row.name && !seen.has(row.name) && seen.add(row.name));
     }
     function saveLedger() {
       localStorage.setItem(accountingKey, JSON.stringify(ledger));
@@ -473,19 +616,21 @@
     function setType(type) {
       currentType = type;
       entryTypeButtons.forEach(button => button.classList.toggle("active", button.dataset.type === type));
-      document.getElementById("category").placeholder = type === "income" ? "薪資 / 股息 / 退款" : "餐飲 / 交通 / 生活";
-    }
-    function categoryDefaults() {
-      const defaults = currentType === "income"
-        ? ["薪資", "股息", "利息", "獎金", "退款", "其他收入"]
-        : ["餐飲", "交通", "生活用品", "房租房貸", "水電瓦斯", "保險", "醫療", "娛樂", "教育", "投資費用", "其他支出"];
-      const used = ledger.entries.filter(row => row.type === currentType).map(row => row.category).filter(Boolean);
-      return [...new Set([...defaults, ...used])];
+      refreshLists();
     }
     function refreshLists() {
-      categoryList.innerHTML = categoryDefaults().map(item => `<option value="${escapeHtml(item)}"></option>`).join("");
-      const accounts = [...new Set(["現金", "銀行帳戶", "信用卡", ...ledger.entries.map(row => row.account).filter(Boolean)])];
-      accountList.innerHTML = accounts.map(item => `<option value="${escapeHtml(item)}"></option>`).join("");
+      const selectedCategory = categorySelect.value;
+      categorySelect.innerHTML = (ledger.categories[currentType] || []).map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      if (selectedCategory && (ledger.categories[currentType] || []).includes(selectedCategory)) categorySelect.value = selectedCategory;
+      const selectedAccount = accountSelect.value;
+      accountSelect.innerHTML = ledger.accounts.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.type)}｜${escapeHtml(account.currency)}</option>`).join("");
+      if (selectedAccount && ledger.accounts.some(account => account.name === selectedAccount)) accountSelect.value = selectedAccount;
+      const selectedMethod = methodSelect.value;
+      methodSelect.innerHTML = ledger.methods.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      if (selectedMethod && ledger.methods.includes(selectedMethod)) methodSelect.value = selectedMethod;
+      document.getElementById("categoryPills").innerHTML = (ledger.categories[currentType] || []).map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-category="${escapeHtml(item)}">×</button></span>`).join("");
+      document.getElementById("methodPills").innerHTML = ledger.methods.map(item => `<span class="pill">${escapeHtml(item)}<button type="button" data-remove-method="${escapeHtml(item)}">×</button></span>`).join("");
+      renderAccounts();
     }
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char]));
@@ -514,16 +659,31 @@
       });
       return [...grouped.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
     }
+    function accountBalance(account) {
+      return ledger.entries.reduce((total, row) => {
+        if (row.account !== account.name) return total;
+        const amount = Number(row.amount) || 0;
+        return total + (row.type === "income" ? amount : -amount);
+      }, Number(account.openingBalance) || 0);
+    }
+    function renderAccounts() {
+      document.getElementById("accountList").innerHTML = ledger.accounts.map(account => {
+        const balance = accountBalance(account);
+        return `<div class="account-tile">
+          <div><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}｜起始 ${money(account.openingBalance)}</small></div>
+          <div><span class="account-balance">${money(balance)} ${escapeHtml(account.currency)}</span><button type="button" data-remove-account="${escapeHtml(account.name)}">刪除</button></div>
+        </div>`;
+      }).join("");
+    }
     function renderCards(rows) {
       const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
       const expense = sum(rows.filter(row => row.type === "expense"), row => row.amount);
       const balance = income - expense;
-      const days = new Set(rows.map(row => row.date)).size || 1;
       document.getElementById("summaryCards").innerHTML = [
         card("本月收入", money(income), "TWD", "dark"),
         card("本月支出", money(expense), "TWD"),
         card("本月結餘", `${balance >= 0 ? "+" : ""}${money(balance)}`, "TWD", "accent"),
-        card("日均支出", money(expense / days), "TWD / 有紀錄日")
+        card("付款帳戶", money(ledger.accounts.length, ""), "含現金 / 銀行 / 信用卡 / 行動支付")
       ].join("");
     }
     function card(label, value, unit, cls = "") {
@@ -541,18 +701,21 @@
         return;
       }
       document.getElementById("entryTable").innerHTML = `<div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>金額</th><th>帳戶</th><th>方式</th><th>商家 / 對象</th><th>備註</th><th>操作</th></tr></thead>
-        <tbody>${rows.map(row => `<tr>
+        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>金額</th><th>付款帳戶</th><th>方式</th><th>商家 / 對象</th><th>備註</th><th>操作</th></tr></thead>
+        <tbody>${rows.map(row => {
+          const account = ledger.accounts.find(item => item.name === row.account);
+          return `<tr>
           <td>${escapeHtml(row.date)}</td>
           <td>${row.type === "income" ? "收入" : "支出"}</td>
           <td>${escapeHtml(row.category)}</td>
           <td class="${row.type === "income" ? "amount-income" : "amount-expense"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</td>
-          <td>${escapeHtml(row.account)}</td>
+          <td>${escapeHtml(row.account)}${account ? `<br><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}</small>` : ""}</td>
           <td>${escapeHtml(row.method)}</td>
           <td>${escapeHtml(row.merchant)}</td>
           <td>${escapeHtml(row.note)}</td>
           <td><button class="btn small dark" type="button" data-delete="${row.id}">刪除</button></td>
-        </tr>`).join("")}</tbody>
+        </tr>`;
+        }).join("")}</tbody>
       </table></div>`;
     }
     function render() {
@@ -586,8 +749,8 @@
         type: currentType,
         date: document.getElementById("date").value || today(),
         amount,
-        category: document.getElementById("category").value.trim() || (currentType === "income" ? "其他收入" : "其他支出"),
-        account: document.getElementById("account").value.trim(),
+        category: categorySelect.value || (currentType === "income" ? "其他收入" : "其他支出"),
+        account: accountSelect.value,
         method: document.getElementById("method").value,
         merchant: document.getElementById("merchant").value.trim(),
         note: document.getElementById("note").value.trim(),
@@ -610,6 +773,77 @@
       }
       const scroll = event.target.closest("[data-scroll]");
       if (scroll) document.getElementById(scroll.dataset.scroll)?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const removeCategory = event.target.closest("[data-remove-category]");
+      if (removeCategory) {
+        const value = removeCategory.dataset.removeCategory;
+        ledger.categories[currentType] = (ledger.categories[currentType] || []).filter(item => item !== value);
+        saveLedger();
+        render();
+        toast("已刪除分類");
+      }
+      const removeMethod = event.target.closest("[data-remove-method]");
+      if (removeMethod) {
+        const value = removeMethod.dataset.removeMethod;
+        ledger.methods = ledger.methods.filter(item => item !== value);
+        saveLedger();
+        render();
+        toast("已刪除付款方式");
+      }
+      const removeAccount = event.target.closest("[data-remove-account]");
+      if (removeAccount) {
+        const value = removeAccount.dataset.removeAccount;
+        if (ledger.entries.some(row => row.account === value) && !confirm("這個帳戶已有記帳紀錄，刪除後舊紀錄仍會保留帳戶名稱。確定刪除？")) return;
+        ledger.accounts = ledger.accounts.filter(item => item.name !== value);
+        saveLedger();
+        render();
+        toast("已刪除帳戶");
+      }
+    });
+    document.getElementById("categoryForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const input = document.getElementById("newCategory");
+      const value = input.value.trim();
+      if (!value) return;
+      ledger.categories[currentType] = normalizeList([...(ledger.categories[currentType] || []), value], []);
+      input.value = "";
+      saveLedger();
+      render();
+      categorySelect.value = value;
+      toast("已新增分類");
+    });
+    document.getElementById("accountForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const name = document.getElementById("newAccountName").value.trim();
+      if (!name) return;
+      if (ledger.accounts.some(account => account.name === name)) {
+        toast("帳戶名稱已存在");
+        return;
+      }
+      ledger.accounts.push({
+        id: uid(),
+        name,
+        type: document.getElementById("newAccountType").value,
+        currency: document.getElementById("newAccountCurrency").value.trim().toUpperCase() || "TWD",
+        openingBalance: Number(document.getElementById("newAccountBalance").value) || 0
+      });
+      document.getElementById("accountForm").reset();
+      document.getElementById("newAccountCurrency").value = "TWD";
+      saveLedger();
+      render();
+      accountSelect.value = name;
+      toast("已新增付款帳戶");
+    });
+    document.getElementById("methodForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const input = document.getElementById("newMethod");
+      const value = input.value.trim();
+      if (!value) return;
+      ledger.methods = normalizeList([...ledger.methods, value], []);
+      input.value = "";
+      saveLedger();
+      render();
+      methodSelect.value = value;
+      toast("已新增付款方式");
     });
     [monthFilter, typeFilter, searchInput].forEach(el => el.addEventListener("input", render));
     document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
@@ -627,7 +861,15 @@
         toast("匯入格式不正確");
         return;
       }
-      ledger = { entries: payload.entries };
+      ledger = {
+        entries: payload.entries,
+        categories: {
+          income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...payload.entries.filter(row => row.type === "income").map(row => row.category)]),
+          expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...payload.entries.filter(row => row.type !== "income").map(row => row.category)])
+        },
+        accounts: normalizeAccounts(payload.accounts, payload.entries),
+        methods: normalizeList(payload.methods, [...defaultMethods, ...payload.entries.map(row => row.method)])
+      };
       saveLedger();
       render();
       toast("已匯入記帳資料");
@@ -635,7 +877,12 @@
     });
     document.getElementById("clearData").addEventListener("click", () => {
       if (!confirm("確定清空所有記帳資料？")) return;
-      ledger = { entries: [] };
+      ledger = {
+        entries: [],
+        categories: structuredClone(defaultCategories),
+        accounts: structuredClone(defaultAccounts),
+        methods: [...defaultMethods]
+      };
       saveLedger();
       render();
       toast("已清空記帳資料");
