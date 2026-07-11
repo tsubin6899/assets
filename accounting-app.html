@@ -851,6 +851,7 @@
       .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .chart-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
+      #entryForm { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #accountList, #creditList, #recurringList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #accountList .account-tile, #creditList .account-tile, #recurringList .account-tile { min-height: 126px; gap: 7px; padding: 9px; }
       #accountList .account-meta strong, #creditList .account-meta strong, #recurringList .account-meta strong { overflow-wrap: anywhere; }
@@ -1014,7 +1015,7 @@
               <label>分類<select id="category" required></select></label>
               <label>項目<select id="item"></select></label>
               <label>帳戶<select id="account" required></select></label>
-              <label>商家 / 對象<input id="merchant" placeholder="超商、餐廳、薪資等"></label>
+              <label class="full">商家 / 對象<input id="merchant" placeholder="超商、餐廳、薪資等"></label>
               <label class="full">備註<textarea id="note" placeholder="可填發票、用途或提醒"></textarea></label>
               <label class="full">收據附件<input id="receiptImage" type="file" accept="image/*" capture="environment"></label>
               <img id="receiptPreview" class="receipt-preview" alt="收據預覽">
