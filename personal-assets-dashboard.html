@@ -2453,6 +2453,11 @@
       const first = snapshots[0];
       const last = snapshots.at(-1);
       const netGrowth = first && last ? (Number(last.net ?? last.total) || 0) - (Number(first.net ?? first.total) || 0) : 0;
+      const ledger = loadAccountingLedger();
+      const annualEntries = accountingAllEntryRows(ledger).filter(row => String(row.date || "").startsWith(year));
+      const annualIncome = sum(annualEntries.filter(row => row.type === "income"), row => Number(row.amount) || 0);
+      const annualExpense = sum(annualEntries.filter(row => row.type !== "income"), row => Number(row.amount) || 0);
+      const savingsRate = annualIncome ? (annualIncome - annualExpense) / annualIncome * 100 : 0;
       const positions = [...summary.positions].sort((a, b) => (b.shares || 0) - (a.shares || 0)).slice(0, 6);
       const realizedRows = [...summary.positions]
         .filter(row => Number(row.realized))
@@ -2466,6 +2471,9 @@
           ${card("股息 / 配息收入", money(dividends), "TWD")}
           ${card("資產快照變化", `${netGrowth >= 0 ? "+" : ""}${money(netGrowth)}`, "TWD")}
           ${card("今年交易筆數", money(trades.length, ""), "筆")}
+          ${card("記帳收入", money(annualIncome), "TWD")}
+          ${card("記帳支出", money(annualExpense), "TWD")}
+          ${card("儲蓄率", `${savingsRate.toFixed(1)}%`, "收入扣除支出")}
         </div>
         <div class="chart-grid">
           ${renderBarChart("年度損益與收入", annualSummaryRows(), "TWD")}

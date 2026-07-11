@@ -1145,7 +1145,7 @@
               <details id="entryOptional" class="entry-optional full" open>
                 <summary>更多選填資訊</summary>
                 <div class="entry-optional-fields">
-                  <label>商家 / 對象<input id="merchant" placeholder="超商、餐廳、薪資等"></label>
+                  <label>商家 / 對象<input id="merchant" list="merchantSuggestions" placeholder="超商、餐廳、薪資等"></label>
                   <label>備註<textarea id="note" placeholder="可填發票、用途或提醒"></textarea></label>
                   <label>收據附件<input id="receiptImage" type="file" accept="image/*" capture="environment"></label>
                   <img id="receiptPreview" class="receipt-preview" alt="收據預覽">
@@ -1413,6 +1413,7 @@
       </div>
       <div class="cards" id="summaryCards"></div>
       <article class="panel"><div class="panel-pad"><h3>月結提醒</h3><div id="monthCloseout" class="notice-list"></div></div></article>
+      <article class="panel"><div class="panel-pad"><h3>財務行動中心</h3><p class="hint">集中完成月結、查看未來現金流、結轉預算與還原誤刪資料。</p><div id="financeCommandCenter" class="manager-grid"></div></div></article>
       <div class="chart-grid"><article class="chart-card"><h3>本月預算總覽</h3><div id="budgetOverview" class="bar-list"></div></article></div>
       <article class="panel">
         <div class="panel-pad">
@@ -1460,6 +1461,7 @@
     <a class="btn dark" href="personal-assets-dashboard.html">儀表板</a>
   </nav>
   <div class="toast" id="toast"></div>
+  <datalist id="merchantSuggestions"></datalist>
   <dialog class="edit-dialog" id="editDialog">
     <form id="editForm" method="dialog">
       <div class="edit-dialog-head"><h3 id="editDialogTitle">編輯</h3><button class="icon-action delete" id="editCancel" type="button" title="關閉" aria-label="關閉">×</button></div>
@@ -1759,6 +1761,16 @@
     }
     function normalizeList(saved, fallback) {
       return [...new Set([...(Array.isArray(saved) ? saved : []), ...fallback].map(item => String(item || "").trim()).filter(Boolean))];
+    }
+    function ensureEnhancements() {
+      ledger.recycleBin = Array.isArray(ledger.recycleBin) ? ledger.recycleBin : [];
+      ledger.monthCloseouts = Array.isArray(ledger.monthCloseouts) ? ledger.monthCloseouts : [];
+      ledger.budgetRollovers = ledger.budgetRollovers && typeof ledger.budgetRollovers === "object" ? ledger.budgetRollovers : {};
+    }
+    function moveToRecycle(type, row) {
+      ensureEnhancements();
+      ledger.recycleBin.unshift({ id: uid(), type, row: cloneLedgerSnapshot(row), deletedAt: new Date().toISOString() });
+      ledger.recycleBin = ledger.recycleBin.slice(0, 40);
     }
     function normalizeCategories(saved, entries = []) {
       const savedCategories = saved && typeof saved === "object" ? saved : {};
@@ -2173,6 +2185,14 @@
       refreshLists();
     }
     function refreshLists() {
+      const merchantCounts = new Map();
+      ledger.entries.forEach(row => {
+        const merchant = String(row.merchant || "").trim();
+        if (merchant) merchantCounts.set(merchant, (merchantCounts.get(merchant) || 0) + 1);
+      });
+      document.getElementById("merchantSuggestions").innerHTML = [...merchantCounts.entries()]
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "zh-Hant"))
+        .slice(0, 30).map(([merchant]) => `<option value="${escapeHtml(merchant)}"></option>`).join("");
       const selectedCategory = categorySelect.value;
       const categories = ledger.categories[currentType] || [];
       categorySelect.innerHTML = categories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
@@ -2786,13 +2806,15 @@
     function renderBudgetAlerts(rows) {
       const target = document.getElementById("budgetAlerts");
       const expenseRows = allEntryRows().filter(row => row.type === "expense" && String(row.date || "").startsWith(monthFilter.value || monthOf()));
+      const budgetMonth = monthFilter.value || monthOf();
       target.innerHTML = (ledger.budgets || []).length
         ? ledger.budgets.map(budget => {
           const used = sum(expenseRows.filter(row => row.category === budget.category), row => row.amount);
-          const ratio = budget.amount ? used / budget.amount * 100 : 0;
+          const amount = Number(budget.amount) + Number(ledger.budgetRollovers?.[budgetMonth]?.[budget.category] || 0);
+          const ratio = amount ? used / amount * 100 : 0;
           const cls = ratio >= 100 ? "danger" : "";
           const state = ratio >= 100 ? "已超支" : ratio >= 80 ? "接近上限" : "正常";
-          return `<div class="budget-alert ${cls}"><strong>${escapeHtml(budget.category)}｜${state}</strong><br>已用 ${money(used)} / 預算 ${money(budget.amount)}（${ratio.toFixed(0)}%） <button type="button" data-remove-budget="${escapeHtml(budget.id)}">刪除</button></div>`;
+          return `<div class="budget-alert ${cls}"><strong>${escapeHtml(budget.category)}｜${state}</strong><br>已用 ${money(used)} / 預算 ${money(amount)}（${ratio.toFixed(0)}%） <button type="button" data-remove-budget="${escapeHtml(budget.id)}">刪除</button></div>`;
         }).join("")
         : `<div class="empty">尚未設定分類預算</div>`;
     }
@@ -2830,6 +2852,37 @@
       ];
       target.innerHTML = notices.map(row => `<div class="notice-item ${row.cls}"><div><strong>${escapeHtml(row.title)}</strong><small>${escapeHtml(row.text)}</small></div></div>`).join("");
     }
+    function futureCashflow(days) {
+      const start = new Date(`${today()}T00:00:00`);
+      const end = new Date(start); end.setDate(end.getDate() + days);
+      const months = Array.from({ length: 4 }, (_, index) => shiftMonth(monthOf(), index));
+      let income = 0, expense = 0;
+      (ledger.recurringRules || []).forEach(rule => months.forEach(month => recurringDatesForMonth(rule, month).forEach(date => {
+        const when = new Date(`${date}T00:00:00`);
+        if (when > start && when <= end) rule.type === "income" ? income += Number(rule.amount) || 0 : expense += Number(rule.amount) || 0;
+      })));
+      (ledger.creditBills || []).filter(row => !row.paid && row.dueDate).forEach(row => {
+        const due = new Date(`${row.dueDate}T00:00:00`);
+        if (due > start && due <= end) expense += billTotalAmount(row);
+      });
+      const available = sum(ledger.accounts.filter(row => row.type !== "信用卡"), row => twdEquivalent(accountBalance(row), row.currency));
+      return { income, expense, available, projected: available + income - expense };
+    }
+    function renderFinanceCommandCenter() {
+      const target = document.getElementById("financeCommandCenter");
+      if (!target) return;
+      ensureEnhancements();
+      const month = monthOf();
+      const monthRows = allEntryRows().filter(row => String(row.date || "").startsWith(month));
+      const used = category => sum(monthRows.filter(row => row.type === "expense" && row.category === category), row => row.amount);
+      const f30 = futureCashflow(30), f90 = futureCashflow(90);
+      const recycled = ledger.recycleBin.slice(0, 6);
+      target.innerHTML = `
+        <div class="notice-item"><div><strong>${month} 月結</strong><small>本月收入 ${money(sum(monthRows.filter(row => row.type === "income"), row => row.amount))}｜支出 ${money(sum(monthRows.filter(row => row.type === "expense"), row => row.amount))}｜可建立月結快照與雲端備份。</small></div><button class="btn small green" type="button" data-month-close>完成月結</button></div>
+        <div class="chart-grid"><article class="chart-card"><h3>30 天現金流預測</h3><p class="hint">預估收入 ${money(f30.income)}｜預估支出 ${money(f30.expense)}｜期末 ${money(f30.projected)} TWD</p></article><article class="chart-card"><h3>90 天現金流預測</h3><p class="hint">預估收入 ${money(f90.income)}｜預估支出 ${money(f90.expense)}｜期末 ${money(f90.projected)} TWD</p></article></div>
+        <div class="notice-item"><div><strong>預算結轉</strong><small>${(ledger.budgets || []).map(row => `${row.category} 剩餘 ${money(Math.max(0, Number(row.amount) - used(row.category)))}`).join("｜") || "尚未設定分類預算"}</small></div><button class="btn small purple" type="button" data-rollover-budget>結轉至下月</button></div>
+        <div class="notice-item"><div><strong>回收桶</strong><small>${recycled.length ? `最近刪除 ${recycled.length} 筆資料` : "目前沒有可還原資料"}</small></div>${recycled.length ? `<button class="btn small blue" type="button" data-open-recycle>查看／還原</button>` : ""}</div>`;
+    }
     function renderBackupList() {
       const target = document.getElementById("backupList");
       if (!cloudUser) {
@@ -2862,6 +2915,7 @@
       return `<article class="chart-card"><h3>${title}</h3><div class="bar-list">${rows.length ? rows.map(row => `<div class="bar-row"><strong>${escapeHtml(row.label)}</strong><span class="bar-track"><i class="bar-fill" style="--w:${Math.max(4, Math.abs(row.value) / max * 100).toFixed(1)}%;--c:var(--blue)"></i></span><span>${money(row.value)} ${unit === "TWD" ? "" : ""}</span></div>`).join("") : `<div class="empty">尚無資料</div>`}</div></article>`;
     }
     function render() {
+      ensureEnhancements();
       renderTabs();
       refreshLists();
       const rows = filteredEntries();
@@ -2878,6 +2932,7 @@
       renderBudgetAlerts(rows);
       renderBudgetOverview();
       renderMonthCloseout();
+      renderFinanceCommandCenter();
       renderBackupList();
       renderEnhancedReports();
       document.querySelectorAll("button[data-delete], button[data-delete-transfer], button[data-remove-bill], button[data-remove-installment], button[data-remove-account], button[data-remove-reconcile], button[data-remove-recurring], button[data-remove-budget]").forEach(button => {
@@ -3001,6 +3056,42 @@
         switchView(viewButton.dataset.view);
         return;
       }
+      if (event.target.closest("[data-month-close]")) {
+        ensureEnhancements();
+        const month = monthOf();
+        ledger.monthCloseouts = ledger.monthCloseouts.filter(row => row.month !== month);
+        ledger.monthCloseouts.unshift({ month, closedAt: new Date().toISOString(), ledger: cloneLedgerSnapshot() });
+        saveLedger(); render(); toast("本月月結已完成並建立快照");
+        return;
+      }
+      if (event.target.closest("[data-rollover-budget]")) {
+        ensureEnhancements();
+        const month = monthOf(), next = shiftMonth(month, 1);
+        const rows = allEntryRows().filter(row => String(row.date || "").startsWith(month));
+        ledger.budgetRollovers[next] = {};
+        (ledger.budgets || []).forEach(budget => {
+          const used = sum(rows.filter(row => row.type === "expense" && row.category === budget.category), row => row.amount);
+          ledger.budgetRollovers[next][budget.category] = Math.max(0, Number(budget.amount) - used);
+        });
+        saveLedger(); render(); toast(`已結轉至 ${next}`);
+        return;
+      }
+      if (event.target.closest("[data-open-recycle]")) {
+        ensureEnhancements();
+        document.getElementById("editDialogTitle").textContent = "回收桶";
+        editState = null;
+        editFields.innerHTML = ledger.recycleBin.length ? ledger.recycleBin.map(row => `<div class="notice-item"><div><strong>${escapeHtml(row.type)}</strong><small>${new Date(row.deletedAt).toLocaleString("zh-TW")}</small></div><button class="btn small blue" type="button" data-restore-recycle="${escapeHtml(row.id)}">還原</button></div>`).join("") : `<div class="empty">回收桶是空的</div>`;
+        editDialog.showModal(); return;
+      }
+      const restoreRecycle = event.target.closest("[data-restore-recycle]");
+      if (restoreRecycle) {
+        const item = (ledger.recycleBin || []).find(row => row.id === restoreRecycle.dataset.restoreRecycle);
+        if (!item) return;
+        const map = { entry: "entries", account: "accounts", bill: "creditBills", recurring: "recurringRules", budget: "budgets" };
+        if (map[item.type]) ledger[map[item.type]].push(item.row);
+        ledger.recycleBin = ledger.recycleBin.filter(row => row.id !== item.id);
+        saveLedger(); editDialog.close(); render(); toast("已從回收桶還原"); return;
+      }
       const editEntry = event.target.closest("[data-edit-entry]");
       if (editEntry) { openEdit("entry", editEntry.dataset.editEntry); return; }
       const editAccount = event.target.closest("[data-edit-account]");
@@ -3011,6 +3102,8 @@
       if (editRecurring) { openEdit("recurring", editRecurring.dataset.editRecurring); return; }
       const del = event.target.closest("[data-delete]");
       if (del && confirm("確定刪除此筆記帳？")) {
+        const row = ledger.entries.find(item => item.id === del.dataset.delete);
+        if (row) moveToRecycle("entry", row);
         ledger.entries = ledger.entries.filter(row => row.id !== del.dataset.delete);
         saveLedger();
         render();
@@ -3050,6 +3143,7 @@
       if (removeBill) {
         const bill = (ledger.creditBills || []).find(row => row.id === removeBill.dataset.removeBill);
         if (bill?.paid && !confirm("這筆帳單已繳款，刪除帳單不會刪除已產生的轉帳紀錄。確定刪除？")) return;
+        if (bill) moveToRecycle("bill", bill);
         ledger.creditBills = (ledger.creditBills || []).filter(row => row.id !== removeBill.dataset.removeBill);
         saveLedger();
         render();
@@ -3138,6 +3232,8 @@
         if (ledger.entries.some(row => row.account === value) && !confirm("這個帳戶已有記帳紀錄，刪除後舊紀錄仍會保留帳戶名稱。確定刪除？")) return;
         if ((ledger.transfers || []).some(row => row.fromAccount === value || row.toAccount === value || row.feeAccount === value) && !confirm("這個帳戶已有轉帳紀錄，刪除後舊轉帳仍會保留帳戶名稱。確定刪除？")) return;
         if ((ledger.creditBills || []).some(row => row.card === value || row.payAccount === value) && !confirm("這個帳戶已有信用卡帳單紀錄，刪除後舊帳單仍會保留帳戶名稱。確定刪除？")) return;
+        const account = ledger.accounts.find(item => item.name === value);
+        if (account) moveToRecycle("account", account);
         ledger.accounts = ledger.accounts.filter(item => item.name !== value);
         saveLedger();
         render();
@@ -3152,6 +3248,8 @@
       }
       const removeRecurring = event.target.closest("[data-remove-recurring]");
       if (removeRecurring) {
+        const rule = (ledger.recurringRules || []).find(row => row.id === removeRecurring.dataset.removeRecurring);
+        if (rule) moveToRecycle("recurring", rule);
         ledger.recurringRules = (ledger.recurringRules || []).filter(row => row.id !== removeRecurring.dataset.removeRecurring);
         saveLedger();
         render();
@@ -3159,6 +3257,8 @@
       }
       const removeBudget = event.target.closest("[data-remove-budget]");
       if (removeBudget) {
+        const budget = (ledger.budgets || []).find(row => row.id === removeBudget.dataset.removeBudget);
+        if (budget) moveToRecycle("budget", budget);
         ledger.budgets = (ledger.budgets || []).filter(row => row.id !== removeBudget.dataset.removeBudget);
         saveLedger();
         render();
