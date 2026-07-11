@@ -2292,7 +2292,20 @@
     function openEdit(kind, id) {
       editState = { kind, id };
       const title = document.getElementById("editDialogTitle");
-      if (kind === "account") {
+      if (kind === "entry") {
+        const row = ledger.entries.find(item => item.id === id);
+        if (!row) return;
+        title.textContent = "編輯收支明細";
+        editFields.innerHTML = `
+          <label>日期<input name="date" type="date" value="${escapeHtml(row.date)}" required></label>
+          <label>類型<select name="type"><option value="expense"${row.type === "expense" ? " selected" : ""}>支出</option><option value="income"${row.type === "income" ? " selected" : ""}>收入</option></select></label>
+          <label>金額<input name="amount" type="number" min="0" step="1" value="${Number(row.amount) || 0}" required></label>
+          <label>分類<input name="category" value="${escapeHtml(row.category)}" required></label>
+          <label>項目<input name="item" value="${escapeHtml(row.item || "")}"></label>
+          <label>帳戶<select name="account">${editOptions(ledger.accounts.map(account => account.name), row.account)}</select></label>
+          <label>商家 / 對象<input name="merchant" value="${escapeHtml(row.merchant || "")}"></label>
+          <label>備註<input name="note" value="${escapeHtml(row.note || "")}"></label>`;
+      } else if (kind === "account") {
         const row = ledger.accounts.find(item => item.id === id);
         if (!row) return;
         title.textContent = row.type === "信用卡" ? "編輯信用卡" : "編輯帳戶";
@@ -2346,7 +2359,12 @@
     }
     function saveEdit(values) {
       if (!editState) return;
-      if (editState.kind === "account") {
+      if (editState.kind === "entry") {
+        const row = ledger.entries.find(item => item.id === editState.id);
+        if (!row) return;
+        const account = ledger.accounts.find(item => item.name === values.account);
+        Object.assign(row, { date: values.date || today(), type: values.type === "income" ? "income" : "expense", amount: Number(values.amount) || 0, category: String(values.category || "").trim(), item: String(values.item || "").trim(), account: values.account || "", merchant: String(values.merchant || "").trim(), note: String(values.note || "").trim(), billMonth: account?.type === "信用卡" ? creditStatementMonth(account, values.date || today()) : "" });
+      } else if (editState.kind === "account") {
         const row = ledger.accounts.find(item => item.id === editState.id);
         const name = String(values.name || "").trim();
         if (!row || !name) return;
@@ -2595,7 +2613,7 @@
           <td>${escapeHtml(row.merchant)}</td>
           <td>${escapeHtml(row.note)}</td>
           <td>${row.receiptDataUrl ? `<button class="btn small blue receipt-link" type="button" data-view-receipt="${escapeHtml(row.id)}">查看</button>` : "-"}</td>
-          <td>${row.virtualInstallment ? `<span class="bill-status">分期</span>` : `<button class="btn small dark" type="button" data-delete="${row.id}">刪除</button>`}</td>
+          <td>${row.virtualInstallment ? `<span class="bill-status">分期</span>` : `<button class="icon-action edit" type="button" title="編輯收支" aria-label="編輯收支" data-edit-entry="${escapeHtml(row.id)}"><i data-lucide="pen-line"></i></button><button class="btn small dark" type="button" data-delete="${row.id}">刪除</button>`}</td>
         </tr>`;
         }).join("")}</tbody>
       </table></div>`;
@@ -2966,6 +2984,8 @@
         switchView(viewButton.dataset.view);
         return;
       }
+      const editEntry = event.target.closest("[data-edit-entry]");
+      if (editEntry) { openEdit("entry", editEntry.dataset.editEntry); return; }
       const editAccount = event.target.closest("[data-edit-account]");
       if (editAccount) { openEdit("account", editAccount.dataset.editAccount); return; }
       const editBill = event.target.closest("[data-edit-bill]");
