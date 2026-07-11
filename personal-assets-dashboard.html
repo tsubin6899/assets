@@ -1401,6 +1401,23 @@
         gap: 7px;
         font-size: 11px;
       }
+      .annual-report .cards {
+        grid-template-columns: 1fr;
+      }
+      .annual-report .chart-card {
+        min-width: 0;
+      }
+      .annual-report .table-wrap table {
+        min-width: 560px;
+      }
+      .annual-report .bar-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 6px 8px;
+      }
+      .annual-report .bar-track {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
       .compare-row {
         grid-template-columns: 1fr;
         gap: 7px;
@@ -2467,7 +2484,7 @@
         .filter(row => Number(row.realized))
         .sort((a, b) => Math.abs(b.realized) - Math.abs(a.realized))
         .slice(0, 6);
-      return `${section("annual", `${year} 年度報表`, "彙整今年投入、賣出、股息、已實現損益與資產變化。")}
+      return `<div class="annual-report">${section("annual", `${year} 年度報表`, "彙整今年投入、賣出、股息、已實現損益與資產變化。")}
         <div class="cards">
           ${card("今年買入成本", money(buy), "TWD", "dark")}
           ${card("今年賣出金額", money(sell), "TWD")}
@@ -2484,7 +2501,7 @@
           <article class="chart-card"><h3>目前主要持股摘要</h3><div class="table-wrap"><table><thead><tr><th>市場</th><th>代碼</th><th>名稱</th><th>剩餘股數</th><th>已實現損益</th></tr></thead><tbody>${positions.map(row => `<tr><td>${row.market}</td><td>${row.code}</td><td>${row.name}</td><td>${money(row.shares, "")}</td><td class="${row.realized >= 0 ? "ok" : "gain"}">${money(row.realized, row.currency)}</td></tr>`).join("")}</tbody></table></div></article>
           <article class="chart-card"><h3>已實現損益來源</h3>${realizedRows.length ? `<div class="bar-list">${realizedRows.map((row, i) => `<div class="legend-row"><span class="dot" style="--c:${chartColors[i % chartColors.length]}"></span><strong>${row.code || "-"}</strong><span>${money(row.realized, row.currency)}</span></div>`).join("")}</div>` : `<div class="chart-empty">今年尚無已實現損益資料</div>`}</article>
           <article class="chart-card"><h3>備份與同步紀錄</h3>${renderBackupMeta()}</article>
-        </div>`;
+        </div></div>`;
     }
     function dataHealthItems() {
       const issues = [];
