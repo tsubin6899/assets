@@ -1590,10 +1590,7 @@
           recurringRules,
           budgets,
           reconciliations,
-          categories: {
-            income: normalizeList(saved.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
-            expense: normalizeList(saved.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
-          },
+          categories: normalizeCategories(saved.categories, entries),
           items: normalizeItems(saved.items, entries),
           accounts: normalizeAccounts(saved.accounts, entries),
           methods: normalizeList(saved.methods, [])
@@ -1617,6 +1614,16 @@
     }
     function normalizeList(saved, fallback) {
       return [...new Set([...(Array.isArray(saved) ? saved : []), ...fallback].map(item => String(item || "").trim()).filter(Boolean))];
+    }
+    function normalizeCategories(saved, entries = []) {
+      const savedCategories = saved && typeof saved === "object" ? saved : {};
+      const incomeFallback = [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)];
+      const expenseFallback = [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)];
+      return {
+        // Keep a user's saved list exactly as-is; defaults only seed older data with no category list.
+        income: Array.isArray(savedCategories.income) ? normalizeList(savedCategories.income, []) : normalizeList(incomeFallback, []),
+        expense: Array.isArray(savedCategories.expense) ? normalizeList(savedCategories.expense, []) : normalizeList(expenseFallback, [])
+      };
     }
     function normalizeItems(saved, entries) {
       const merged = structuredClone(defaultItems);
@@ -1991,10 +1998,7 @@
         recurringRules: normalizeRecurringRules(payload.recurringRules),
         budgets: normalizeBudgets(payload.budgets),
         reconciliations: normalizeReconciliations(payload.reconciliations),
-        categories: {
-          income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...entries.filter(row => row.type === "income").map(row => row.category)]),
-          expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...entries.filter(row => row.type !== "income").map(row => row.category)])
-        },
+        categories: normalizeCategories(payload.categories, entries),
         items: normalizeItems(payload.items, entries),
         accounts: normalizeAccounts(payload.accounts, entries),
         methods: normalizeList(payload.methods, [])
@@ -3338,10 +3342,7 @@
         recurringRules: normalizeRecurringRules(payload.recurringRules),
         budgets: normalizeBudgets(payload.budgets),
         reconciliations: normalizeReconciliations(payload.reconciliations),
-        categories: {
-          income: normalizeList(payload.categories?.income, [...defaultCategories.income, ...payload.entries.filter(row => row.type === "income").map(row => row.category)]),
-          expense: normalizeList(payload.categories?.expense, [...defaultCategories.expense, ...payload.entries.filter(row => row.type !== "income").map(row => row.category)])
-        },
+        categories: normalizeCategories(payload.categories, payload.entries),
         items: normalizeItems(payload.items, payload.entries),
         accounts: normalizeAccounts(payload.accounts, payload.entries),
         methods: normalizeList(payload.methods, [])
