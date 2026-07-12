@@ -842,6 +842,23 @@
     }
     .toast.show { opacity: 1; transform: translateY(0); }
     .mobile-actions { display: none; }
+    .mobile-more-sheet {
+      width: min(100% - 24px, 440px);
+      max-height: min(78vh, 620px);
+      border: 1px solid #d8e1df;
+      border-radius: 14px;
+      padding: 0;
+      color: var(--ink);
+      background: #fffdf8;
+      box-shadow: 0 24px 64px rgba(21,32,49,.28);
+    }
+    .mobile-more-sheet::backdrop { background: rgba(16,28,52,.48); backdrop-filter: blur(3px); }
+    .mobile-more-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 12px; border-bottom: 1px solid #e3e9e7; }
+    .mobile-more-head h3 { margin: 0; font-size: 17px; }
+    .mobile-more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 14px 16px 18px; overflow-y: auto; }
+    .mobile-more-grid button, .mobile-more-grid a { min-height: 44px; display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px; border: 1px solid #d8e1df; border-radius: 8px; padding: 0 11px; color: var(--ink); background: #f8fbfa; font-size: 13px; text-decoration: none; }
+    .mobile-more-grid button svg, .mobile-more-grid a svg { width: 17px; height: 17px; color: var(--blue); }
+    .mobile-more-grid .danger { color: #b84c40; border-color: #e6c2bc; background: #fff7f5; }
     @media (max-width: 860px) {
       .app { padding: 0 0 94px; }
       .topbar, .app-header {
@@ -851,17 +868,17 @@
       }
       .brand-row {
         grid-template-columns: 1fr;
-        gap: 10px;
+        gap: 7px;
         width: 100%;
-        padding: 12px 12px 10px;
+        padding: 10px 12px 9px;
       }
       .kicker {
         margin-bottom: 3px;
         font-size: 10px;
         letter-spacing: .12em;
       }
-      .brand-row h1 { font-size: 23px; line-height: 1.2; }
-      .sub { margin-top: 5px; font-size: 11px; }
+      .brand-row h1 { font-size: 20px; line-height: 1.2; }
+      .sub { display: none; }
       .top-actions {
         display: flex;
         flex-wrap: nowrap;
@@ -883,6 +900,8 @@
         justify-content: flex-start;
         overflow: visible;
       }
+      .top-actions > .file-actions { display: none; }
+      .cloud-sync #cloudLoad, .cloud-sync #cloudLogout, .cloud-sync .cloud-status { display: none; }
       .file-actions > .btn { min-width: 0; }
       .top-actions::-webkit-scrollbar { display: none; }
       .top-actions .btn {
@@ -896,8 +915,7 @@
       .cloud-email { width: 170px; min-width: 170px; min-height: 34px; }
       .cloud-status { min-height: 34px; font-size: 11px; }
       .tabs {
-        gap: 8px;
-        padding: 8px 14px 10px;
+        display: none;
       }
       .tab {
         min-height: 36px;
@@ -995,7 +1013,7 @@
         bottom: calc(8px + env(safe-area-inset-bottom));
         z-index: 15;
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         gap: 6px;
         padding: 7px;
         border: 1px solid rgba(23,32,51,.18);
@@ -1004,7 +1022,21 @@
         box-shadow: 0 18px 42px rgba(0,0,0,.22);
         backdrop-filter: blur(12px);
       }
-      .mobile-actions .btn { min-height: 42px; font-size: 12px; padding: 0 8px; }
+      .mobile-actions .btn {
+        min-height: 46px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 4px 2px;
+        color: #53606a;
+        background: transparent;
+        box-shadow: none;
+        font-size: 10px;
+      }
+      .mobile-actions .btn svg { width: 18px; height: 18px; }
+      .mobile-actions .btn.active, .mobile-actions .btn.primary { color: #fffdf8; background: #172033; }
     }
     #analyticsView.active {
       display: grid;
@@ -1467,11 +1499,27 @@
     </section>
   </main>
   <nav class="mobile-actions" aria-label="手機快速操作">
-    <button class="btn green" type="button" data-view="entryView">新增</button>
-    <button class="btn blue" type="button" data-view="transferView">轉帳</button>
-    <button class="btn blue" type="button" data-view="analyticsView">統計</button>
-    <a class="btn dark" href="personal-assets-dashboard.html">儀表板</a>
+    <button class="btn" type="button" data-view="entryView"><i data-lucide="receipt-text"></i><span>記帳</span></button>
+    <button class="btn" type="button" data-view="accountView"><i data-lucide="wallet-cards"></i><span>帳戶</span></button>
+    <button class="btn" type="button" data-view="transferView"><i data-lucide="arrow-left-right"></i><span>轉帳</span></button>
+    <button class="btn" type="button" data-view="analyticsView"><i data-lucide="chart-no-axes-combined"></i><span>統計</span></button>
+    <button class="btn primary" type="button" data-mobile-more><i data-lucide="ellipsis"></i><span>更多</span></button>
   </nav>
+  <dialog class="mobile-more-sheet" id="mobileMoreSheet" aria-labelledby="mobileMoreTitle">
+    <div class="mobile-more-head"><h3 id="mobileMoreTitle">更多功能</h3><button class="icon-action" type="button" title="關閉" aria-label="關閉" data-close-mobile-more><i data-lucide="x"></i></button></div>
+    <div class="mobile-more-grid">
+      <button type="button" data-view="creditView"><i data-lucide="credit-card"></i>信用卡設定</button>
+      <button type="button" data-view="recurringView"><i data-lucide="calendar-clock"></i>固定收支</button>
+      <button type="button" data-view="categoryView"><i data-lucide="tags"></i>分類設定</button>
+      <a href="personal-assets-dashboard.html"><i data-lucide="layout-dashboard"></i>資產儀表板</a>
+      <button type="button" data-mobile-trigger="cloudLoad"><i data-lucide="cloud-download"></i>載入雲端</button>
+      <button type="button" data-mobile-trigger="exportJson"><i data-lucide="file-down"></i>匯出 JSON</button>
+      <button type="button" data-mobile-trigger="exportCsv"><i data-lucide="sheet"></i>匯出 CSV</button>
+      <button type="button" data-mobile-trigger="privacyToggle"><i data-lucide="eye-off"></i>隱私模式</button>
+      <button type="button" data-mobile-trigger="importButton"><i data-lucide="file-up"></i>匯入資料</button>
+      <button class="danger" type="button" data-mobile-trigger="clearData"><i data-lucide="trash-2"></i>清空資料</button>
+    </div>
+  </dialog>
   <div class="toast" id="toast"></div>
   <datalist id="merchantSuggestions"></datalist>
   <dialog class="edit-dialog" id="editDialog">
@@ -2185,6 +2233,7 @@
         .join("");
       if (window.lucide) window.lucide.createIcons();
       document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === currentView));
+      document.querySelectorAll(".mobile-actions [data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === currentView));
     }
     function switchView(id) {
       currentView = id;
@@ -3111,9 +3160,24 @@
       toast("已新增記帳");
     });
     document.addEventListener("click", event => {
+      if (event.target.closest("[data-mobile-more]")) {
+        document.getElementById("mobileMoreSheet")?.showModal();
+        return;
+      }
+      if (event.target.closest("[data-close-mobile-more]")) {
+        document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
+      const mobileTrigger = event.target.closest("[data-mobile-trigger]");
+      if (mobileTrigger) {
+        document.getElementById(mobileTrigger.dataset.mobileTrigger)?.click();
+        document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
       const viewButton = event.target.closest("[data-view]");
       if (viewButton) {
         switchView(viewButton.dataset.view);
+        document.getElementById("mobileMoreSheet")?.close();
         return;
       }
       if (event.target.closest("[data-month-close]")) {

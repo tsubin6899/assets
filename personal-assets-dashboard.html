@@ -445,6 +445,23 @@
     .mobile-quick-nav {
       display: none;
     }
+    .mobile-more-sheet {
+      width: min(100% - 24px, 440px);
+      max-height: min(78vh, 620px);
+      border: 1px solid #d8e1df;
+      border-radius: 14px;
+      padding: 0;
+      color: var(--ink);
+      background: #fffdf8;
+      box-shadow: 0 24px 64px rgba(21,32,49,.28);
+    }
+    .mobile-more-sheet::backdrop { background: rgba(16,28,52,.48); backdrop-filter: blur(3px); }
+    .mobile-more-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 12px; border-bottom: 1px solid #e3e9e7; }
+    .mobile-more-head h3 { margin: 0; font-size: 17px; }
+    .mobile-more-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; padding: 14px 16px 18px; overflow-y: auto; }
+    .mobile-more-grid button, .mobile-more-grid a { min-height: 44px; display: inline-flex; align-items: center; justify-content: flex-start; gap: 8px; border: 1px solid #d8e1df; border-radius: 8px; padding: 0 11px; color: var(--ink); background: #f8fbfa; font-size: 13px; text-decoration: none; }
+    .mobile-more-grid button svg, .mobile-more-grid a svg { width: 17px; height: 17px; color: var(--blue); }
+    .mobile-more-grid .danger { color: #b84c40; border-color: #e6c2bc; background: #fff7f5; }
     .setting-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -741,14 +758,21 @@
         backdrop-filter: blur(12px);
       }
       .mobile-quick-nav button {
-        min-height: 42px;
+        min-height: 46px;
         border: 0;
         border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 4px 2px;
         background: transparent;
         color: #172033;
-        font-size: 11px;
-        font-weight: 750;
+        font-size: 10px;
+        font-weight: 650;
       }
+      .mobile-quick-nav button svg { width: 18px; height: 18px; }
       .mobile-quick-nav button.active,
       .mobile-quick-nav button.primary {
         background: #172033;
@@ -1373,17 +1397,21 @@
       }
       .brand-row {
         width: 100%;
-        padding: 12px 12px 10px;
+        padding: 10px 12px 9px;
+        gap: 7px;
       }
-      .brand-row h1 { font-size: 23px; }
-      .brand-row .sub { font-size: 11px; }
+      .brand-row h1 { font-size: 20px; }
+      .brand-row .sub { display: none; }
+      .app-header .actions { display: block; }
+      .app-header .file-actions { display: none; }
+      .app-header .cloud-sync { width: 100%; min-height: 38px; padding: 4px; }
+      .app-header .cloud-sync #cloudLoad,
+      .app-header .cloud-sync #cloudLogout,
+      .app-header .cloud-sync .cloud-status { display: none; }
+      .app-header .cloud-sync input { min-width: 150px; height: 32px; }
+      .app-header .cloud-sync .btn { height: 32px; min-height: 32px; padding: 0 9px; font-size: 11px; }
       .app-header .tabs {
-        width: 100%;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        padding: 8px 10px 10px;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
+        display: none;
       }
       .app-header .tabs::-webkit-scrollbar { display: none; }
       .stock-analysis .chart-card,
@@ -1478,12 +1506,34 @@
     <section class="view" id="chart"></section>
   </main>
   <nav class="mobile-quick-nav" aria-label="手機快速操作">
-    <button type="button" data-tab="overview">總覽</button>
-    <button type="button" data-tab="cash">現金</button>
-    <button type="button" data-tab="purchase">交易</button>
-    <button type="button" data-mobile-snapshot>快照</button>
-    <button type="button" class="primary" data-mobile-prices>更新</button>
+    <button type="button" data-tab="overview"><i data-lucide="layout-dashboard"></i><span>總覽</span></button>
+    <button type="button" data-tab="cash"><i data-lucide="wallet-cards"></i><span>現金</span></button>
+    <button type="button" data-tab="purchase"><i data-lucide="arrow-left-right"></i><span>交易</span></button>
+    <button type="button" data-mobile-snapshot><i data-lucide="camera"></i><span>快照</span></button>
+    <button type="button" class="primary" data-mobile-more><i data-lucide="ellipsis"></i><span>更多</span></button>
   </nav>
+  <dialog class="mobile-more-sheet" id="mobileMoreSheet" aria-labelledby="mobileMoreTitle">
+    <div class="mobile-more-head"><h3 id="mobileMoreTitle">更多功能</h3><button class="icon-btn" type="button" title="關閉" aria-label="關閉" data-close-mobile-more><i data-lucide="x"></i></button></div>
+    <div class="mobile-more-grid">
+      <button type="button" data-tab="tw"><i data-lucide="trending-up"></i>台股部位</button>
+      <button type="button" data-tab="us"><i data-lucide="chart-no-axes-combined"></i>美股部位</button>
+      <button type="button" data-tab="metal"><i data-lucide="gem"></i>貴金屬</button>
+      <button type="button" data-tab="fund"><i data-lucide="pie-chart"></i>基金</button>
+      <button type="button" data-tab="dca"><i data-lucide="calendar-clock"></i>定期投入</button>
+      <button type="button" data-tab="dividend"><i data-lucide="circle-dollar-sign"></i>股息配息</button>
+      <button type="button" data-tab="bookkeeping"><i data-lucide="notebook-tabs"></i>記帳總覽</button>
+      <button type="button" data-tab="expense"><i data-lucide="clipboard-list"></i>支出規畫</button>
+      <button type="button" data-tab="allocation"><i data-lucide="split"></i>額外資金</button>
+      <button type="button" data-tab="annual"><i data-lucide="calendar-days"></i>年度報表</button>
+      <button type="button" data-tab="chart"><i data-lucide="chart-no-axes-combined"></i>資訊圖表</button>
+      <a href="accounting-app.html"><i data-lucide="receipt-text"></i>日常記帳 App</a>
+      <button type="button" data-mobile-trigger="importPrices"><i data-lucide="refresh-cw"></i>更新股價匯率</button>
+      <button type="button" data-mobile-trigger="privacyToggle"><i data-lucide="eye-off"></i>隱私模式</button>
+      <button type="button" data-mobile-trigger="exportJson"><i data-lucide="file-down"></i>匯出存檔</button>
+      <button type="button" data-mobile-trigger="saveData"><i data-lucide="file-up"></i>匯入存檔</button>
+      <button class="danger" type="button" data-mobile-trigger="resetData"><i data-lucide="trash-2"></i>清空資料</button>
+    </div>
+  </dialog>
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -3450,10 +3500,25 @@
       setTimeout(() => box.remove(), 1800);
     }
     document.addEventListener("click", (e) => {
+      if (e.target.closest("[data-mobile-more]")) {
+        document.getElementById("mobileMoreSheet")?.showModal();
+        return;
+      }
+      if (e.target.closest("[data-close-mobile-more]")) {
+        document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
+      const mobileTrigger = e.target.closest("[data-mobile-trigger]");
+      if (mobileTrigger) {
+        document.getElementById(mobileTrigger.dataset.mobileTrigger)?.click();
+        document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
       const tab = e.target.closest("[data-tab]");
       if (tab) {
         currentTab = tab.dataset.tab;
         render();
+        document.getElementById("mobileMoreSheet")?.close();
       }
       if (e.target.closest("[data-mobile-snapshot]")) recordTodayFullSnapshot();
       if (e.target.closest("[data-mobile-prices]")) document.getElementById("importPrices").click();
