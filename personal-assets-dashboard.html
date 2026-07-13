@@ -2977,9 +2977,7 @@
       }).join("");
       return `${section("dca", "定期定額設定", "設定扣款日、標的與預定金額；開啟儀表板時，已到期項目會自動建立一筆待補成交的購買股票紀錄。", `<div class="actions" style="margin:0;padding:0;border:0;background:transparent;min-height:0"><button class="btn green small" data-add="dcaSchedules">+ 新增定額排程</button></div>`)}
         <article class="panel"><div class="panel-pad"><h3>每月扣款排程</h3><p class="section-note">扣款後請至「購買股票紀錄」補上成交價與股數；預定金額會記錄在該筆交易中。</p></div><div class="table-wrap"><table><thead><tr><th>每月幾號</th><th>市場</th><th>幣別</th><th>股票代碼</th><th>股票名稱</th><th>預定金額</th><th>本月狀態</th><th>操作</th></tr></thead><tbody>${scheduleRows}</tbody></table></div></article>
-        ${section("dcaHistory", "既有月度投入紀錄", "保留過去的定期投入紀錄供查閱。")}
-        <article class="panel"><div class="panel-pad"><h3>各專案預設月扣金額</h3><p class="section-note">投資標的可自行修改；變更代號時，既有月份紀錄會一起轉移到新代號。</p></div><div class="table-wrap"><table><thead><tr><th>投資標的代號</th><th>標的名稱 / 備註</th><th>預設月扣金額</th><th>操作</th></tr></thead><tbody>${targetRows}</tbody></table></div></article>
-        <article class="panel"><div class="table-wrap"><table><thead><tr><th>月份</th>${codes.map(code => `<th>${code}</th>`).join("")}<th>月扣合計</th><th>操作</th></tr></thead><tbody>${monthlyRows}</tbody></table></div></article>`;
+        `;
     }
     function renderDca() {
       return renderDcaEditable();
