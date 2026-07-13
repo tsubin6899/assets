@@ -1148,7 +1148,7 @@
     .shell {
       width: 100%;
       margin: 0;
-      padding: 26px 0 42px;
+      padding: 0 0 42px;
       border: 0;
       border-radius: 0;
       background: transparent;
@@ -1399,7 +1399,7 @@
         border-radius: 0;
       }
       .shell {
-        padding-top: 10px;
+        padding-top: 0;
         padding-bottom: calc(96px + env(safe-area-inset-bottom));
       }
       .view {
@@ -2643,7 +2643,7 @@
       const t = allTotals();
       const investment = t.tw + t.us + t.gold + t.silver + t.fund;
       const cash = Math.max(0, t.cash);
-      const stockRows = stockRowsForCharts();
+      const stockChartRows = stockRowsForCharts();
       const twGain = stockValue(stockRows("tw")) - stockCost(stockRows("tw"));
       const usGain = stockValue(stockRows("us"), data.rates.usd) - stockCost(stockRows("us"), data.rates.usd);
       const goldGain = goldGram() * data.rates.goldGram - goldCost();
@@ -2656,8 +2656,8 @@
         { label: "白銀", rawValue: silverGain, value: Math.abs(silverGain), color: "var(--teal)" },
         { label: "基金", rawValue: fundGain, value: Math.abs(fundGain), color: "var(--purple)" }
       ];
-      const winners = [...stockRows].sort((a, b) => b.gain - a.gain).slice(0, 5).map(row => ({ label: row.label, value: Math.abs(row.gain), rawValue: row.gain }));
-      const losers = [...stockRows].sort((a, b) => a.gain - b.gain).slice(0, 5).map(row => ({ label: row.label, value: Math.abs(row.gain), rawValue: row.gain }));
+      const winners = [...stockChartRows].sort((a, b) => b.gain - a.gain).slice(0, 5).map(row => ({ label: row.label, value: Math.abs(row.gain), rawValue: row.gain }));
+      const losers = [...stockChartRows].sort((a, b) => a.gain - b.gain).slice(0, 5).map(row => ({ label: row.label, value: Math.abs(row.gain), rawValue: row.gain }));
       const snapshots = assetSnapshotRows();
       const latestSnapshot = snapshots.at(-1) || makeAssetSnapshot();
       const target = targetRows(t);
