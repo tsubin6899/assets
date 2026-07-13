@@ -829,7 +829,7 @@
       position: fixed;
       right: 18px;
       bottom: 18px;
-      z-index: 20;
+      z-index: 80;
       padding: 12px 14px;
       border-radius: 8px;
       color: #fffdf8;
@@ -914,6 +914,17 @@
       }
       .cloud-email { width: 170px; min-width: 170px; min-height: 34px; }
       .cloud-status { min-height: 34px; font-size: 11px; }
+      .toast {
+        top: calc(var(--accounting-header-height, 110px) + 12px);
+        right: auto;
+        bottom: auto;
+        left: 50%;
+        width: calc(100% - 32px);
+        max-width: 420px;
+        text-align: center;
+        transform: translate(-50%, -12px);
+      }
+      .toast.show { transform: translate(-50%, 0); }
       .tabs {
         display: none;
       }
@@ -3022,9 +3033,15 @@
       const max = Math.max(1, ...rows.map(row => Math.abs(Number(row.value) || 0)));
       return `<article class="chart-card"><h3>${title}</h3><div class="bar-list">${rows.length ? rows.map(row => `<div class="bar-row"><strong>${escapeHtml(row.label)}</strong><span class="bar-track"><i class="bar-fill" style="--w:${Math.max(4, Math.abs(row.value) / max * 100).toFixed(1)}%;--c:var(--blue)"></i></span><span>${money(row.value)} ${unit === "TWD" ? "" : ""}</span></div>`).join("") : `<div class="empty">尚無資料</div>`}</div></article>`;
     }
+    function updateMobileHeaderOffset() {
+      const header = document.querySelector(".app-header");
+      if (!header) return;
+      document.documentElement.style.setProperty("--accounting-header-height", `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    }
     function render() {
       ensureEnhancements();
       renderTabs();
+      updateMobileHeaderOffset();
       refreshLists();
       const rows = filteredEntries();
       renderCards(rows);
@@ -3886,6 +3903,7 @@
     render();
     refreshSharedFxRates().then(render);
     initCloudSync();
+    window.addEventListener("resize", updateMobileHeaderOffset);
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
         navigator.serviceWorker.register("service-worker.js").catch(() => {});
