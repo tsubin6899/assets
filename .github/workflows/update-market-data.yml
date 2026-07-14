@@ -33,7 +33,7 @@ jobs:
           SYMBOLS_JSON: ${{ inputs.symbols_json }}
         run: python -c "import os; from pathlib import Path; Path('price-symbols.json').write_text(os.environ['SYMBOLS_JSON'], encoding='utf-8')"
 
-      - name: Fetch latest prices and exchange rates
+      - name: Fetch prices, exchange rates, and valuations
         run: python update_prices.py
 
       - name: Commit updated data

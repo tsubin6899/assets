@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsubin-assets-dashboard-invest-v57";
+const CACHE_NAME = "tsubin-assets-dashboard-invest-v58";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -10,6 +10,7 @@ const CORE_ASSETS = [
   "./manifest.webmanifest",
   "./latest-prices.json",
   "./latest-rates.json",
+  "./latest-valuations.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/accounting-192.png",
@@ -36,7 +37,7 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
   if (url.pathname.includes("/api/")) return;
-  if (url.pathname.endsWith("/latest-prices.json") || url.pathname.endsWith("/latest-rates.json")) {
+  if (url.pathname.endsWith("/latest-prices.json") || url.pathname.endsWith("/latest-rates.json") || url.pathname.endsWith("/latest-valuations.json")) {
     event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request)));
     return;
   }

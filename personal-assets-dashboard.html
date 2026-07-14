@@ -499,6 +499,31 @@
     .watch-price { color: #1769aa; }
     .watch-pending-metric { color: #b97620; }
     .watch-pending-action { color: #7a526d; }
+    .valuation-type { display: inline-flex; align-items: center; width: max-content; padding: 3px 8px; border-radius: 999px; color: #2f6378; background: #e8f3f6; font-size: 11px; font-weight: 800; }
+    .valuation-type.etf { color: #6d4b80; background: #f2eaf5; }
+    .valuation-action { display: grid; gap: 4px; min-width: 150px; }
+    .valuation-action strong { font-size: 13px; line-height: 1.35; }
+    .valuation-action small, .valuation-source { color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .valuation-reason { min-width: 210px; max-width: 320px; color: #46565d; font-size: 12px; line-height: 1.55; }
+    .valuation-score { display: inline-flex; width: max-content; padding: 2px 7px; border-radius: 999px; background: #f0f3f2; color: #57666b; font-size: 10px; font-weight: 800; }
+    .research-btn { white-space: nowrap; }
+    .watchlist-insight { display: grid; gap: 6px; padding: 10px 11px; border-radius: 9px; background: #f5f8f7; color: #44575d; font-size: 12px; line-height: 1.5; }
+    .watchlist-insight-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .watchlist-insight small { color: var(--muted); }
+    .valuation-dialog { width: min(94vw, 720px); max-height: 88vh; border: 1px solid #d7e1df; border-radius: 16px; padding: 0; color: var(--ink); background: #fffdf8; box-shadow: 0 28px 80px rgba(20,33,49,.3); }
+    .valuation-dialog::backdrop { background: rgba(15,28,45,.5); backdrop-filter: blur(3px); }
+    .valuation-dialog form { display: grid; max-height: 88vh; }
+    .valuation-dialog-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px 14px; border-bottom: 1px solid #e1e7e5; }
+    .valuation-dialog-head h3 { margin: 0; font-size: 19px; }
+    .valuation-dialog-head p { margin: 5px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .valuation-dialog-body { overflow-y: auto; padding: 16px 20px; }
+    .valuation-form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .valuation-field { display: grid; gap: 5px; min-width: 0; }
+    .valuation-field.wide { grid-column: 1 / -1; }
+    .valuation-field label { color: #52636a; font-size: 11px; font-weight: 800; }
+    .valuation-field input, .valuation-field select, .valuation-field textarea { width: 100%; box-sizing: border-box; border: 1px solid #ccd8d5; border-radius: 8px; padding: 9px 10px; color: var(--ink); background: #fff; font: inherit; }
+    .valuation-field textarea { min-height: 70px; resize: vertical; }
+    .valuation-dialog-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 13px 20px 17px; border-top: 1px solid #e1e7e5; background: #fbfcfa; }
     @media (max-width: 1320px) { .watchlist-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 980px) { .pulse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 1100px) { .watchlist-rows { grid-template-columns: 1fr; } }
@@ -510,6 +535,9 @@
       .pulse-card { min-height: 104px; padding: 13px 11px 12px 15px; }
       .pulse-value { font-size: 20px; }
       .watchlist-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .valuation-form-grid { grid-template-columns: 1fr 1fr; }
+      .valuation-dialog-body { padding: 14px; }
+      .valuation-dialog-head, .valuation-dialog-actions { padding-left: 14px; padding-right: 14px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
@@ -1678,7 +1706,7 @@
           <div class="file-actions" aria-label="檔案與價格工具">
             <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
             <button class="btn green" id="saveData">匯入存檔</button>
-            <button class="btn blue" id="importPrices">更新股價與匯率</button>
+            <button class="btn blue" id="importPrices">更新市場與估值</button>
             <a class="btn green" href="accounting-app.html">開啟記帳 App</a>
             <button class="btn blue" id="privacyToggle" type="button">隱私模式</button>
             <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
@@ -1730,13 +1758,44 @@
       <button type="button" data-tab="annual"><i data-lucide="calendar-days"></i>年度報表</button>
       <button type="button" data-tab="chart"><i data-lucide="chart-no-axes-combined"></i>資訊圖表</button>
       <a href="accounting-app.html"><i data-lucide="receipt-text"></i>日常記帳 App</a>
-      <button type="button" data-mobile-trigger="importPrices"><i data-lucide="refresh-cw"></i>更新股價匯率</button>
+      <button type="button" data-mobile-trigger="importPrices"><i data-lucide="refresh-cw"></i>更新市場與估值</button>
       <button type="button" data-mobile-trigger="cloudLoad"><i data-lucide="cloud-download"></i>載入雲端</button>
       <button type="button" data-mobile-trigger="privacyToggle"><i data-lucide="eye-off"></i>隱私模式</button>
       <button type="button" data-mobile-trigger="exportJson"><i data-lucide="file-down"></i>匯出存檔</button>
       <button type="button" data-mobile-trigger="saveData"><i data-lucide="file-up"></i>匯入存檔</button>
       <button class="danger" type="button" data-mobile-trigger="resetData"><i data-lucide="trash-2"></i>清空資料</button>
     </div>
+  </dialog>
+  <dialog class="valuation-dialog" id="valuationDialog" aria-labelledby="valuationDialogTitle">
+    <form id="valuationForm">
+      <div class="valuation-dialog-head">
+        <div><h3 id="valuationDialogTitle">研究資料設定</h3><p id="valuationDialogHint">自動資料會保留；只有填寫的欄位會覆蓋自動資料。</p></div>
+        <button class="icon-btn" type="button" title="關閉" aria-label="關閉" data-close-valuation><i data-lucide="x"></i></button>
+      </div>
+      <div class="valuation-dialog-body">
+        <input type="hidden" name="valuationKey">
+        <div class="valuation-form-grid">
+          <div class="valuation-field"><label>資產類型</label><select name="assetType"><option value="auto">自動判斷</option><option value="stock">個股</option><option value="etf">ETF</option></select></div>
+          <div class="valuation-field"><label>資料日期</label><input type="date" name="asOf"></div>
+          <div class="valuation-field"><label>自訂來源</label><input type="text" name="source" placeholder="例如：公司年報、投信官網"></div>
+          <div class="valuation-field"><label>本益比（倍）</label><input type="number" step="0.01" name="pe"></div>
+          <div class="valuation-field"><label>股價淨值比（倍）</label><input type="number" step="0.01" name="pb"></div>
+          <div class="valuation-field"><label>ROE（%）</label><input type="number" step="0.01" name="roe"></div>
+          <div class="valuation-field"><label>營收成長（%）</label><input type="number" step="0.01" name="revenueGrowth"></div>
+          <div class="valuation-field"><label>EPS 成長（%）</label><input type="number" step="0.01" name="epsGrowth"></div>
+          <div class="valuation-field"><label>負債比（%）</label><input type="number" step="0.01" name="debtRatio"></div>
+          <div class="valuation-field"><label>自由現金流殖利率（%）</label><input type="number" step="0.01" name="fcfYield"></div>
+          <div class="valuation-field"><label>ETF 淨值 NAV</label><input type="number" step="0.0001" name="nav"></div>
+          <div class="valuation-field"><label>ETF 費用率（%）</label><input type="number" step="0.001" name="expenseRatio"></div>
+          <div class="valuation-field"><label>追蹤差異（%）</label><input type="number" step="0.01" name="trackingDifference"></div>
+          <div class="valuation-field"><label>前十大集中度（%）</label><input type="number" step="0.01" name="concentration"></div>
+          <div class="valuation-field"><label>單一標的上限（%）</label><input type="number" step="0.1" name="maxAllocation"></div>
+          <div class="valuation-field wide"><label>長期持有理由／投資主軸</label><textarea name="thesis" placeholder="例如：產業護城河、資產配置角色、預期持有年限"></textarea></div>
+          <div class="valuation-field wide"><label>需要減碼或換股的條件</label><textarea name="invalidation" placeholder="例如：連續兩年獲利衰退、費用率升高、投資主軸改變"></textarea></div>
+        </div>
+      </div>
+      <div class="valuation-dialog-actions"><button class="btn dark small" type="button" data-clear-valuation>清除手動資料</button><button class="btn purple small" type="button" data-close-valuation>取消</button><button class="btn green small" type="submit">儲存研究資料</button></div>
+    </form>
   </dialog>
 
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -1844,6 +1903,8 @@
       dcaSchedules: [],
       twWatchlist: [],
       usWatchlist: [],
+      valuationCache: {},
+      valuationOverrides: {},
       purchaseRecords: [],
       budget: [],
       pnlCalendar: [],
@@ -2148,28 +2209,257 @@
           price: quotes.get(String(row.code || "").trim().toUpperCase()) || Number(row.lastPrice) || 0
         }));
     }
-    function valuationOf(row) {
+    function valuationKey(row) {
       const market = String(row.market || "TW").toUpperCase();
       const code = String(row.code || "").trim().toUpperCase();
-      return data.valuationCache?.[`${market}:${code}`] || {};
+      return `${market}:${code}`;
+    }
+    function metricNumber(value) {
+      if (value === "" || value === null || value === undefined) return null;
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+    function inferredAssetType(row, automatic = {}) {
+      const key = valuationKey(row);
+      const manualType = data.valuationOverrides?.[key]?.assetType;
+      if (manualType && manualType !== "auto") return manualType;
+      if (["stock", "etf"].includes(String(automatic.assetType || "").toLowerCase())) return String(automatic.assetType).toLowerCase();
+      const code = String(row.code || "").trim().toUpperCase();
+      const name = String(row.name || "").toUpperCase();
+      if ((key.startsWith("TW:") && code.startsWith("00")) || name.includes("ETF")) return "etf";
+      return "stock";
+    }
+    function valuationOf(row) {
+      const key = valuationKey(row);
+      const automatic = data.valuationCache?.[key] || {};
+      const manual = data.valuationOverrides?.[key] || {};
+      const valuation = { ...automatic };
+      Object.entries(manual).forEach(([field, value]) => {
+        if (value !== "" && value !== null && value !== undefined && !(field === "assetType" && value === "auto")) valuation[field] = value;
+      });
+      valuation.assetType = inferredAssetType(row, valuation);
+      valuation.manual = Object.keys(manual).some(field => field !== "assetType" || manual[field] !== "auto");
+      const price = metricNumber(row.price);
+      const nav = metricNumber(valuation.nav);
+      const pe = metricNumber(valuation.pe ?? (valuation.metric === "pe" ? valuation.value : null));
+      if (valuation.assetType === "etf" && price !== null && nav && nav > 0) {
+        valuation.premium = (price / nav - 1) * 100;
+        valuation.metric = "premium";
+        valuation.value = valuation.premium;
+      } else if (valuation.assetType === "stock" && pe !== null) {
+        valuation.pe = pe;
+        valuation.metric = "pe";
+        valuation.value = pe;
+      }
+      if (valuation.manual && !manual.source) valuation.source = automatic.source ? `手動補充＋${automatic.source}` : "手動研究資料";
+      return valuation;
+    }
+    function positionAllocation(row) {
+      if (!metricNumber(row.shares)) return null;
+      const market = String(row.market || "TW").toUpperCase();
+      const fx = market === "US" ? Number(data.rates.usd) || 1 : 1;
+      const value = (Number(row.shares) || 0) * (Number(row.price) || 0) * fx;
+      const total = allTotals().total;
+      return total > 0 ? value / total * 100 : null;
+    }
+    function uniqueReasons(reasons) {
+      return [...new Set(reasons)].slice(0, 3);
+    }
+    function longTermAssessment(row) {
+      const valuation = valuationOf(row);
+      const type = valuation.assetType;
+      let score = type === "etf" ? 62 : 60;
+      const reasons = [];
+      let available = 0;
+      const read = field => {
+        const value = metricNumber(valuation[field]);
+        if (value !== null) available += 1;
+        return value;
+      };
+
+      if (type === "etf") {
+        const premium = read("premium");
+        const expense = read("expenseRatio");
+        const tracking = read("trackingDifference");
+        const concentration = read("concentration");
+        if (premium !== null) {
+          if (premium <= -1) { score += 8; reasons.push("市價低於淨值"); }
+          else if (premium <= .7) { score += 4; reasons.push("折溢價在合理範圍"); }
+          else if (premium > 2) { score -= 12; reasons.push("溢價偏高，避免追價"); }
+          else { score -= 4; reasons.push("存在溢價，宜等收斂"); }
+        }
+        if (expense !== null) {
+          if (expense <= .3) { score += 8; reasons.push("費用率低"); }
+          else if (expense <= .7) score += 3;
+          else if (expense > 1) { score -= 8; reasons.push("費用率偏高"); }
+        }
+        if (tracking !== null) {
+          if (Math.abs(tracking) <= .5) { score += 6; reasons.push("追蹤差異穩定"); }
+          else if (Math.abs(tracking) > 1) { score -= 8; reasons.push("追蹤差異偏大"); }
+        }
+        if (concentration !== null) {
+          if (concentration <= 40) score += 4;
+          else if (concentration > 65) { score -= 8; reasons.push("持股集中度偏高"); }
+        }
+      } else {
+        const pe = read("pe");
+        const pb = read("pb");
+        const dividendYield = read("dividendYield");
+        const roe = read("roe");
+        const revenueGrowth = read("revenueGrowth");
+        const epsGrowth = read("epsGrowth");
+        const debtRatio = read("debtRatio");
+        const fcfYield = read("fcfYield");
+        if (pe !== null) {
+          if (pe <= 0) { score -= 10; reasons.push("目前獲利為負或無有效本益比"); }
+          else if (pe <= 15) { score += 9; reasons.push("本益比相對保守"); }
+          else if (pe <= 25) { score += 3; reasons.push("本益比在中性區間"); }
+          else if (pe <= 40) { score -= 5; reasons.push("估值偏高，宜等回檔"); }
+          else { score -= 12; reasons.push("本益比高，需更強成長支撐"); }
+        }
+        if (pb !== null) {
+          if (pb <= 2) score += 4;
+          else if (pb > 8) { score -= 5; reasons.push("股價淨值比偏高"); }
+        }
+        if (dividendYield !== null && dividendYield >= 3) { score += 3; reasons.push("具現金股利支撐"); }
+        if (roe !== null) {
+          if (roe >= 15) { score += 10; reasons.push("ROE 表現良好"); }
+          else if (roe >= 10) score += 4;
+          else if (roe < 5) { score -= 7; reasons.push("資本報酬率偏弱"); }
+        }
+        if (revenueGrowth !== null) {
+          if (revenueGrowth >= 10) { score += 6; reasons.push("營收維持成長"); }
+          else if (revenueGrowth < 0) { score -= 7; reasons.push("營收年成長轉負"); }
+        }
+        if (epsGrowth !== null) {
+          if (epsGrowth >= 10) { score += 8; reasons.push("EPS 成長良好"); }
+          else if (epsGrowth < 0) { score -= 10; reasons.push("EPS 年成長轉負"); }
+        }
+        if (debtRatio !== null) {
+          if (debtRatio <= 50) score += 4;
+          else if (debtRatio > 75) { score -= 8; reasons.push("負債比偏高"); }
+        }
+        if (fcfYield !== null) {
+          if (fcfYield >= 4) { score += 7; reasons.push("自由現金流殖利率佳"); }
+          else if (fcfYield < 0) { score -= 8; reasons.push("自由現金流為負"); }
+        }
+      }
+
+      const allocation = positionAllocation(row);
+      const maxAllocation = metricNumber(valuation.maxAllocation);
+      if (allocation !== null && maxAllocation !== null && allocation > maxAllocation) {
+        score -= 12;
+        reasons.unshift(`占總資產 ${allocation.toFixed(1)}%，已高於自訂上限`);
+      } else if (allocation !== null && allocation > 25) {
+        score -= 7;
+        reasons.unshift(`占總資產 ${allocation.toFixed(1)}%，集中風險偏高`);
+      }
+      if (valuation.invalidation) reasons.push("已設定減碼／換股條件");
+      score = Math.max(0, Math.min(100, Math.round(score)));
+      const confidence = available >= 6 ? "高" : available >= 3 ? "中" : "低";
+      const holding = metricNumber(row.shares) !== null && Number(row.shares) > 0;
+      let action = "";
+      let tone = "";
+      if (available < 2) {
+        action = type === "etf" ? "先補 NAV／費用率" : "資料不足／先補研究";
+        tone = "watch-pending-action";
+        reasons.unshift(type === "etf" ? "ETF 不宜用個股本益比判斷" : "不能只靠單一估值指標判斷長期持有");
+      } else if (score >= 75) {
+        action = holding ? "續抱／可分批加碼" : "可列分批買進候選";
+        tone = "ok";
+      } else if (score >= 62) {
+        action = holding ? "核心續抱／等待合理價" : "續觀察／等合理價";
+        tone = "";
+      } else if (score >= 48) {
+        action = holding ? "觀察／暫停加碼" : "暫不買進";
+        tone = "accent";
+      } else {
+        action = holding ? "重新檢視／減碼候選" : "暫不買進／換標的";
+        tone = "gain";
+      }
+      const pe = metricNumber(valuation.pe ?? (valuation.metric === "pe" ? valuation.value : null));
+      const premium = metricNumber(valuation.premium ?? (valuation.metric === "premium" ? valuation.value : null));
+      const metric = type === "etf"
+        ? (premium === null ? "待補折溢價" : `${premium >= 0 ? "+" : ""}${premium.toFixed(2)}% 折溢價`)
+        : (pe === null ? "待補本益比" : `${pe.toFixed(1)} 倍本益比`);
+      return {
+        type,
+        typeLabel: type === "etf" ? "ETF" : "個股",
+        metric,
+        action,
+        tone,
+        score,
+        confidence,
+        reasons: uniqueReasons(reasons).length ? uniqueReasons(reasons) : ["尚未設定長期持有理由"],
+        source: valuation.source || "尚未取得資料來源",
+        asOf: valuation.asOf || "待更新"
+      };
     }
     function valuationSignal(row) {
-      const valuation = valuationOf(row);
-      const metric = String(valuation.metric || "").toLowerCase();
-      const value = Number(valuation.value);
-      if (!Number.isFinite(value)) return { metric: "待更新", action: "暫不判斷", tone: "" };
-      if (metric === "premium") {
-        const label = `${value >= 0 ? "+" : ""}${value.toFixed(2)}% 折溢價`;
-        if (value >= 2) return { metric: label, action: "減碼／勿追價", tone: "gain" };
-        if (value > 1) return { metric: label, action: "暫緩加碼", tone: "accent" };
-        if (value <= -1) return { metric: label, action: "可分批加碼", tone: "ok" };
-        return { metric: label, action: "續抱／分批", tone: "" };
-      }
-      const label = `${value.toFixed(1)} 倍本益比`;
-      if (value > 35) return { metric: label, action: "減碼／勿追價", tone: "gain" };
-      if (value > 25) return { metric: label, action: "暫緩加碼", tone: "accent" };
-      if (value <= 15) return { metric: label, action: "可分批加碼", tone: "ok" };
-      return { metric: label, action: "續抱／等回檔", tone: "" };
+      return longTermAssessment(row);
+    }
+    const valuationNumberFields = ["pe", "pb", "roe", "revenueGrowth", "epsGrowth", "debtRatio", "fcfYield", "nav", "expenseRatio", "trackingDifference", "concentration", "maxAllocation"];
+    function researchRowForKey(key) {
+      const [market, code] = String(key || "").split(":");
+      const rows = market === "US"
+        ? [...stockRows("us"), ...(data.usWatchlist || []).map(row => ({ ...row, market: "US" }))]
+        : [...stockRows("tw"), ...(data.twWatchlist || []).map(row => ({ ...row, market: "TW" }))];
+      return rows.find(row => String(row.code || "").trim().toUpperCase() === code) || { market, code, name: "" };
+    }
+    function openValuationDialog(key) {
+      const dialog = document.getElementById("valuationDialog");
+      const form = document.getElementById("valuationForm");
+      const row = researchRowForKey(key);
+      const automatic = data.valuationCache?.[key] || {};
+      const manual = data.valuationOverrides?.[key] || {};
+      form.reset();
+      form.elements.valuationKey.value = key;
+      form.elements.assetType.value = manual.assetType || "auto";
+      [...valuationNumberFields, "asOf", "source", "thesis", "invalidation"].forEach(field => {
+        const input = form.elements[field];
+        if (!input) return;
+        input.value = manual[field] ?? "";
+        input.placeholder = automatic[field] !== undefined && automatic[field] !== null && automatic[field] !== ""
+          ? `自動資料：${automatic[field]}`
+          : input.dataset.defaultPlaceholder || input.placeholder;
+      });
+      document.getElementById("valuationDialogTitle").textContent = `${row.code || "標的"} ${row.name || ""}｜研究資料設定`;
+      const automaticFields = ["pe", "pb", "roe", "revenueGrowth", "epsGrowth", "debtRatio", "fcfYield"].filter(field => metricNumber(automatic[field]) !== null);
+      document.getElementById("valuationDialogHint").textContent = automaticFields.length
+        ? `已取得 ${automaticFields.length} 項自動資料；留白會繼續使用自動值。`
+        : "目前缺少自動基本面資料；可先由年報或投信官網手動補充。";
+      dialog.showModal();
+      if (window.lucide) window.lucide.createIcons();
+    }
+    function saveValuationOverride(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const key = form.elements.valuationKey.value;
+      const next = {};
+      const assetType = form.elements.assetType.value;
+      if (assetType !== "auto") next.assetType = assetType;
+      valuationNumberFields.forEach(field => {
+        if (form.elements[field].value !== "") next[field] = Number(form.elements[field].value);
+      });
+      ["asOf", "source", "thesis", "invalidation"].forEach(field => {
+        const value = form.elements[field].value.trim();
+        if (value) next[field] = value;
+      });
+      data.valuationOverrides ||= {};
+      if (Object.keys(next).length) data.valuationOverrides[key] = next;
+      else delete data.valuationOverrides[key];
+      saveState();
+      document.getElementById("valuationDialog").close();
+      render();
+      toast("研究資料已儲存，長期評估已重新計算");
+    }
+    function clearValuationOverride() {
+      const key = document.getElementById("valuationForm").elements.valuationKey.value;
+      if (key && data.valuationOverrides) delete data.valuationOverrides[key];
+      saveState();
+      document.getElementById("valuationDialog").close();
+      render();
+      toast("已清除手動資料，恢復使用自動來源");
     }
     function goldCost() { return sum(data.gold, r => r.gold + r.labor); }
     function goldGram() { return sum(data.gold, r => r.gram); }
@@ -3104,7 +3394,7 @@
       const cost = stockCost(rows, fx);
       const gain = value - cost;
       return `
-        ${section(kind, `${title}持股總覽`, "部位、持股數與平均成本皆由「購買股票紀錄」中尚未賣出的交易自動計算；估值欄位以股票本益比或 ETF 折溢價率提供規則化提示，僅供研究，不構成投資建議。")}
+        ${section(kind, `${title}持股總覽`, "部位、持股數與平均成本由「購買股票紀錄」自動計算。長期評估會依個股／ETF採不同指標，並納入品質、成長、現金流與集中風險；資料不足時會明確提示補充，不構成投資建議。")}
         <div class="cards">
           ${card("總投入成本", money(cost, currency), currency)}
           ${card("當前總現值", money(value, currency), currency)}
@@ -3114,13 +3404,14 @@
         ${renderStockAnalysisCharts(kind, rows, currency)}
         <div class="toolbox toolbar"><input class="search" id="${kind}Search" placeholder="搜尋代號或名稱"><select data-stock-sort="${kind}"><option value="value" ${stockSort[kind] === "value" ? "selected" : ""}>依市值排序</option><option value="gain" ${stockSort[kind] === "gain" ? "selected" : ""}>依損益排序</option><option value="code" ${stockSort[kind] === "code" ? "selected" : ""}>依代號排序</option></select></div>
         <article class="panel"><div class="table-wrap"><table>
-          <thead><tr><th>股票代號</th><th>股票名稱</th><th>持股數</th><th>平均成本</th><th>目前股價</th><th>當前市值</th><th>未實現損益</th><th>報酬率</th><th>本益比／折溢價</th><th>估值操作提示</th></tr></thead>
+          <thead><tr><th>股票代號</th><th>股票名稱</th><th>持股數</th><th>平均成本</th><th>目前股價</th><th>當前市值</th><th>未實現損益</th><th>報酬率</th><th>類型</th><th>估值資料</th><th>長期持有評估</th><th>主要理由</th><th>資料來源／日期</th><th>研究設定</th></tr></thead>
           <tbody>${rows.map((r, i) => {
             const rowValue = r.shares * r.price;
             const rowCost = r.shares * r.cost;
             const rowGain = rowValue - rowCost;
             const signal = valuationSignal(r);
-            return `<tr><td>${escapeHtml(r.code)}</td><td>${escapeHtml(r.name)}</td><td>${money(r.shares, "")}</td><td>${moneyFixed(r.cost, currency, 2)}</td><td>${moneyFixed(r.price, currency, 2)}</td><td>${money(rowValue, currency)}</td><td class="${rowGain >= 0 ? "gain" : ""}">${money(rowGain, currency)}</td><td>${rowCost ? (rowGain / rowCost * 100).toFixed(2) : "0.00"}%</td><td>${signal.metric}</td><td class="${signal.tone}">${signal.action}</td></tr>`;
+            const metricClass = signal.metric.includes("待補") ? "watch-pending-metric" : "";
+            return `<tr><td>${escapeHtml(r.code)}</td><td>${escapeHtml(r.name)}</td><td>${money(r.shares, "")}</td><td>${moneyFixed(r.cost, currency, 2)}</td><td>${moneyFixed(r.price, currency, 2)}</td><td>${money(rowValue, currency)}</td><td class="${rowGain >= 0 ? "gain" : ""}">${money(rowGain, currency)}</td><td>${rowCost ? (rowGain / rowCost * 100).toFixed(2) : "0.00"}%</td><td><span class="valuation-type ${signal.type}">${signal.typeLabel}</span></td><td class="${metricClass}">${signal.metric}</td><td><div class="valuation-action ${signal.tone}"><strong>${signal.action}</strong><span class="valuation-score">評分 ${signal.score}｜信心 ${signal.confidence}</span></div></td><td><div class="valuation-reason">${signal.reasons.map(escapeHtml).join("<br>")}</div></td><td><div class="valuation-source">${escapeHtml(signal.source)}<br>${escapeHtml(signal.asOf)}</div></td><td><button class="btn purple small research-btn" type="button" data-research-key="${escapeHtml(valuationKey(r))}">設定</button></td></tr>`;
           }).join("")}</tbody>
         </table></div></article>
       `;
@@ -3254,13 +3545,15 @@
       const rows = data[key] || [];
       return `<article class="panel"><div class="panel-pad"><div class="section-head"><div><h3>${title}</h3><p class="section-note">觀察名單不計入持倉或資產總額。更新股價會一併查詢此處的標的。</p></div><button class="btn green small" data-add="${key}">+ 新增${title}</button></div></div><div class="watchlist-rows">${rows.map((row, index) => {
         const signal = valuationSignal({ ...row, market });
-        const metricClass = signal.metric === "待更新" ? "watch-pending-metric" : "";
-        const actionClass = signal.action === "暫不判斷" ? "watch-pending-action" : signal.tone;
-        return `<div class="watchlist-row"><div class="watchlist-fields"><label>股票代號</label>${textInput(row.code || "", `${key}.${index}.code`)}<label>股票名稱</label>${textInput(row.name || "", `${key}.${index}.name`)}<label>觀察理由</label>${textInput(row.note || "", `${key}.${index}.note`)}</div><div class="watchlist-metrics"><span><small>最新股價</small><strong class="watch-price">${moneyFixed(row.price || 0, currency, 2)}</strong></span><span><small>本益比／折溢價</small><strong class="${metricClass}">${signal.metric}</strong></span><span><small>分析購入／賣出</small><strong class="${actionClass}">${signal.action}</strong></span><button class="icon-btn" data-del="${key}.${index}">刪</button></div></div>`;
+        const metricClass = signal.metric.includes("待補") ? "watch-pending-metric" : "";
+        const actionClass = signal.tone || "";
+        return `<div class="watchlist-row"><div class="watchlist-fields"><label>股票代號</label>${textInput(row.code || "", `${key}.${index}.code`)}<label>股票名稱</label>${textInput(row.name || "", `${key}.${index}.name`)}<label>觀察理由</label>${textInput(row.note || "", `${key}.${index}.note`)}</div><div class="watchlist-metrics"><span><small>最新股價</small><strong class="watch-price">${moneyFixed(row.price || 0, currency, 2)}</strong></span><span><small>本益比／折溢價</small><strong class="${metricClass}">${signal.metric}</strong></span><span><small>長期持有／買進評估</small><strong class="${actionClass}">${signal.action}</strong></span><button class="icon-btn" data-del="${key}.${index}">刪</button></div><div class="watchlist-insight"><div class="watchlist-insight-head"><span class="valuation-type ${signal.type}">${signal.typeLabel}</span><span class="valuation-score">評分 ${signal.score}｜信心 ${signal.confidence}</span></div><strong>${signal.reasons.map(escapeHtml).join("、")}</strong><small>${escapeHtml(signal.source)}｜${escapeHtml(signal.asOf)}</small><button class="btn purple small research-btn" type="button" data-research-key="${escapeHtml(valuationKey({ ...row, market }))}">補充研究資料</button></div></div>`;
       }).join("") || `<div class="muted">尚未加入觀察標的</div>`}</div></article>`;
     }
     function renderWatchlist() {
-      return `${section("watchlist", "股票觀察名單", "依台股與美股分開管理；估值操作提示只根據本益比或 ETF 折溢價率，不構成投資建議。")}${renderWatchlistBlock("twWatchlist", "台股觀察名單", "TW", "TWD")}${renderWatchlistBlock("usWatchlist", "美股觀察名單", "US", "USD")}`;
+      return `${section("watchlist", "股票觀察名單", "依台股與美股分開管理；個股看估值、獲利品質與成長，ETF 看折溢價、費用率、追蹤差異與集中度。可用「補充研究資料」加入投資主軸與換股條件。")}
+        <article class="panel"><div class="panel-pad"><h3>長期評估判讀方式</h3><div class="meta-grid"><div class="meta-item"><small>個股</small><strong>估值＋ROE＋營收／EPS 成長＋負債與現金流</strong></div><div class="meta-item"><small>ETF</small><strong>折溢價＋費用率＋追蹤差異＋集中度</strong></div><div class="meta-item"><small>評分區間</small><strong>75 以上偏正向｜62–74 續抱觀察｜48–61 暫停加碼｜47 以下重新檢視</strong></div><div class="meta-item"><small>重要原則</small><strong>信心低代表資料不足；不會只憑單一本益比建議換股</strong></div></div></div></article>
+        ${renderWatchlistBlock("twWatchlist", "台股觀察名單", "TW", "TWD")}${renderWatchlistBlock("usWatchlist", "美股觀察名單", "US", "USD")}`;
     }
 
 
@@ -3695,6 +3988,7 @@
         render();
       }));
       document.querySelectorAll("[data-add]").forEach(el => el.addEventListener("click", () => addRow(el.dataset.add)));
+      document.querySelectorAll("[data-research-key]").forEach(el => el.addEventListener("click", () => openValuationDialog(el.dataset.researchKey)));
       document.querySelectorAll("[data-snapshot-pnl]").forEach(el => el.addEventListener("click", recordTodaySnapshot));
       document.querySelectorAll("[data-snapshot-all]").forEach(el => el.addEventListener("click", recordTodayFullSnapshot));
       document.querySelectorAll("[data-asset-snapshot]").forEach(el => el.addEventListener("click", recordAssetSnapshot));
@@ -3870,7 +4164,7 @@
         try {
           await triggerLocalMarketUpdate(symbols);
           const payload = await fetchMarketData();
-          if (!(await applyMarketData(payload))) toast("沒有找到可套用的股價或匯率");
+          if (!(await applyMarketData(payload))) toast("沒有找到可套用的市場或估值資料");
           return;
         } catch {
           await triggerCloudMarketUpdate(symbols);
@@ -3879,7 +4173,7 @@
         const payload = await waitForFreshMarketData(before ? marketStamp(before) : "");
         if (payload) {
           await applyMarketData(payload);
-          toast("雲端股價與匯率已更新");
+          toast("雲端市場與估值資料已更新");
         } else {
           toast("雲端更新已送出，稍後請再按一次讀取最新資料");
         }
@@ -3961,6 +4255,9 @@
     });
     document.getElementById("exportCsv").addEventListener("click", exportCsv);
     document.getElementById("importPrices").addEventListener("click", updatePricesFromServer);
+    document.getElementById("valuationForm").addEventListener("submit", saveValuationOverride);
+    document.querySelectorAll("[data-close-valuation]").forEach(button => button.addEventListener("click", () => document.getElementById("valuationDialog").close()));
+    document.querySelector("[data-clear-valuation]").addEventListener("click", clearValuationOverride);
     document.getElementById("cloudLogin").addEventListener("click", loginCloudSync);
     document.getElementById("cloudSave").addEventListener("click", saveCloudData);
     document.getElementById("cloudLoad").addEventListener("click", loadCloudData);

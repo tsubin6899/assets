@@ -8,6 +8,9 @@ The workflow at `.github/workflows/update-market-data.yml` updates:
 
 - `latest-prices.json`
 - `latest-rates.json`
+- `latest-valuations.json`
+
+Valuation sources are TWSE OpenAPI, TPEx OpenAPI, and SEC EDGAR Company Facts. ETF NAV, expense ratio, tracking difference, and concentration can be supplemented from the dashboard research-data dialog when the issuer does not expose a stable public API.
 
 It runs on weekdays at 13:30 Taipei time and can also be triggered manually or by the web button.
 
