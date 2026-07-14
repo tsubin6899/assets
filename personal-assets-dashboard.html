@@ -404,6 +404,43 @@
       border-color: rgba(201,134,43,.5);
       background: #fff6e6;
     }
+    .financial-pulse {
+      margin: 0 0 18px;
+      padding: 16px;
+      border: 1px solid #cfdcda;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(255,254,251,.98), rgba(237,244,242,.92));
+      box-shadow: 0 14px 34px rgba(31,38,51,.09);
+    }
+    .pulse-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 13px;
+    }
+    .pulse-head h3 { margin: 0; font-size: 18px; }
+    .pulse-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .pulse-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .pulse-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .pulse-card {
+      --pulse-color: var(--blue);
+      position: relative;
+      min-width: 0;
+      min-height: 110px;
+      overflow: hidden;
+      padding: 14px 14px 13px 17px;
+      border: 1px solid #d8e2e0;
+      border-radius: 10px;
+      background: rgba(255,255,255,.86);
+    }
+    .pulse-card::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--pulse-color); }
+    .pulse-card.good { --pulse-color: var(--green); }
+    .pulse-card.watch { --pulse-color: var(--amber); }
+    .pulse-card.risk { --pulse-color: var(--red); }
+    .pulse-label { display: block; color: var(--muted); font-size: 12px; }
+    .pulse-value { display: block; margin-top: 9px; color: var(--ink); font-size: 23px; line-height: 1.05; font-weight: 700; }
+    .pulse-note { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.4; }
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -435,6 +472,7 @@
     body.privacy-mode .accounting-amount,
     body.privacy-mode .bar-row > span:last-child,
     body.privacy-mode .card .unit,
+    body.privacy-mode .pulse-value,
     body.privacy-mode td,
     body.privacy-mode input[type="number"] {
       color: transparent !important;
@@ -443,6 +481,10 @@
       filter: blur(12px);
       opacity: .12;
       user-select: none;
+    }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 3px solid rgba(52,121,150,.34);
+      outline-offset: 2px;
     }
     .mobile-quick-nav {
       display: none;
@@ -458,8 +500,20 @@
     .watch-pending-metric { color: #b97620; }
     .watch-pending-action { color: #7a526d; }
     @media (max-width: 1320px) { .watchlist-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 980px) { .pulse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 1100px) { .watchlist-rows { grid-template-columns: 1fr; } }
-    @media (max-width: 720px) { .watchlist-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 720px) {
+      .financial-pulse { padding: 13px; }
+      .pulse-head { display: grid; }
+      .pulse-actions { justify-content: flex-start; }
+      .pulse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .pulse-card { min-height: 104px; padding: 13px 11px 12px 15px; }
+      .pulse-value { font-size: 20px; }
+      .watchlist-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
     .mobile-more-sheet {
       width: min(100% - 24px, 440px);
       max-height: min(78vh, 620px);
@@ -2880,6 +2934,30 @@
         <div class="alert-tile ${backup ? "" : "accent"}"><div><strong>備份同步狀態</strong><span>最近備份：${formatDateTime(backup)}</span></div><button class="btn small purple" data-tab="annual">詳情</button></div>
       </div>`;
     }
+    function pulseMetricCard(label, value, note, tone = "") {
+      return `<div class="pulse-card ${tone}"><span class="pulse-label">${label}</span><strong class="pulse-value">${value}</strong><span class="pulse-note">${note}</span></div>`;
+    }
+    function renderFinancialPulse() {
+      const t = allTotals();
+      const investment = Math.max(0, t.tw) + Math.max(0, t.us) + Math.max(0, t.gold) + Math.max(0, t.silver) + Math.max(0, t.fund);
+      const grossAssets = Math.max(0, t.cash) + investment;
+      const monthlyExpense = monthlyExpenseEstimate();
+      const cashMonths = monthlyExpense > 0 ? t.cash / monthlyExpense : null;
+      const investmentRatio = grossAssets > 0 ? investment / grossAssets * 100 : 0;
+      const debtRatio = grossAssets > 0 ? t.cards / grossAssets * 100 : 0;
+      const issues = dataHealthItems();
+      const cashTone = cashMonths == null ? "watch" : cashMonths >= 6 ? "good" : cashMonths >= 3 ? "watch" : "risk";
+      const debtTone = debtRatio >= 10 ? "risk" : debtRatio >= 5 ? "watch" : "good";
+      return `<article class="financial-pulse">
+        <div class="pulse-head"><div><h3>財務脈搏</h3><p>把現金安全度、資產集中度與短期負債放在同一個判斷畫面。</p></div><div class="pulse-actions"><button class="btn small green" data-snapshot-all>記錄今日快照</button><a class="btn small blue" href="accounting-app.html">前往記帳</a></div></div>
+        <div class="pulse-grid">
+          ${pulseMetricCard("現金安全月數", cashMonths == null ? "待設定" : `${cashMonths.toFixed(1)} 個月`, cashMonths == null ? "請在安全設定填入每月支出" : cashMonths >= 6 ? "現金緩衝充足" : cashMonths >= 3 ? "已接近三個月安全線" : "建議優先補足緊急預備金", cashTone)}
+          ${pulseMetricCard("投資資產比重", `${investmentRatio.toFixed(1)}%`, "涵蓋股票、基金與貴金屬", investmentRatio >= 85 ? "watch" : "")}
+          ${pulseMetricCard("信用卡負債比", `${debtRatio.toFixed(1)}%`, `待繳 ${money(t.cards)} TWD`, debtTone)}
+          ${pulseMetricCard("資料健康狀態", issues.length ? `${issues.length} 筆提醒` : "正常", issues.length ? "前往圖表與分析頁檢查" : "目前沒有明顯資料問題", issues.length ? "watch" : "good")}
+        </div>
+      </article>`;
+    }
     function renderOverview() {
       const t = allTotals();
       const parts = [
@@ -2895,6 +2973,7 @@
       }).join(", ");
       return `
         ${section("overview", "總覽儀表板", "跨資產總覽與配置比例。")}
+        ${renderFinancialPulse()}
         ${renderOverviewAlerts()}
         <div class="cards">
           ${card("總資產淨值", money(t.total), "TWD", "dark")}
