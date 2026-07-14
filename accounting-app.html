@@ -1263,7 +1263,43 @@
     .chart-grid .chart-card:nth-child(4n + 3) { background: linear-gradient(145deg, #fffefb, #fff8ec); }
     .chart-grid .chart-card:nth-child(4n + 4) { background: linear-gradient(145deg, #fffefb, #f8f2fa); }
     .monthly-pulse { background: linear-gradient(135deg, rgba(243,249,252,.98), rgba(239,248,244,.96) 55%, rgba(250,244,252,.94)); }
-    .invoice-box { border-left: 4px solid rgba(47,127,159,.65); background: linear-gradient(145deg, #fbfdfd, #f3f8f7); }
+    #entryView .invoice-box {
+      margin-top: 18px;
+      padding: 16px;
+      border: 1px solid #d5e2df;
+      border-left: 4px solid rgba(47,127,159,.7);
+      border-radius: 10px;
+      background: linear-gradient(145deg, #fbfdfd, #f3f8f7);
+    }
+    #entryView .invoice-box + .invoice-box { margin-top: 14px; }
+    #entryTable .btn.icon-action.delete,
+    #analysisTable .btn.icon-action.delete {
+      width: 34px;
+      min-width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      border: 1px solid #dfb6ae;
+      color: #b44a3f;
+      background: #fff7f5;
+      box-shadow: none;
+      filter: none;
+    }
+    #entryTable .btn.icon-action.delete:hover,
+    #analysisTable .btn.icon-action.delete:hover {
+      color: #98382f;
+      border-color: #cf9287;
+      background: #fde9e5;
+      box-shadow: 0 5px 12px rgba(180,74,63,.12);
+    }
+    #entryTable .btn.icon-action.delete svg,
+    #analysisTable .btn.icon-action.delete svg {
+      width: 16px;
+      height: 16px;
+      color: currentColor;
+      stroke: currentColor;
+      opacity: 1;
+    }
     th { background: linear-gradient(180deg, #edf4f2, #e5efec); color: #38545b; }
     @media (min-width: 981px) {
       .section-title { display: flex; align-items: center; gap: 9px; }
@@ -1287,6 +1323,7 @@
       .toolbar h2 .section-title-icon { width: 34px; height: 34px; flex-basis: 34px; padding: 7px; border-radius: 10px; }
     }
     @media (max-width: 980px) { .section-title-icon { display: none !important; } }
+    @media (max-width: 860px) { #entryView .invoice-box { padding: 14px; } }
   </style>
 </head>
 <body>
