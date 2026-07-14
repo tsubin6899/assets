@@ -447,13 +447,17 @@
     .mobile-quick-nav {
       display: none;
     }
-    .watchlist-rows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 14px; }
+    .watchlist-rows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 14px; }
     .watchlist-row { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.55); }
     .watchlist-fields { display: grid; grid-template-columns: 120px minmax(140px, 1fr); gap: 8px 10px; align-items: center; }
     .watchlist-fields label { color: var(--muted); font-size: 12px; font-weight: 700; }
     .watchlist-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px; align-items: center; }
     .watchlist-metrics span { display: grid; gap: 3px; }
     .watchlist-metrics small { color: var(--muted); font-size: 11px; }
+    .watch-price { color: #1769aa; }
+    .watch-pending-metric { color: #b97620; }
+    .watch-pending-action { color: #7a526d; }
+    @media (max-width: 1320px) { .watchlist-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (max-width: 1100px) { .watchlist-rows { grid-template-columns: 1fr; } }
     @media (max-width: 720px) { .watchlist-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .mobile-more-sheet {
@@ -3070,7 +3074,9 @@
       const rows = data[key] || [];
       return `<article class="panel"><div class="panel-pad"><div class="section-head"><div><h3>${title}</h3><p class="section-note">觀察名單不計入持倉或資產總額。更新股價會一併查詢此處的標的。</p></div><button class="btn green small" data-add="${key}">+ 新增${title}</button></div></div><div class="watchlist-rows">${rows.map((row, index) => {
         const signal = valuationSignal({ ...row, market });
-        return `<div class="watchlist-row"><div class="watchlist-fields"><label>股票代號</label>${textInput(row.code || "", `${key}.${index}.code`)}<label>股票名稱</label>${textInput(row.name || "", `${key}.${index}.name`)}<label>觀察理由</label>${textInput(row.note || "", `${key}.${index}.note`)}</div><div class="watchlist-metrics"><span><small>最新股價</small><strong>${moneyFixed(row.price || 0, currency, 2)}</strong></span><span><small>本益比／折溢價</small><strong>${signal.metric}</strong></span><span><small>分析購入／賣出</small><strong class="${signal.tone}">${signal.action}</strong></span><button class="icon-btn" data-del="${key}.${index}">刪</button></div></div>`;
+        const metricClass = signal.metric === "待更新" ? "watch-pending-metric" : "";
+        const actionClass = signal.action === "暫不判斷" ? "watch-pending-action" : signal.tone;
+        return `<div class="watchlist-row"><div class="watchlist-fields"><label>股票代號</label>${textInput(row.code || "", `${key}.${index}.code`)}<label>股票名稱</label>${textInput(row.name || "", `${key}.${index}.name`)}<label>觀察理由</label>${textInput(row.note || "", `${key}.${index}.note`)}</div><div class="watchlist-metrics"><span><small>最新股價</small><strong class="watch-price">${moneyFixed(row.price || 0, currency, 2)}</strong></span><span><small>本益比／折溢價</small><strong class="${metricClass}">${signal.metric}</strong></span><span><small>分析購入／賣出</small><strong class="${actionClass}">${signal.action}</strong></span><button class="icon-btn" data-del="${key}.${index}">刪</button></div></div>`;
       }).join("") || `<div class="muted">尚未加入觀察標的</div>`}</div></article>`;
     }
     function renderWatchlist() {
