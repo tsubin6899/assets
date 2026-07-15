@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "schemaVersion": 3,
   "generatedAt": "2026-07-15T01:20:49+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA ETF NAV",
@@ -15,6 +16,11 @@
       "status": "available"
     }
   ],
+=======
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-14T08:23:41+00:00",
+  "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR; ETF NAV/fees can be supplemented in the dashboard",
+>>>>>>> 5875b738f65bffdc99a8cca53822b8d408fb7575
   "valuations": {
     "TW:0050": {
       "assetType": "etf",
