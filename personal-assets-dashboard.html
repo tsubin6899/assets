@@ -490,7 +490,9 @@
       display: none;
     }
     .watchlist-rows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 14px; }
-    .watchlist-row { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.55); }
+    .watchlist-row { display: grid; grid-template-columns: 1fr; gap: 14px; padding: 14px; position: relative; border: 1px solid transparent; border-radius: 14px; background: linear-gradient(145deg, rgba(255,255,255,.97), rgba(248,250,249,.9)) padding-box, linear-gradient(135deg, #d7e9e3, #dbe5ef 52%, #eee2ef) border-box; box-shadow: 0 8px 20px rgba(31,55,59,.05), inset 0 1px 0 rgba(255,255,255,.95); transition: transform .18s ease, box-shadow .18s ease; }
+    .stock-holding-card::before, .watchlist-row::before { content: ""; position: absolute; top: -1px; right: 18px; left: 18px; height: 3px; border-radius: 0 0 4px 4px; background: linear-gradient(90deg, #62a28e, #75a9c8 54%, #a97eb3); opacity: .8; pointer-events: none; }
+    .stock-holding-card:hover, .watchlist-row:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(31,55,59,.11), inset 0 1px 0 rgba(255,255,255,.95); }
     .watchlist-fields { display: grid; grid-template-columns: 120px minmax(140px, 1fr); gap: 8px 10px; align-items: center; }
     .watchlist-fields label { color: var(--muted); font-size: 12px; font-weight: 700; }
     .watchlist-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 10px; align-items: center; }
@@ -509,7 +511,7 @@
     .valuation-score { display: inline-flex; width: max-content; padding: 2px 7px; border-radius: 999px; background: #f0f3f2; color: #57666b; font-size: 10px; font-weight: 800; }
     .research-btn { white-space: nowrap; }
     .stock-holdings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 14px; }
-    .stock-holding-card { display: grid; gap: 14px; min-width: 0; padding: 16px; border: 1px solid #dce5e2; border-radius: 14px; background: linear-gradient(145deg, rgba(255,255,255,.96), rgba(247,250,249,.88)); box-shadow: 0 8px 20px rgba(31,55,59,.05); }
+    .stock-holding-card { display: grid; gap: 14px; min-width: 0; padding: 16px; position: relative; border: 1px solid transparent; border-radius: 14px; background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(247,250,249,.9)) padding-box, linear-gradient(135deg, #d7e9e3, #dbe5ef 52%, #eee2ef) border-box; box-shadow: 0 8px 20px rgba(31,55,59,.05), inset 0 1px 0 rgba(255,255,255,.95); transition: transform .18s ease, box-shadow .18s ease; }
     .stock-card-head, .stock-card-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .stock-card-identity { display: grid; gap: 3px; min-width: 0; }
     .stock-card-code { color: #357186; font-size: 12px; font-weight: 800; letter-spacing: .03em; }
@@ -529,7 +531,7 @@
     .stock-card-footer .valuation-source { max-width: calc(100% - 82px); }
     @media (max-width: 980px) { .stock-holdings { grid-template-columns: 1fr; } }
     @media (max-width: 520px) { .stock-holdings { padding: 10px; gap: 10px; } .stock-holding-card { padding: 13px; gap: 11px; } .stock-card-name { font-size: 16px; } .stock-card-value strong { font-size: 20px; } .stock-card-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } .stock-card-metrics span { padding: 7px 6px; } }
-    .watchlist-insight { display: grid; gap: 6px; padding: 10px 11px; border-radius: 9px; background: #f5f8f7; color: #44575d; font-size: 12px; line-height: 1.5; }
+    .watchlist-insight { display: grid; gap: 6px; padding: 10px 11px; border: 1px solid rgba(135,170,160,.2); border-radius: 10px; background: linear-gradient(135deg, #f7fbf9, #f5f7fb); color: #44575d; font-size: 12px; line-height: 1.5; }
     .watchlist-insight-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .watchlist-insight small { color: var(--muted); }
     .valuation-dialog { width: min(94vw, 720px); max-height: 88vh; border: 1px solid #d7e1df; border-radius: 16px; padding: 0; color: var(--ink); background: #fffdf8; box-shadow: 0 28px 80px rgba(20,33,49,.3); }
