@@ -2572,8 +2572,13 @@
         }))
       );
     }
+    function accountingIsRealizedEntry(row, asOf = localDateString()) {
+      if (!row?.recurringId || !row.date) return true;
+      return String(row.date) <= asOf;
+    }
     function accountingAllEntryRows(ledger) {
-      return [...(ledger.entries || []), ...accountingInstallmentEntries(ledger)];
+      return [...(ledger.entries || []), ...accountingInstallmentEntries(ledger)]
+        .filter(row => accountingIsRealizedEntry(row));
     }
     function accountingAccountBalance(account, ledger) {
       const entryTotal = accountingAllEntryRows(ledger).reduce((total, row) => {
@@ -2616,6 +2621,7 @@
     }
     function accountingRows(month = localMonthString()) {
       return loadAccountingLedger().entries
+        .filter(row => accountingIsRealizedEntry(row))
         .filter(row => String(row.date || "").startsWith(month))
         .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
     }
