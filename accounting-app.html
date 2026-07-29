@@ -1300,6 +1300,277 @@
     }
     @media (max-width: 980px) { .section-title-icon { display: none !important; } }
     @media (max-width: 860px) { #entryView .invoice-box { padding: 14px; } }
+
+    /* Daily-use refinement: faster entry, clearer states, and a cohesive theme. */
+    .panel, .card, .chart-card, .account-tile { border-radius: 12px; }
+    .chart-grid .chart-card:nth-child(n) { background: rgba(255,254,251,.96); }
+    .amount-field { grid-column: 1 / -1; }
+    .amount-field input {
+      min-height: 58px;
+      padding: 8px 14px;
+      font-size: 28px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .quick-template-wrap { margin-top: 12px; }
+    .quick-template-label { display: block; margin-bottom: 7px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .quick-template-bar {
+      display: flex;
+      gap: 7px;
+      overflow-x: auto;
+      padding: 2px 1px 5px;
+      scrollbar-width: none;
+    }
+    .quick-template-bar::-webkit-scrollbar { display: none; }
+    .quick-template-chip {
+      flex: 0 0 auto;
+      min-height: 38px;
+      padding: 0 12px;
+      border: 1px solid #c9d9d6;
+      border-radius: 999px;
+      color: #24586b;
+      background: #f3faf8;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .entry-submit-row {
+      position: sticky;
+      bottom: 8px;
+      z-index: 4;
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid rgba(203,214,212,.9);
+      border-radius: 11px;
+      background: rgba(255,254,251,.94);
+      box-shadow: 0 12px 28px rgba(31,38,51,.14);
+      backdrop-filter: blur(12px);
+    }
+    .entry-submit-row .btn { min-height: 46px; }
+    .utility-disclosure { display: block; }
+    .utility-disclosure > summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      list-style: none;
+      cursor: pointer;
+    }
+    .utility-disclosure > summary::-webkit-details-marker { display: none; }
+    .utility-disclosure > summary::after {
+      content: "展開";
+      justify-self: end;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .utility-disclosure[open] > summary::after { content: "收合"; }
+    .utility-disclosure > summary strong { display: block; font-size: 16px; }
+    .utility-disclosure > summary small { display: block; margin-top: 3px; }
+    .utility-content { display: grid; gap: 10px; margin-top: 12px; }
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 25px;
+      padding: 0 8px;
+      border-radius: 999px;
+      color: #37505f;
+      background: #e8eef1;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .status-badge.due { color: #8a4d12; background: #fff0ce; }
+    .status-badge.pending { color: #2f657c; background: #e5f2f8; }
+    .status-badge.realized { color: #287353; background: #dff1e8; }
+    .status-badge.skipped { color: #6f6678; background: #eeeaf1; }
+    .recurring-status-line { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 7px; }
+    .recurring-action {
+      min-height: 30px;
+      padding: 0 9px;
+      border: 1px solid #cbd8d6 !important;
+      border-radius: 7px;
+      color: #315b66 !important;
+      background: #f5faf9 !important;
+      font-size: 11px;
+      font-weight: 700 !important;
+    }
+    #recurringList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #recurringList .account-tile { min-height: 138px; }
+    .calendar-dots { display: flex; gap: 4px; margin-top: 6px; }
+    .calendar-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+    .calendar-dot.expense { background: var(--red); }
+    .calendar-dot.pending { border: 2px solid var(--blue); background: transparent; }
+    .day-net { margin-top: 5px; font-size: 11px; font-weight: 800; }
+    .day-net.positive { color: var(--green); }
+    .day-net.negative { color: var(--red); }
+    .budget-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .budget-summary-item {
+      padding: 11px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: rgba(255,255,255,.56);
+    }
+    .budget-summary-item span { display: block; color: var(--muted); font-size: 11px; }
+    .budget-summary-item strong { display: block; margin-top: 4px; font-size: 18px; font-variant-numeric: tabular-nums; }
+    .theme-toggle { min-width: 92px; }
+    .day-sheet-close { display: none; }
+
+    body.dark-theme {
+      --ink: #e7edf2;
+      --muted: #a8b4bf;
+      --line: #394b55;
+      --paper: #17232b;
+      --soft: #22323a;
+      --navy: #0f171d;
+      --shadow: 0 12px 30px rgba(0,0,0,.28);
+      color-scheme: dark;
+      background: #101a20;
+    }
+    body.dark-theme {
+      background:
+        radial-gradient(circle at 8% 0%, rgba(47,127,159,.18), transparent 28%),
+        radial-gradient(circle at 92% 12%, rgba(53,146,116,.12), transparent 26%),
+        #101a20;
+    }
+    body.dark-theme .panel,
+    body.dark-theme .card,
+    body.dark-theme .chart-card,
+    body.dark-theme .account-tile,
+    body.dark-theme .manager-block,
+    body.dark-theme .notice-item,
+    body.dark-theme .backup-item,
+    body.dark-theme .template-button,
+    body.dark-theme input,
+    body.dark-theme select,
+    body.dark-theme textarea,
+    body.dark-theme .edit-dialog,
+    body.dark-theme .mobile-more-sheet {
+      color: var(--ink);
+      border-color: var(--line);
+      background: #19272f;
+    }
+    body.dark-theme .monthly-pulse,
+    body.dark-theme .chart-grid .chart-card,
+    body.dark-theme #entryView .invoice-box {
+      border-color: var(--line);
+      background: linear-gradient(145deg, #1b2a33, #17242b);
+    }
+    body.dark-theme .pulse-card,
+    body.dark-theme .table-wrap,
+    body.dark-theme .ledger-day,
+    body.dark-theme .ledger-day.empty {
+      color: var(--ink);
+      border-color: var(--line);
+      background: #1d2c34;
+    }
+    body.dark-theme th { color: #c1d0d6; background: #243740; }
+    body.dark-theme th,
+    body.dark-theme td { border-color: #35464f; }
+    body.dark-theme .bar-track { background: #30424a; }
+    body.dark-theme .transfer-tip { color: #ead2a7; border-color: #705a37; background: #382f22; }
+    body.dark-theme #accountList .account-type-cash,
+    body.dark-theme #accountList .account-type-foreign-cash,
+    body.dark-theme #accountList .account-type-bank,
+    body.dark-theme #accountList .account-type-mobile { background: #1d2c34; }
+    body.dark-theme .entry-submit-row,
+    body.dark-theme .mobile-actions { border-color: var(--line); background: rgba(23,35,43,.94); }
+    body.dark-theme .quick-template-chip,
+    body.dark-theme .recurring-action { color: #b8dbe7 !important; border-color: #46616c !important; background: #21343d !important; }
+    body.dark-theme .card.accent,
+    body.dark-theme .notice-item.warning,
+    body.dark-theme .budget-alert { color: #f0d6a5; border-color: #705a37; background: #382f22; }
+    body.dark-theme .notice-item.danger,
+    body.dark-theme .budget-alert.danger { color: #efb1aa; border-color: #754b47; background: #392725; }
+    body.dark-theme .mobile-more-grid button,
+    body.dark-theme .mobile-more-grid a { color: var(--ink); border-color: var(--line); background: #20313a; }
+    body.dark-theme .budget-summary-item { background: rgba(255,255,255,.035); }
+
+    @media (max-width: 860px) {
+      .amount-field { grid-column: 1 / -1; }
+      .amount-field input { min-height: 62px; font-size: 30px; }
+      .entry-submit-row { bottom: 74px; }
+      .entry-submit-row .btn:first-child { font-size: 15px; }
+      .budget-summary { grid-template-columns: 1fr; }
+      #recurringList { grid-template-columns: 1fr; }
+      .selected-day-details.mobile-open {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        bottom: calc(82px + env(safe-area-inset-bottom));
+        z-index: 14;
+        max-height: min(72vh, 620px);
+        overflow-y: auto;
+        border-radius: 15px;
+        box-shadow: 0 24px 64px rgba(12,22,29,.34);
+      }
+      .selected-day-details.mobile-open::before {
+        content: "";
+        display: block;
+        width: 42px;
+        height: 4px;
+        margin: 8px auto 0;
+        border-radius: 999px;
+        background: #b8c5c7;
+      }
+      .day-sheet-close { display: inline-grid; }
+      #entryTable .table-wrap,
+      #analysisTable .table-wrap { overflow: visible; }
+      #entryTable table,
+      #analysisTable table,
+      #entryTable tbody,
+      #analysisTable tbody { display: block; min-width: 0; }
+      #entryTable thead,
+      #analysisTable thead { display: none; }
+      #entryTable tr,
+      #analysisTable tr {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 5px 12px;
+        margin: 10px;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--paper);
+        box-shadow: 0 7px 18px rgba(31,38,51,.07);
+      }
+      #entryTable td,
+      #analysisTable td {
+        display: block;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+      }
+      #entryTable td:nth-child(1),
+      #analysisTable td:nth-child(1) { grid-column: 1; grid-row: 1; color: var(--muted); font-size: 12px; }
+      #entryTable td:nth-child(5),
+      #analysisTable td:nth-child(5) { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 18px; font-weight: 800; }
+      #entryTable td:nth-child(2),
+      #analysisTable td:nth-child(2) { display: none; }
+      #entryTable td:nth-child(3),
+      #analysisTable td:nth-child(3) { grid-column: 1; grid-row: 2; font-weight: 750; }
+      #entryTable td:nth-child(4),
+      #analysisTable td:nth-child(4) { grid-column: 1; grid-row: 3; color: var(--muted); font-size: 12px; }
+      #entryTable td:nth-child(6),
+      #analysisTable td:nth-child(6) { grid-column: 1; grid-row: 4; font-size: 12px; }
+      #entryTable td:nth-child(7),
+      #analysisTable td:nth-child(7),
+      #entryTable td:nth-child(8),
+      #analysisTable td:nth-child(8) { grid-column: 1 / -1; color: var(--muted); font-size: 12px; }
+      #entryTable td:nth-child(9),
+      #analysisTable td:nth-child(9),
+      #entryTable td:nth-child(10),
+      #analysisTable td:nth-child(10) { grid-row: 5; }
+      #entryTable td:nth-child(10),
+      #analysisTable td:nth-child(10) { justify-self: end; }
+    }
   </style>
 </head>
 <body>
@@ -1325,8 +1596,8 @@
             <button class="btn purple" id="exportJson" type="button">匯出 JSON</button>
             <button class="btn blue" id="exportCsv" type="button">匯出 CSV</button>
             <button class="btn blue" id="privacyToggle" type="button">隱私模式</button>
+            <button class="btn light theme-toggle" id="themeToggle" type="button">深色模式</button>
             <button class="btn green" id="importButton" type="button">匯入資料</button>
-            <button class="btn danger" id="clearData" type="button">清空資料</button>
           </div>
           <input id="importFile" type="file" accept="application/json" hidden>
         </section>
@@ -1344,9 +1615,13 @@
               <button type="button" class="active" data-type="expense">支出</button>
               <button type="button" data-type="income">收入</button>
             </div>
+            <div class="quick-template-wrap">
+              <span class="quick-template-label">常用快速記帳</span>
+              <div id="quickTemplateBar" class="quick-template-bar"></div>
+            </div>
             <form id="entryForm" class="form-grid">
+              <label class="amount-field">金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" placeholder="0" required></label>
               <label>日期<input id="date" type="date" required></label>
-              <label>金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" required></label>
               <label>分類<select id="category" required></select></label>
               <label>項目<select id="item"></select></label>
               <label>帳戶<select id="account" required></select></label>
@@ -1359,30 +1634,35 @@
                   <img id="receiptPreview" class="receipt-preview" alt="收據預覽">
                 </div>
               </details>
-              <button class="btn green full" type="submit">新增記帳</button>
+              <div class="entry-submit-row">
+                <button class="btn green" type="submit">新增記帳</button>
+                <button class="btn light" id="duplicateLastEntry" type="button">複製上一筆</button>
+              </div>
             </form>
-            <section class="invoice-box">
-              <h3>拍照發票辨識</h3>
-              <p class="hint">可拍照或上傳發票；若瀏覽器支援文字辨識，會嘗試帶入日期、金額與商家。</p>
-              <input id="invoicePhoto" type="file" accept="image/*" capture="environment">
-              <img id="invoicePreview" class="invoice-preview" alt="發票預覽">
-              <button class="btn blue" id="scanInvoice" type="button">辨識發票</button>
-              <div id="invoiceStatus" class="invoice-status">尚未選擇發票照片</div>
-            </section>
-            <section class="invoice-box">
-              <h3>快速模板</h3>
-              <p class="hint">常用消費可一鍵帶入金額、分類、項目與帳戶，手機記帳會快很多。</p>
-              <form id="templateForm" class="form-grid">
-                <input id="templateName" placeholder="模板名稱，例如：早餐">
-                <input id="templateAmount" type="number" min="0" step="1" placeholder="金額">
-                <select id="templateCategory"></select>
-                <select id="templateItem"></select>
-                <select id="templateAccount"></select>
-                <input id="templateMerchant" placeholder="商家 / 對象">
-                <button class="btn blue full" type="submit">新增模板</button>
-              </form>
-              <div id="templateList" class="template-grid"></div>
-            </section>
+            <details class="invoice-box utility-disclosure">
+              <summary><span><strong>拍照發票辨識</strong><small class="hint">拍照後嘗試帶入日期、金額與商家。</small></span></summary>
+              <div class="utility-content">
+                <input id="invoicePhoto" type="file" accept="image/*" capture="environment">
+                <img id="invoicePreview" class="invoice-preview" alt="發票預覽">
+                <button class="btn blue" id="scanInvoice" type="button">辨識發票</button>
+                <div id="invoiceStatus" class="invoice-status">尚未選擇發票照片</div>
+              </div>
+            </details>
+            <details class="invoice-box utility-disclosure">
+              <summary><span><strong>管理快速模板</strong><small class="hint">建立後會出現在上方常用快速記帳。</small></span></summary>
+              <div class="utility-content">
+                <form id="templateForm" class="form-grid">
+                  <label>模板名稱<input id="templateName" placeholder="例如：早餐"></label>
+                  <label>金額<input id="templateAmount" type="number" min="0" step="1" placeholder="金額"></label>
+                  <label>分類<select id="templateCategory"></select></label>
+                  <label>項目<select id="templateItem"></select></label>
+                  <label>帳戶<select id="templateAccount"></select></label>
+                  <label>商家 / 對象<input id="templateMerchant"></label>
+                  <button class="btn blue full" type="submit">新增模板</button>
+                </form>
+                <div id="templateList" class="template-grid"></div>
+              </div>
+            </details>
           </div>
         </aside>
         <section>
@@ -1569,29 +1849,29 @@
           <h2>固定收入 / 固定支出</h2>
           <p class="hint">設定薪資、房租、房貸、保險、訂閱等週期項目；可設為無限制持續，或指定到期日後停止。</p>
           <form id="recurringForm" class="tool-grid">
-            <select id="recurringType"><option value="expense">支出</option><option value="income">收入</option></select>
-            <input id="recurringName" placeholder="名稱，例如：房租">
-            <input id="recurringAmount" type="number" min="0" step="1" placeholder="金額">
-            <select id="recurringCategory"></select>
-            <select id="recurringItem"></select>
-            <select id="recurringAccount"></select>
-            <select id="recurringCycle">
+            <label>類型<select id="recurringType"><option value="expense">支出</option><option value="income">收入</option></select></label>
+            <label>名稱<input id="recurringName" placeholder="例如：房租"></label>
+            <label>金額<input id="recurringAmount" type="number" min="0" step="1" placeholder="金額"></label>
+            <label>分類<select id="recurringCategory"></select></label>
+            <label>項目<select id="recurringItem"></select></label>
+            <label>帳戶<select id="recurringAccount"></select></label>
+            <label>週期<select id="recurringCycle">
               <option value="monthly">每月</option>
               <option value="weekly">每週</option>
               <option value="yearly">每年</option>
-            </select>
-            <select id="recurringMonth" title="年度月份" disabled>
+            </select></label>
+            <label>年度月份<select id="recurringMonth" title="年度月份" disabled>
               <option value="01">1 月</option><option value="02">2 月</option><option value="03">3 月</option>
               <option value="04">4 月</option><option value="05">5 月</option><option value="06">6 月</option>
               <option value="07">7 月</option><option value="08">8 月</option><option value="09">9 月</option>
               <option value="10">10 月</option><option value="11">11 月</option><option value="12">12 月</option>
-            </select>
-            <input id="recurringDay" type="number" min="1" max="31" placeholder="日期；每週用 1-7">
-            <select id="recurringEndMode" title="停止方式">
+            </select></label>
+            <label>指定日期<input id="recurringDay" type="number" min="1" max="31" placeholder="每週用 1-7"></label>
+            <label>停止方式<select id="recurringEndMode" title="停止方式">
               <option value="unlimited">無限制</option>
               <option value="end-date">指定停止日期</option>
-            </select>
-            <input id="recurringEndDate" type="date" title="停止日期" disabled>
+            </select></label>
+            <label>停止日期<input id="recurringEndDate" type="date" title="停止日期" disabled></label>
             <button class="btn green" type="submit">新增固定項目</button>
             <button class="btn blue" id="generateRecurring" type="button">建立本月排程</button>
           </form>
@@ -1664,6 +1944,13 @@
       <article class="panel"><div class="panel-pad"><h3>雲端月結備份</h3><div id="backupList" class="backup-list"></div></div></article>
       <article class="panel">
         <div class="panel-pad">
+          <h3>資料管理</h3>
+          <p class="hint">清空資料屬於高風險操作，因此集中放在這裡並會再次要求確認。</p>
+          <button class="btn danger" id="clearData" type="button">清空所有記帳資料</button>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="panel-pad">
           <h3>分析明細</h3>
           <p class="hint">會依上方篩選條件顯示。</p>
         </div>
@@ -1689,6 +1976,7 @@
       <button type="button" data-mobile-trigger="exportJson"><i data-lucide="file-down"></i>匯出 JSON</button>
       <button type="button" data-mobile-trigger="exportCsv"><i data-lucide="sheet"></i>匯出 CSV</button>
       <button type="button" data-mobile-trigger="privacyToggle"><i data-lucide="eye-off"></i>隱私模式</button>
+      <button type="button" data-mobile-trigger="themeToggle"><i data-lucide="moon"></i>深色模式</button>
       <button type="button" data-mobile-trigger="importButton"><i data-lucide="file-up"></i>匯入資料</button>
       <button class="danger" type="button" data-mobile-trigger="clearData"><i data-lucide="trash-2"></i>清空資料</button>
     </div>
@@ -1845,6 +2133,7 @@
     let monthlyBackups = [];
     let autoCloudSaveTimer = 0;
     let privacyMode = false;
+    let themeMode = "light";
     const defaultCategories = {
       income: ["薪資", "股息", "利息", "獎金", "退款", "現金盤點調整", "其他收入"],
       expense: ["餐飲", "交通", "生活用品", "房租房貸", "水電瓦斯", "保險", "醫療", "娛樂", "教育", "投資費用", "現金盤點調整", "其他支出"]
@@ -1889,6 +2178,11 @@
       const [year, monthNumber] = month.split("-").map(Number);
       const date = new Date(year, monthNumber - 1 + delta, 1);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+    }
+    function shiftDate(dateString, delta) {
+      const date = new Date(`${dateString}T00:00:00`);
+      date.setDate(date.getDate() + delta);
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     }
     function daysInMonth(month) {
       return new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0).getDate();
@@ -1988,6 +2282,7 @@
       })));
     }
     function isRealizedEntry(row, asOf = today()) {
+      if (row?.recurringSkipped) return false;
       if (!row?.recurringId || !row.date) return true;
       return String(row.date) <= asOf;
     }
@@ -2188,13 +2483,13 @@
     }
     function loadUiPreferences() {
       try {
-        return { privacyMode: false, ...JSON.parse(localStorage.getItem(accountingUiKey) || "{}") };
+        return { privacyMode: false, themeMode: "light", ...JSON.parse(localStorage.getItem(accountingUiKey) || "{}") };
       } catch {
-        return { privacyMode: false };
+        return { privacyMode: false, themeMode: "light" };
       }
     }
     function saveUiPreferences() {
-      localStorage.setItem(accountingUiKey, JSON.stringify({ privacyMode }));
+      localStorage.setItem(accountingUiKey, JSON.stringify({ privacyMode, themeMode }));
     }
     function applyPrivacyMode() {
       document.body.classList.toggle("privacy-mode", privacyMode);
@@ -2203,6 +2498,19 @@
       button.textContent = privacyMode ? "顯示金額" : "隱私模式";
       button.classList.toggle("purple", privacyMode);
       button.classList.toggle("blue", !privacyMode);
+    }
+    function applyThemeMode() {
+      const isDark = themeMode === "dark";
+      document.body.classList.toggle("dark-theme", isDark);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isDark ? "#101a20" : "#142033");
+      const button = document.getElementById("themeToggle");
+      if (button) button.textContent = isDark ? "淺色模式" : "深色模式";
+      document.querySelectorAll('[data-mobile-trigger="themeToggle"]').forEach(node => {
+        const label = isDark ? "淺色模式" : "深色模式";
+        const icon = isDark ? "sun" : "moon";
+        node.innerHTML = `<i data-lucide="${icon}"></i>${label}`;
+      });
+      if (window.lucide) window.lucide.createIcons();
     }
     function setCloudStatus(text) {
       const el = document.getElementById("cloudStatus");
@@ -2455,6 +2763,7 @@
     }
     function switchView(id) {
       currentView = id;
+      document.querySelector(".selected-day-details")?.classList.remove("mobile-open");
       renderTabs();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -2956,26 +3265,31 @@
       if (!target) return;
       const month = monthOf();
       const rows = allEntryRows().filter(row => String(row.date || "").startsWith(month));
-      const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
       const expenseRows = rows.filter(row => row.type === "expense");
       const expense = sum(expenseRows, row => row.amount);
-      const balance = income - expense;
+      const todayExpense = sum(expenseRows.filter(row => row.date === today()), row => row.amount);
       const elapsedDays = Math.max(1, Number(today().slice(8, 10)) || 1);
       const dailyExpense = expense / elapsedDays;
       const projectedExpense = dailyExpense * daysInMonth(month);
       const budgetTotal = sum(ledger.budgets || [], row => Number(row.amount) + Number(ledger.budgetRollovers?.[month]?.[row.category] || 0));
+      const pendingRecurringExpense = sum(
+        ledger.entries.filter(row => row.recurringId && !row.recurringSkipped && row.type === "expense" && row.date > today() && String(row.date).startsWith(month)),
+        row => row.amount
+      );
+      const budgetAvailable = budgetTotal ? budgetTotal - expense - pendingRecurringExpense : 0;
+      const liquidAvailable = sum(
+        ledger.accounts.filter(account => account.type !== "信用卡"),
+        account => twdEquivalent(accountBalance(account), account.currency)
+      );
       const projectedRatio = budgetTotal > 0 ? projectedExpense / budgetTotal : null;
-      const coverageDays = new Set(rows.map(row => row.date).filter(Boolean)).size;
-      const coverageRatio = Math.min(1, coverageDays / elapsedDays);
-      const topCategory = groupRows(expenseRows, "category")[0];
       const paceClass = projectedRatio == null ? "watch" : projectedRatio > 1 ? "risk" : projectedRatio >= .85 ? "watch" : "good";
       const paceText = projectedRatio == null ? "尚未設定分類預算" : projectedRatio > 1 ? "依目前速度可能超支" : projectedRatio >= .85 ? "接近預算上限" : "支出節奏穩定";
-      target.innerHTML = `<div class="monthly-pulse-head"><div><h2>${escapeHtml(month)} 收支脈搏</h2><p>依目前記帳資料推估月底支出，並同步檢查預算與記帳完整度。</p></div><span class="pace-badge ${paceClass}">${paceText}</span></div>
+      target.innerHTML = `<div class="monthly-pulse-head"><div><h2>${escapeHtml(month)} 日常總覽</h2><p>先看今天、本月、扣除待生效固定支出後的預算，以及目前可用資金。</p></div><span class="pace-badge ${paceClass}">${paceText}</span></div>
         <div class="monthly-pulse-grid">
-          ${pulseCard("本月結餘", `${balance >= 0 ? "+" : ""}${money(balance)}`, `收入 ${money(income)}｜支出 ${money(expense)}`, balance >= 0 ? "good" : "risk")}
-          ${pulseCard("平均每日支出", money(dailyExpense), topCategory ? `最大分類：${escapeHtml(topCategory.label)}` : "尚無支出資料")}
-          ${pulseCard("月底支出預估", money(projectedExpense), budgetTotal > 0 ? `分類預算合計 ${money(budgetTotal)}` : "設定分類預算後可判斷超支風險", paceClass)}
-          ${pulseCard("記帳覆蓋天數", `${coverageDays} / ${elapsedDays} 天`, coverageRatio >= .7 ? "本月記帳持續性良好" : "補齊漏記可提升預估準確度", coverageRatio >= .7 ? "good" : "watch")}
+          ${pulseCard("今日支出", money(todayExpense), todayExpense ? `${today()} 已記錄` : "今天尚無支出", todayExpense ? "" : "good")}
+          ${pulseCard("本月支出", money(expense), `目前日均 ${money(dailyExpense)}｜月底預估 ${money(projectedExpense)}`, paceClass)}
+          ${pulseCard("本月可用預算", budgetTotal ? money(budgetAvailable) : "-", budgetTotal ? `已預留固定支出 ${money(pendingRecurringExpense)}` : "設定分類預算後顯示", budgetAvailable < 0 ? "risk" : "good")}
+          ${pulseCard("帳戶可用餘額", money(liquidAvailable), "不含信用卡｜折合 TWD", liquidAvailable >= 0 ? "good" : "risk")}
         </div>`;
     }
     function card(label, value, unit, cls = "") {
@@ -2996,7 +3310,7 @@
         <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>項目</th><th>金額</th><th>帳戶</th><th>商家 / 對象</th><th>備註</th><th>收據</th><th>操作</th></tr></thead>
         <tbody>${rows.map(row => {
           const account = ledger.accounts.find(item => item.name === row.account);
-          return `<tr>
+          return `<tr class="${row.recurringId ? "recurring-entry-row" : ""}">
           <td>${escapeHtml(row.date)}</td>
           <td>${row.type === "income" ? "收入" : "支出"}</td>
           <td>${escapeHtml(row.category)}</td>
@@ -3017,12 +3331,19 @@
         .filter(row => String(row.date || "").startsWith(month))
         .forEach(row => {
           const date = row.date;
-          const item = grouped.get(date) || { income: 0, expense: 0, count: 0 };
+          const item = grouped.get(date) || { income: 0, expense: 0, count: 0, pending: 0 };
           const amount = Number(row.amount) || 0;
           if (row.type === "income") item.income += amount;
           else item.expense += amount;
           item.count += 1;
           grouped.set(date, item);
+        });
+      ledger.entries
+        .filter(row => row.recurringId && !row.recurringSkipped && row.date > today() && String(row.date || "").startsWith(month))
+        .forEach(row => {
+          const item = grouped.get(row.date) || { income: 0, expense: 0, count: 0, pending: 0 };
+          item.pending += 1;
+          grouped.set(row.date, item);
         });
       return grouped;
     }
@@ -3044,18 +3365,20 @@
           cells.push(`<button type="button" class="ledger-day${selectedClass}" data-ledger-date="${date}"><strong>${day}</strong><div class="day-note">尚無紀錄</div></button>`);
           continue;
         }
+        const net = row.income - row.expense;
         cells.push(`<button type="button" class="ledger-day${selectedClass}" data-ledger-date="${date}">
           <strong>${day}</strong>
-          <div class="day-stat income"><span>收</span><span>${money(row.income)}</span></div>
-          <div class="day-stat expense"><span>支</span><span>${money(row.expense)}</span></div>
-          <div class="day-note">${row.count} 筆</div>
+          ${row.count ? `<div class="day-stat income"><span>收</span><span>${money(row.income)}</span></div><div class="day-stat expense"><span>支</span><span>${money(row.expense)}</span></div>` : ""}
+          <div class="calendar-dots">${row.income ? '<i class="calendar-dot"></i>' : ""}${row.expense ? '<i class="calendar-dot expense"></i>' : ""}${row.pending ? '<i class="calendar-dot pending"></i>' : ""}</div>
+          ${row.count ? `<div class="day-net ${net >= 0 ? "positive" : "negative"}">${net >= 0 ? "+" : ""}${money(net)}</div>` : ""}
+          <div class="day-note">${row.count ? `${row.count} 筆` : ""}${row.count && row.pending ? "｜" : ""}${row.pending ? `${row.pending} 筆待生效` : ""}</div>
         </button>`);
       }
       document.getElementById("ledgerCalendar").innerHTML = `
         <div class="calendar-head">
           <div>
             <h3>${month} 行事曆總覽</h3>
-            <p class="hint">每個日期格會統計該天收入、支出與結餘。</p>
+            <p class="hint">綠點為收入、紅點為支出、空心藍點為待生效固定收支。</p>
           </div>
           <div class="calendar-actions">
             <button class="btn small" type="button" data-calendar-prev>上個月</button>
@@ -3072,20 +3395,22 @@
     }
     function renderSelectedDayDetails() {
       const rows = selectedDayRows();
+      const pendingRows = ledger.entries.filter(row => row.recurringId && !row.recurringSkipped && row.date === selectedLedgerDate && row.date > today());
       const income = sum(rows.filter(row => row.type === "income"), row => row.amount);
       const expense = sum(rows.filter(row => row.type === "expense"), row => row.amount);
       const header = `<div class="panel-pad selected-day-head">
         <div>
           <h3>${escapeHtml(selectedLedgerDate)} 收支明細</h3>
-          <p class="hint">收入 ${money(income)}｜支出 ${money(expense)}｜結餘 ${income - expense >= 0 ? "+" : ""}${money(income - expense)}</p>
+          <p class="hint">收入 ${money(income)}｜支出 ${money(expense)}｜結餘 ${income - expense >= 0 ? "+" : ""}${money(income - expense)}${pendingRows.length ? `｜${pendingRows.length} 筆固定收支待生效` : ""}</p>
         </div>
-        <button class="btn small blue" type="button" data-set-entry-date="${escapeHtml(selectedLedgerDate)}">用這天新增</button>
+        <div class="account-actions"><button class="btn small blue" type="button" data-set-entry-date="${escapeHtml(selectedLedgerDate)}">用這天新增</button><button class="icon-action day-sheet-close" type="button" title="關閉明細" aria-label="關閉明細" data-close-day-sheet><i data-lucide="x"></i></button></div>
       </div>`;
+      const pendingMarkup = pendingRows.length ? `<div class="panel-pad">${pendingRows.map(row => `<div class="notice-item"><div><strong>${escapeHtml(row.merchant || row.category)}</strong><small>${row.type === "income" ? "收入" : "支出"} ${money(row.amount)}｜${escapeHtml(row.account)}</small></div><span class="status-badge pending">待生效</span></div>`).join("")}</div>` : "";
       if (!rows.length) {
-        document.getElementById("entryTable").innerHTML = `${header}<div class="empty">這一天目前沒有收支紀錄</div>`;
+        document.getElementById("entryTable").innerHTML = `${header}${pendingMarkup || '<div class="empty">這一天目前沒有收支紀錄</div>'}`;
         return;
       }
-      renderTable("entryTable", rows, header);
+      renderTable("entryTable", rows, header + pendingMarkup);
     }
     function sortedTransfers() {
       return [...(ledger.transfers || [])]
@@ -3126,9 +3451,34 @@
     }
     function renderTemplates() {
       const target = document.getElementById("templateList");
+      const quickTarget = document.getElementById("quickTemplateBar");
+      const templates = ledger.templates || [];
       target.innerHTML = (ledger.templates || []).length
-        ? ledger.templates.map(row => `<button class="template-button" type="button" data-use-template="${escapeHtml(row.id)}"><strong>${escapeHtml(row.name)}</strong><small>${money(row.amount)}｜${escapeHtml(row.category)}${row.item ? `/${escapeHtml(row.item)}` : ""}</small></button>`).join("")
+        ? templates.map(row => `<button class="template-button" type="button" data-use-template="${escapeHtml(row.id)}"><strong>${escapeHtml(row.name)}</strong><small>${money(row.amount)}｜${escapeHtml(row.category)}${row.item ? `/${escapeHtml(row.item)}` : ""}</small></button>`).join("")
         : `<div class="empty">尚未建立快速模板</div>`;
+      if (quickTarget) {
+        quickTarget.innerHTML = templates.length
+          ? templates.slice(0, 8).map(row => `<button class="quick-template-chip" type="button" data-use-template="${escapeHtml(row.id)}">${escapeHtml(row.name)} · ${money(row.amount)}</button>`).join("")
+          : `<span class="hint">建立快速模板後，可在這裡一鍵帶入。</span>`;
+      }
+    }
+    function populateEntryForm(row, { scroll = true } = {}) {
+      if (!row) return;
+      setType(row.type === "income" ? "income" : "expense");
+      document.getElementById("amount").value = Number(row.amount) || "";
+      categorySelect.value = row.category || "";
+      refreshLists();
+      itemSelect.value = row.item || "";
+      const targetAccount = ledger.accounts.find(account => account.name === row.account);
+      if (targetAccount) {
+        accountTypeSelect.value = targetAccount.type;
+        renderEntryAccountOptions(targetAccount.name);
+        accountSelect.value = targetAccount.name;
+      }
+      document.getElementById("merchant").value = row.merchant || "";
+      document.getElementById("note").value = row.note && !String(row.note).includes("固定收支自動產生") ? row.note : "";
+      if (scroll) document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("amount").focus({ preventScroll: true });
     }
     function updateReconcilePreview() {
       if (!reconcileAccountSelect) return;
@@ -3149,8 +3499,44 @@
     function renderRecurringRules() {
       const target = document.getElementById("recurringList");
       target.innerHTML = (ledger.recurringRules || []).length
-        ? ledger.recurringRules.map(row => `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜${recurringScheduleLabel(row)}｜${escapeHtml(row.category)}${row.item ? ` / ${escapeHtml(row.item)}` : ""}｜${escapeHtml(row.account)}｜${row.endDate ? `到 ${escapeHtml(row.endDate)} 停止` : "無限制"}</small></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions"><button class="icon-action edit" type="button" title="編輯固定收支" aria-label="編輯固定收支" data-edit-recurring="${escapeHtml(row.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除固定收支" aria-label="刪除固定收支" data-remove-recurring="${escapeHtml(row.id)}"><i data-lucide="trash-2"></i></button></div></div>`).join("")
+        ? ledger.recurringRules.map(row => {
+          const state = recurringRuleState(row);
+          const actions = state.entry
+            ? state.status === "skipped"
+              ? `<button class="recurring-action" type="button" data-recurring-action="restore" data-recurring-entry="${escapeHtml(state.entry.id)}">恢復本次</button>`
+              : state.status === "pending"
+                ? `<button class="recurring-action" type="button" data-recurring-action="advance" data-recurring-entry="${escapeHtml(state.entry.id)}">提前入帳</button><button class="recurring-action" type="button" data-recurring-action="postpone" data-recurring-entry="${escapeHtml(state.entry.id)}">延後一天</button><button class="recurring-action" type="button" data-recurring-action="skip" data-recurring-entry="${escapeHtml(state.entry.id)}">本次略過</button>`
+                : state.status === "due"
+                  ? `<button class="recurring-action" type="button" data-recurring-action="postpone" data-recurring-entry="${escapeHtml(state.entry.id)}">延後一天</button><button class="recurring-action" type="button" data-recurring-action="skip" data-recurring-entry="${escapeHtml(state.entry.id)}">本次略過</button>`
+                  : ""
+            : "";
+          return `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(row.name)}</strong><small>${row.type === "income" ? "收入" : "支出"}｜${recurringScheduleLabel(row)}｜${escapeHtml(row.category)}${row.item ? ` / ${escapeHtml(row.item)}` : ""}｜${escapeHtml(row.account)}｜${row.endDate ? `到 ${escapeHtml(row.endDate)} 停止` : "無限制"}</small><div class="recurring-status-line"><span class="status-badge ${state.status}">${escapeHtml(state.label)}</span>${state.date ? `<small>本次 ${escapeHtml(state.date)}</small>` : ""}</div></div><span class="account-balance">${money(row.amount)}</span><div class="account-actions">${actions}<button class="icon-action edit" type="button" title="編輯固定收支" aria-label="編輯固定收支" data-edit-recurring="${escapeHtml(row.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除固定收支" aria-label="刪除固定收支" data-remove-recurring="${escapeHtml(row.id)}"><i data-lucide="trash-2"></i></button></div></div>`;
+        }).join("")
         : `<div class="empty">尚未建立固定收支</div>`;
+    }
+    function recurringScheduledDate(entry) {
+      return String(entry?.scheduledDate || entry?.date || "");
+    }
+    function recurringRuleState(rule) {
+      const months = [monthOf(), shiftMonth(monthOf(), 1)];
+      const occurrences = months.flatMap(month => recurringDatesForMonth(rule, month)).map(date => ({
+        date,
+        entry: ledger.entries.find(row => row.recurringId === rule.id && recurringScheduledDate(row) === date)
+      }));
+      const actionable = occurrences.filter(row => String(row.entry?.date || row.date) >= today());
+      const candidate = actionable.find(row => row.entry?.recurringSkipped)
+        || actionable.find(row => row.entry)
+        || actionable.find(row => String(row.date).startsWith(monthOf()))
+        || [...occurrences].reverse().find(row => row.entry && String(row.date).startsWith(monthOf()))
+        || actionable[0]
+        || [...occurrences].reverse().find(row => row.entry)
+        || occurrences.at(-1);
+      if (!candidate) return { status: "pending", label: "目前無排程", date: "", entry: null };
+      if (!candidate.entry) return { status: "pending", label: "排程尚未建立", date: candidate.date, entry: null };
+      if (candidate.entry.recurringSkipped) return { status: "skipped", label: "本次已略過", date: candidate.entry.date, entry: candidate.entry };
+      if (candidate.entry.date === today()) return { status: "due", label: "今日到期", date: candidate.entry.date, entry: candidate.entry };
+      if (candidate.entry.date > today()) return { status: "pending", label: "待生效", date: candidate.entry.date, entry: candidate.entry };
+      return { status: "realized", label: "已生效", date: candidate.entry.date, entry: candidate.entry };
     }
     function recurringScheduleLabel(rule) {
       if (rule.cycle === "yearly") {
@@ -3181,22 +3567,33 @@
       const rows = (ledger.budgets || []).map(budget => ({
         label: budget.category,
         used: sum(expenseRows.filter(row => row.category === budget.category), row => row.amount),
-        amount: budget.amount
+        amount: Number(budget.amount) + Number(ledger.budgetRollovers?.[month]?.[budget.category] || 0)
       }));
-      const max = Math.max(1, ...rows.map(row => row.amount));
-      target.innerHTML = rows.length ? rows.map(row => {
+      const totalBudget = sum(rows, row => row.amount);
+      const totalUsed = sum(rows, row => row.used);
+      const pendingRecurring = sum(
+        ledger.entries.filter(row => row.recurringId && !row.recurringSkipped && row.type === "expense" && row.date > today() && String(row.date).startsWith(month)),
+        row => row.amount
+      );
+      const available = totalBudget - totalUsed - pendingRecurring;
+      const remainingDays = month === monthOf() ? Math.max(1, daysInMonth(month) - Number(today().slice(8, 10)) + 1) : daysInMonth(month);
+      target.innerHTML = rows.length ? `<div class="budget-summary">
+        <div class="budget-summary-item"><span>剩餘預算</span><strong>${money(totalBudget - totalUsed)}</strong></div>
+        <div class="budget-summary-item"><span>扣除待生效固定支出</span><strong>${money(available)}</strong></div>
+        <div class="budget-summary-item"><span>平均每天還能花</span><strong>${money(Math.max(0, available) / remainingDays)}</strong></div>
+      </div>${rows.map(row => {
         const remaining = row.amount - row.used;
         const ratio = Math.min(100, row.used / row.amount * 100);
         const color = row.used > row.amount ? "var(--red)" : row.used / row.amount >= .8 ? "var(--amber)" : "var(--green)";
         return `<div class="bar-row"><strong>${escapeHtml(row.label)}</strong><span class="bar-track"><i class="bar-fill" style="--w:${Math.max(4, ratio).toFixed(1)}%;--c:${color}"></i></span><span>${money(Math.max(0, remaining))} 剩餘</span></div>`;
-      }).join("") : `<div class="empty">尚未設定分類預算</div>`;
+      }).join("")}` : `<div class="empty">尚未設定分類預算</div>`;
     }
     function renderMonthCloseout() {
       const target = document.getElementById("monthCloseout");
       const month = monthOf();
       const rows = allEntryRows().filter(row => String(row.date || "").startsWith(month));
       const unpaidBills = (ledger.creditBills || []).filter(row => !row.paid);
-      const missingRecurring = (ledger.recurringRules || []).filter(rule => recurringDatesForMonth(rule, month).some(date => !ledger.entries.some(row => row.recurringId === rule.id && row.date === date)));
+      const missingRecurring = (ledger.recurringRules || []).filter(rule => recurringDatesForMonth(rule, month).some(date => !ledger.entries.some(row => row.recurringId === rule.id && recurringScheduledDate(row) === date)));
       const overBudget = (ledger.budgets || []).filter(budget => sum(rows.filter(row => row.type === "expense" && row.category === budget.category), row => row.amount) > budget.amount);
       const backup = monthlyBackups.find(row => row.month === month);
       const notices = [
@@ -3214,7 +3611,10 @@
       const months = Array.from({ length: 4 }, (_, index) => shiftMonth(monthOf(), index));
       let income = 0, expense = 0;
       (ledger.recurringRules || []).forEach(rule => months.forEach(month => recurringDatesForMonth(rule, month).forEach(date => {
-        const when = new Date(`${date}T00:00:00`);
+        const entry = ledger.entries.find(row => row.recurringId === rule.id && recurringScheduledDate(row) === date);
+        if (entry?.recurringSkipped) return;
+        const effectiveDate = entry?.date || date;
+        const when = new Date(`${effectiveDate}T00:00:00`);
         if (when > start && when <= end) rule.type === "income" ? income += Number(rule.amount) || 0 : expense += Number(rule.amount) || 0;
       })));
       (ledger.creditBills || []).filter(row => !row.paid && row.dueDate).forEach(row => {
@@ -3557,32 +3957,54 @@
       if (ledgerDate) {
         selectedLedgerDate = ledgerDate.dataset.ledgerDate;
         render();
+        if (window.matchMedia("(max-width: 860px)").matches) document.querySelector(".selected-day-details")?.classList.add("mobile-open");
+        return;
+      }
+      if (event.target.closest("[data-close-day-sheet]")) {
+        document.querySelector(".selected-day-details")?.classList.remove("mobile-open");
         return;
       }
       const setEntryDate = event.target.closest("[data-set-entry-date]");
       if (setEntryDate) {
         document.getElementById("date").value = setEntryDate.dataset.setEntryDate;
+        document.querySelector(".selected-day-details")?.classList.remove("mobile-open");
         document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
         return;
       }
       const useTemplate = event.target.closest("[data-use-template]");
       if (useTemplate) {
         const tpl = (ledger.templates || []).find(row => row.id === useTemplate.dataset.useTemplate);
-        if (tpl) {
-          setType("expense");
-          document.getElementById("amount").value = tpl.amount;
-          categorySelect.value = tpl.category;
-          refreshLists();
-          itemSelect.value = tpl.item || "";
-          const tplAccount = ledger.accounts.find(account => account.name === tpl.account);
-          if (tplAccount) {
-            accountTypeSelect.value = tplAccount.type;
-            renderEntryAccountOptions(tpl.account);
-            accountSelect.value = tpl.account;
-          }
-          document.getElementById("merchant").value = tpl.merchant || "";
-          document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
+        if (tpl) populateEntryForm({ ...tpl, type: "expense" });
+        return;
+      }
+      const recurringAction = event.target.closest("[data-recurring-action]");
+      if (recurringAction) {
+        const entry = ledger.entries.find(row => row.id === recurringAction.dataset.recurringEntry);
+        if (!entry) return;
+        const action = recurringAction.dataset.recurringAction;
+        entry.scheduledDate ||= entry.date;
+        if (action === "advance") {
+          entry.date = today();
+          entry.recurringSkipped = false;
+          entry.recurringAdjustment = "advanced";
+          toast("已將本次固定收支提前到今天入帳");
+        } else if (action === "postpone") {
+          entry.date = shiftDate(entry.date, 1);
+          entry.recurringSkipped = false;
+          entry.recurringAdjustment = "postponed";
+          toast(`已延後到 ${entry.date}`);
+        } else if (action === "skip") {
+          entry.recurringSkipped = true;
+          entry.recurringAdjustment = "skipped";
+          toast("本次固定收支已略過，不會列入計算");
+        } else if (action === "restore") {
+          entry.recurringSkipped = false;
+          entry.date = entry.date < today() ? today() : entry.date;
+          entry.recurringAdjustment = "restored";
+          toast("本次固定收支已恢復");
         }
+        saveLedger();
+        render();
         return;
       }
       if (event.target.closest("[data-calendar-prev]")) {
@@ -3926,7 +4348,7 @@
       let created = 0;
       (ledger.recurringRules || []).forEach(rule => {
         recurringDatesForMonth(rule, month).forEach(date => {
-          const exists = ledger.entries.some(row => row.recurringId === rule.id && row.date === date);
+          const exists = ledger.entries.some(row => row.recurringId === rule.id && recurringScheduledDate(row) === date);
           if (exists) return;
           ledger.entries.push({
             id: uid(),
@@ -3939,6 +4361,7 @@
             merchant: rule.name,
             note: "固定收支自動產生",
             recurringId: rule.id,
+            scheduledDate: date,
             createdAt: new Date().toISOString()
           });
           created += 1;
@@ -4090,6 +4513,24 @@
       applyPrivacyMode();
       toast(privacyMode ? "已開啟隱私模式" : "已關閉隱私模式");
     });
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      themeMode = themeMode === "dark" ? "light" : "dark";
+      saveUiPreferences();
+      applyThemeMode();
+      toast(themeMode === "dark" ? "已切換為深色模式" : "已切換為淺色模式");
+    });
+    document.getElementById("duplicateLastEntry").addEventListener("click", () => {
+      const lastEntry = [...ledger.entries]
+        .filter(row => isRealizedEntry(row))
+        .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0];
+      if (!lastEntry) {
+        toast("目前沒有可以複製的上一筆記帳");
+        return;
+      }
+      populateEntryForm({ ...lastEntry, date: today() });
+      document.getElementById("date").value = today();
+      toast("已帶入上一筆內容，確認金額後即可儲存");
+    });
     document.getElementById("importFile").addEventListener("change", async event => {
       const file = event.target.files?.[0];
       if (!file) return;
@@ -4147,8 +4588,11 @@
     updateRecurringEndDate();
     updateRecurringScheduleFields();
     if (window.matchMedia("(max-width: 860px)").matches && entryOptional) entryOptional.open = false;
-    privacyMode = Boolean(loadUiPreferences().privacyMode);
+    const initialUiPreferences = loadUiPreferences();
+    privacyMode = Boolean(initialUiPreferences.privacyMode);
+    themeMode = initialUiPreferences.themeMode === "dark" ? "dark" : "light";
     applyPrivacyMode();
+    applyThemeMode();
     loadSharedFxRates();
     setType("expense");
     render();

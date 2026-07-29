@@ -2573,6 +2573,7 @@
       );
     }
     function accountingIsRealizedEntry(row, asOf = localDateString()) {
+      if (row?.recurringSkipped) return false;
       if (!row?.recurringId || !row.date) return true;
       return String(row.date) <= asOf;
     }
