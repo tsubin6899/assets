@@ -1707,6 +1707,338 @@
       .section-head h2 .section-title-icon { width: 34px; height: 34px; flex-basis: 34px; padding: 7px; border-radius: 10px; }
     }
     @media (max-width: 980px) { .section-title-icon { display: none !important; } }
+    /* 2026 dashboard usability refresh */
+    .file-actions {
+      justify-content: flex-end;
+    }
+    .theme-toggle,
+    .data-management-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+    .core-metrics .card {
+      min-height: 142px;
+    }
+    .core-metrics .card .number {
+      font-size: clamp(27px, 3vw, 40px);
+    }
+    .core-metrics .liability-card::after { background: var(--red); }
+    .core-metrics .change-positive::after { background: var(--green); }
+    .core-metrics .change-negative::after { background: var(--red); }
+    .core-metrics .change-positive .number { color: var(--green); }
+    .core-metrics .change-negative .number { color: var(--red); }
+    .quick-trade-panel {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 18px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: linear-gradient(145deg, rgba(47,127,159,.08), rgba(53,146,116,.08));
+      box-shadow: var(--shadow);
+    }
+    .quick-trade-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .quick-trade-head p {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .quick-trade-actions,
+    .quick-template-list,
+    .chart-range-control,
+    .data-management-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    #dataManagementMeta {
+      margin-bottom: 16px;
+    }
+    .quick-template-list {
+      align-items: center;
+    }
+    .quick-template-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .template-chip,
+    .range-chip {
+      min-height: 36px;
+      padding: 7px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--ink);
+      background: var(--panel);
+      font-weight: 800;
+    }
+    .template-chip:hover,
+    .range-chip:hover,
+    .range-chip.active {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: rgba(47,127,159,.1);
+    }
+    details.dashboard-disclosure {
+      margin-bottom: 18px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      overflow: clip;
+    }
+    details.dashboard-disclosure > summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 54px;
+      padding: 14px 18px;
+      cursor: pointer;
+      color: var(--ink);
+      font-weight: 900;
+      list-style: none;
+    }
+    details.dashboard-disclosure > summary::-webkit-details-marker { display: none; }
+    details.dashboard-disclosure > summary::after {
+      content: "展開";
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    details.dashboard-disclosure[open] > summary {
+      border-bottom: 1px solid var(--line);
+    }
+    details.dashboard-disclosure[open] > summary::after { content: "收合"; }
+    details.dashboard-disclosure > .panel,
+    details.dashboard-disclosure > .disclosure-content {
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    .source-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .source-badge.accounting {
+      color: #176e57;
+      background: rgba(53,146,116,.13);
+    }
+    .source-badge.manual {
+      color: #76531c;
+      background: rgba(210,139,45,.14);
+    }
+    .data-management-dialog {
+      width: min(620px, calc(100vw - 28px));
+      max-height: calc(100dvh - 28px);
+      padding: 0;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 28px 80px rgba(8,19,35,.34);
+    }
+    .data-management-dialog::backdrop {
+      background: rgba(7,16,29,.55);
+      backdrop-filter: blur(4px);
+    }
+    .data-management-head,
+    .data-management-body {
+      padding: 18px 20px;
+    }
+    .data-management-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .data-management-head p,
+    .data-management-note {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .data-danger-zone {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+    }
+    .data-danger-zone .btn {
+      margin-top: 10px;
+    }
+    .chart-range-control {
+      margin: 0 0 16px;
+      align-items: center;
+    }
+    .chart-range-control strong {
+      margin-right: 4px;
+      font-size: 13px;
+    }
+    .dark-theme {
+      --bg: #0e1624;
+      --panel: #172233;
+      --panel-2: #1c293a;
+      --ink: #edf3f7;
+      --muted: #a7b4c2;
+      --line: #314155;
+      --navy: #dce9f0;
+      --shadow: 0 14px 34px rgba(0,0,0,.28);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(95,145,200,.16), transparent 28%),
+        radial-gradient(circle at 92% 12%, rgba(53,146,116,.13), transparent 26%),
+        var(--bg);
+    }
+    .dark-theme .shell { background: rgba(16,25,39,.9); }
+    .dark-theme .actions,
+    .dark-theme .toolbox,
+    .dark-theme .hero,
+    .dark-theme input,
+    .dark-theme select,
+    .dark-theme textarea,
+    .dark-theme .setting-tile,
+    .dark-theme .alert-tile,
+    .dark-theme .mobile-more-sheet {
+      color: var(--ink);
+      background: var(--panel-2);
+    }
+    .dark-theme .panel,
+    .dark-theme .card,
+    .dark-theme .chart-card,
+    .dark-theme .pulse-card,
+    .dark-theme .stock-holding-card,
+    .dark-theme details.dashboard-disclosure,
+    .dark-theme .data-management-dialog,
+    .dark-theme .template-chip,
+    .dark-theme .range-chip {
+      color: var(--ink);
+      background: var(--panel);
+    }
+    .dark-theme .chart-grid .chart-card:nth-child(n),
+    .dark-theme .cards .card.accent {
+      background: linear-gradient(145deg, #172233, #1b2b3b);
+    }
+    .dark-theme th {
+      color: #d7e2e8;
+      background: #223246;
+    }
+    .dark-theme td { border-color: var(--line); }
+    .dark-theme .icon-btn {
+      color: var(--muted);
+      background: var(--panel-2);
+    }
+    .dark-theme .icon-btn.delete-icon {
+      color: #f19789;
+      background: rgba(194,87,75,.13);
+    }
+    .dark-theme .quick-trade-panel {
+      background: linear-gradient(145deg, rgba(47,127,159,.17), rgba(53,146,116,.14));
+    }
+    .dark-theme .mobile-quick-nav { background: rgba(20,31,47,.96); }
+    .dark-theme .mobile-quick-nav button { color: var(--muted); }
+    .dark-theme .mobile-quick-nav button.active { color: #8dd5bf; }
+    @media (max-width: 720px) {
+      .core-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .core-metrics .card {
+        min-height: 122px;
+      }
+      .core-metrics .card .number {
+        font-size: clamp(21px, 6vw, 28px);
+      }
+      .quick-trade-head {
+        display: grid;
+      }
+      .quick-trade-actions .btn {
+        flex: 1 1 calc(50% - 8px);
+        min-height: 44px;
+      }
+      .dashboard-mobile-table,
+      .dashboard-mobile-table tbody,
+      .dashboard-mobile-table tr {
+        display: block;
+        width: 100%;
+      }
+      .dashboard-mobile-table {
+        min-width: 0 !important;
+      }
+      .dashboard-mobile-table thead {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+      }
+      .dashboard-mobile-table tbody {
+        display: grid;
+        gap: 12px;
+        padding: 12px;
+      }
+      .dashboard-mobile-table tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px 12px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        box-shadow: 0 7px 18px rgba(21,32,49,.07);
+      }
+      .dashboard-mobile-table td {
+        display: grid;
+        align-content: start;
+        gap: 5px;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+      }
+      .dashboard-mobile-table td::before {
+        content: attr(data-label);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+      }
+      .dashboard-mobile-table td[data-wide] {
+        grid-column: 1 / -1;
+      }
+      .dashboard-mobile-table input,
+      .dashboard-mobile-table select {
+        width: 100%;
+        min-width: 0;
+        min-height: 42px;
+      }
+      .dashboard-mobile-table td:last-child {
+        justify-items: end;
+      }
+      .purchase-record-table.dashboard-mobile-table td {
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: none !important;
+      }
+      details.dashboard-disclosure > summary {
+        min-height: 50px;
+        padding: 12px 14px;
+      }
+      .data-management-actions .btn {
+        flex: 1 1 100%;
+        min-height: 44px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1728,13 +2060,11 @@
             <span id="cloudStatus" class="cloud-status">雲端未設定</span>
           </div>
           <div class="file-actions" aria-label="檔案與價格工具">
-            <button class="btn purple" id="exportCsv">匯出報表 (CSV)</button>
-            <button class="btn green" id="saveData">匯入存檔</button>
             <button class="btn blue" id="importPrices">更新市場與估值</button>
             <a class="btn green" href="accounting-app.html">開啟記帳 App</a>
             <button class="btn blue" id="privacyToggle" type="button">隱私模式</button>
-            <button class="btn blue" id="exportJson">匯出存檔 (JSON)</button>
-            <button class="btn dark" id="resetData">清空資料</button>
+            <button class="btn purple theme-toggle" id="themeToggle" type="button"><i data-lucide="moon"></i><span>深色模式</span></button>
+            <button class="btn dark data-management-toggle" type="button" data-open-data-management><i data-lucide="database"></i><span>資料管理</span></button>
           </div>
           <input type="file" id="importJson" accept="application/json" hidden>
           <input type="file" id="priceJson" accept="application/json" hidden>
@@ -1785,9 +2115,28 @@
       <button type="button" data-mobile-trigger="importPrices"><i data-lucide="refresh-cw"></i>更新市場與估值</button>
       <button type="button" data-mobile-trigger="cloudLoad"><i data-lucide="cloud-download"></i>載入雲端</button>
       <button type="button" data-mobile-trigger="privacyToggle"><i data-lucide="eye-off"></i>隱私模式</button>
-      <button type="button" data-mobile-trigger="exportJson"><i data-lucide="file-down"></i>匯出存檔</button>
-      <button type="button" data-mobile-trigger="saveData"><i data-lucide="file-up"></i>匯入存檔</button>
-      <button class="danger" type="button" data-mobile-trigger="resetData"><i data-lucide="trash-2"></i>清空資料</button>
+      <button type="button" data-mobile-trigger="themeToggle"><i data-lucide="moon"></i><span data-mobile-theme-label>深色模式</span></button>
+      <button type="button" data-open-data-management><i data-lucide="database"></i>資料管理</button>
+    </div>
+  </dialog>
+  <dialog class="data-management-dialog" id="dataManagementDialog" aria-labelledby="dataManagementTitle">
+    <div class="data-management-head">
+      <div><h3 id="dataManagementTitle">資料管理</h3><p>匯出、匯入與清除資料集中在這裡，降低誤觸風險。</p></div>
+      <button class="icon-btn" type="button" title="關閉" aria-label="關閉" data-close-data-management><i data-lucide="x"></i></button>
+    </div>
+    <div class="data-management-body">
+      <div id="dataManagementMeta"></div>
+      <div class="data-management-actions">
+        <button class="btn purple" id="exportCsv" type="button">匯出報表 (CSV)</button>
+        <button class="btn blue" id="exportJson" type="button">匯出完整存檔 (JSON)</button>
+        <button class="btn green" id="saveData" type="button">匯入完整存檔</button>
+      </div>
+      <p class="data-management-note">建議重大調整前先匯出 JSON；CSV 適合檢視與試算，JSON 才能完整還原。</p>
+      <div class="data-danger-zone">
+        <strong>危險操作</strong>
+        <p class="data-management-note">清除後會回到空白初始資料，請先確認已有備份。</p>
+        <button class="btn dark" id="resetData" type="button">清空所有資產資料</button>
+      </div>
     </div>
   </dialog>
   <dialog class="valuation-dialog" id="valuationDialog" aria-labelledby="valuationDialogTitle">
@@ -1972,9 +2321,15 @@
     }
     function loadMeta() {
       try {
-        return { privacyMode: false, ...JSON.parse(localStorage.getItem(metaKey) || "{}") };
+        return {
+          privacyMode: false,
+          themeMode: window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+          chartPeriod: "12m",
+          disclosures: {},
+          ...JSON.parse(localStorage.getItem(metaKey) || "{}")
+        };
       } catch {
-        return { privacyMode: false };
+        return { privacyMode: false, themeMode: "light", chartPeriod: "12m", disclosures: {} };
       }
     }
     function saveMeta() {
@@ -2941,6 +3296,32 @@
     function assetSnapshotRows() {
       return [...(data.assetSnapshots || [])].filter(row => row.date).sort((a, b) => String(a.date).localeCompare(String(b.date)));
     }
+    function chartPeriodStart(period = uiMeta.chartPeriod) {
+      const months = { "3m": 3, "6m": 6, "12m": 12 }[period];
+      if (!months) return "";
+      const date = new Date();
+      date.setDate(1);
+      date.setMonth(date.getMonth() - months + 1);
+      return localDateString(date);
+    }
+    function filterRowsByChartPeriod(rows) {
+      const start = chartPeriodStart();
+      return start ? rows.filter(row => String(row.date || "") >= start) : rows;
+    }
+    function renderChartRangeControl() {
+      const periods = [["3m", "近 3 月"], ["6m", "近 6 月"], ["12m", "近 12 月"], ["all", "全部"]];
+      return `<div class="chart-range-control"><strong>圖表期間</strong>${periods.map(([value, label]) => `<button class="range-chip ${uiMeta.chartPeriod === value ? "active" : ""}" type="button" data-chart-period="${value}">${label}</button>`).join("")}</div>`;
+    }
+    function monthlyNetAssetChange() {
+      const rows = assetSnapshotRows();
+      const monthStart = `${localMonthString()}-01`;
+      const baseline = [...rows].reverse().find(row => String(row.date) < monthStart)
+        || rows.find(row => String(row.date) >= monthStart);
+      if (!baseline) return { value: 0, note: "記錄資產快照後開始比較" };
+      const baselineValue = Number(baseline.total ?? baseline.net) || 0;
+      const value = allTotals().total - baselineValue;
+      return { value, note: `相較 ${baseline.date} 淨資產` };
+    }
     function makeAssetSnapshot() {
       const t = allTotals();
       const investment = t.tw + t.us + t.gold + t.silver + t.fund;
@@ -2950,14 +3331,15 @@
         cash: Math.round(t.cash),
         investment: Math.round(investment),
         cards: Math.round(t.cards),
-        net: Math.round(t.total - t.cards)
+        net: Math.round(t.total)
       };
     }
     function targetRows(t) {
       const labels = { tw: "台股", us: "美股", cash: "現金", gold: "黃金", silver: "白銀", fund: "基金" };
       const actual = { tw: t.tw, us: t.us, cash: t.cash, gold: t.gold, silver: t.silver, fund: t.fund };
+      const grossAssets = t.total + t.cards;
       return Object.keys(labels).map(key => {
-        const actualPct = t.total ? actual[key] / t.total * 100 : 0;
+        const actualPct = grossAssets ? actual[key] / grossAssets * 100 : 0;
         const targetPct = Number(data.targetAllocation?.[key]) || 0;
         return {
           key,
@@ -3152,7 +3534,7 @@
       const snapshots = assetSnapshotRows().filter(row => String(row.date || "").startsWith(year));
       const first = snapshots[0];
       const last = snapshots.at(-1);
-      const growth = first && last ? (Number(last.net) || 0) - (Number(first.net) || 0) : 0;
+      const growth = first && last ? (Number(last.total ?? last.net) || 0) - (Number(first.total ?? first.net) || 0) : 0;
       return [
         { label: "已實現損益", value: Math.round(summary.totals.realizedTwd), rawValue: Math.round(summary.totals.realizedTwd) },
         { label: "配息收入", value: Math.round(dividends), rawValue: Math.round(dividends) },
@@ -3170,7 +3552,7 @@
       const snapshots = assetSnapshotRows().filter(row => String(row.date || "").startsWith(year));
       const first = snapshots[0];
       const last = snapshots.at(-1);
-      const netGrowth = first && last ? (Number(last.net ?? last.total) || 0) - (Number(first.net ?? first.total) || 0) : 0;
+      const netGrowth = first && last ? (Number(last.total ?? last.net) || 0) - (Number(first.total ?? first.net) || 0) : 0;
       const ledger = loadAccountingLedger();
       const annualEntries = accountingAllEntryRows(ledger).filter(row => String(row.date || "").startsWith(year));
       const annualIncome = sum(annualEntries.filter(row => row.type === "income"), row => Number(row.amount) || 0);
@@ -3233,7 +3615,7 @@
       return `<article class="chart-card"><h3>現金安全水位</h3><div class="cards" style="grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:14px">${card("可支撐月數", monthly ? covered.toFixed(1) : "-", `目標 ${months} 個月`, covered >= months ? "" : "accent")}${card("安全準備金目標", money(monthly * months), "TWD")}</div><div class="setting-grid">${settingTile("每月固定支出", textInput(monthly, "safety.monthlyExpense", "number"), "TWD / 月")}${settingTile("目標安全月數", textInput(months, "safety.safetyMonths", "number"), "月")}</div></article>`;
     }
     function renderDividendTable() {
-      return `<article class="chart-card"><h3>股息 / 配息紀錄</h3><button class="btn green small" data-add="dividends">+ 新增配息</button><div class="table-wrap" style="margin-top:12px"><table><thead><tr><th>日期</th><th>來源</th><th>幣別</th><th>金額</th><th>折台幣</th><th>備註</th><th>操作</th></tr></thead><tbody>${(data.dividends || []).map((row, i) => `<tr><td>${dateInput(row.date, `dividends.${i}.date`)}</td><td>${textInput(row.source || "", `dividends.${i}.source`)}</td><td>${textInput(normalizeCurrency(row.currency || "TWD"), `dividends.${i}.currency`)}</td><td>${textInput(row.amount || 0, `dividends.${i}.amount`, "number")}</td><td>${money(dividendTwd(row))}</td><td>${textInput(row.note || "", `dividends.${i}.note`)}</td><td><button class="icon-btn" data-del="dividends.${i}">刪</button></td></tr>`).join("")}</tbody></table></div></article>`;
+      return `<article class="chart-card"><h3>股息 / 配息紀錄</h3><button class="btn green small" data-add="dividends">+ 新增配息</button><div class="table-wrap" style="margin-top:12px"><table class="dashboard-mobile-table"><thead><tr><th>日期</th><th>來源</th><th>幣別</th><th>金額</th><th>折台幣</th><th>備註</th><th>操作</th></tr></thead><tbody>${(data.dividends || []).map((row, i) => `<tr><td data-label="日期">${dateInput(row.date, `dividends.${i}.date`)}</td><td data-label="來源">${textInput(row.source || "", `dividends.${i}.source`)}</td><td data-label="幣別">${textInput(normalizeCurrency(row.currency || "TWD"), `dividends.${i}.currency`)}</td><td data-label="金額">${textInput(row.amount || 0, `dividends.${i}.amount`, "number")}</td><td data-label="折合台幣">${money(dividendTwd(row))}</td><td data-label="備註" data-wide>${textInput(row.note || "", `dividends.${i}.note`)}</td><td data-label="操作"><button class="icon-btn" data-del="dividends.${i}">刪</button></td></tr>`).join("")}</tbody></table></div></article>`;
     }
     function renderHealthCheck() {
       const issues = dataHealthItems();
@@ -3242,6 +3624,7 @@
 
     function renderInfoCharts() {
       const t = allTotals();
+      const grossAssets = t.total + t.cards;
       const investment = t.tw + t.us + t.gold + t.silver + t.fund;
       const cash = Math.max(0, t.cash);
       const stockChartRows = stockRowsForCharts();
@@ -3259,20 +3642,22 @@
       ];
       const winners = [...stockChartRows].sort((a, b) => b.gain - a.gain).slice(0, 5).map(row => ({ label: row.label, value: Math.abs(row.gain), rawValue: row.gain }));
       const losers = [...stockChartRows].sort((a, b) => a.gain - b.gain).slice(0, 5).map(row => ({ label: row.label, value: Math.abs(row.gain), rawValue: row.gain }));
-      const snapshots = assetSnapshotRows();
+      const snapshots = filterRowsByChartPeriod(assetSnapshotRows());
+      const pnlRows = filterRowsByChartPeriod(data.pnlCalendar || []);
       const latestSnapshot = snapshots.at(-1) || makeAssetSnapshot();
       const target = targetRows(t);
       const rebalanceRows = target.map(row => ({ label: `${row.label} ${row.diff >= 0 ? "偏高" : "偏低"}`, value: Math.abs(row.diff), rawValue: row.diff, color: Math.abs(row.diff) >= 5 ? "var(--red)" : "var(--green)" }));
       const usdImpact = usdExposure();
       return `${section("chart", "資訊圖表庫", "整合資產快照、配置目標、現金安全、收益與資料檢查。", `<button class="btn blue small" data-asset-snapshot>記錄今日資產快照</button>`)}
         <div class="cards">
-          ${card("總資產", money(t.total), "TWD", "dark")}
+          ${card("資產總額", money(grossAssets), "TWD｜尚未扣除負債", "dark")}
           ${card("投資資產", money(investment), "TWD")}
           ${card("現金類資產", money(cash), "TWD")}
-          ${card("最新資產快照", money(Number(latestSnapshot.net ?? latestSnapshot.total) || 0), latestSnapshot.date || "今日估算", "accent")}
+          ${card("最新資產快照", money(Number(latestSnapshot.total ?? latestSnapshot.net) || 0), latestSnapshot.date || "今日估算", "accent")}
         </div>
+        ${renderChartRangeControl()}
         <div class="chart-grid">
-          ${renderTrendChart("資產快照歷史", snapshots.map(row => ({ date: row.date, totalGain: Number(row.net ?? row.total) || 0 })))}
+          ${renderTrendChart("資產快照歷史", snapshots.map(row => ({ date: row.date, totalGain: Number(row.total ?? row.net) || 0 })))}
           ${renderPieChart("目標配置 vs 實際配置", target.map(row => ({ label: `${row.label} 實際`, value: Math.max(0, row.actualValue) })), "實際配置", "TWD")}
           ${renderBarChart("再平衡提醒", rebalanceRows, "%")}
           ${renderSafetySettings()}
@@ -3296,11 +3681,11 @@
           ${renderBarChart("個股虧損前 5 名", losers, "TWD")}
           ${renderPieChart("現金幣別配置", cashCurrencyShareItems(), "折合台幣", "TWD")}
           ${renderBarChart("每月定期投入趨勢", monthlyDcaTotals(), "TWD")}
-          ${renderTrendChart("每日未實現損益走勢", data.pnlCalendar || [])}
+          ${renderTrendChart("每日未實現損益走勢", pnlRows)}
           ${renderBarChart("資產負債概況", [
-            { label: "總資產", value: Math.max(0, t.total), rawValue: t.total, color: "var(--blue)" },
+            { label: "資產總額", value: Math.max(0, grossAssets), rawValue: grossAssets, color: "var(--blue)" },
             { label: "信用卡待繳", value: Math.max(0, t.cards), rawValue: -Math.abs(t.cards), color: "var(--red)" },
-            { label: "淨資產", value: Math.max(0, t.total - t.cards), rawValue: t.total - t.cards, color: "var(--green)" }
+            { label: "淨資產", value: Math.max(0, t.total), rawValue: t.total, color: "var(--green)" }
           ], "TWD")}
           ${renderTargetSettings()}
         </div>`;
@@ -3399,6 +3784,8 @@
     }
     function renderOverview() {
       const t = allTotals();
+      const grossAssets = t.total + t.cards;
+      const monthChange = monthlyNetAssetChange();
       const parts = [
         ["台股", t.tw, "--blue"], ["美股", t.us, "--green"], ["現金", t.cash, "--amber"], ["貴金屬", t.gold + t.silver, "--purple"], ["基金", t.fund, "--teal"]
       ];
@@ -3412,17 +3799,23 @@
       }).join(", ");
       return `
         ${section("overview", "總覽儀表板", "跨資產總覽與配置比例。")}
+        <div class="cards core-metrics">
+          ${card("資產總額", money(grossAssets), "TWD｜尚未扣除負債", "dark")}
+          ${card("負債總額", money(t.cards), "TWD｜信用卡待繳", "liability-card")}
+          ${card("淨資產", money(t.total), "TWD｜資產扣除負債", "accent")}
+          ${card("本月淨資產變化", `${monthChange.value >= 0 ? "+" : ""}${money(monthChange.value)}`, monthChange.note, monthChange.value >= 0 ? "change-positive" : "change-negative")}
+        </div>
         ${renderFinancialPulse()}
         ${renderOverviewAlerts()}
         <div class="cards">
-          ${card("總資產淨值", money(t.total), "TWD", "dark")}
           ${card("投入成本估算", money(t.cost), "TWD")}
           ${card("全資產未實現損益", money(t.gain), "TWD", "accent")}
-          ${card("信用卡待繳", `NT$${money(t.cards)}`, "不併入現金統計")}
+          ${card("現金類資產", money(t.cash), "TWD")}
+          ${card("投資資產市值", money(grossAssets - t.cash), "TWD")}
         </div>
         <article class="panel"><div class="panel-pad asset-grid">
-          <div class="donut" style="--donut-bg:conic-gradient(${segments});"><div class="donut-text"><strong>${money(t.total)}</strong><span class="muted">淨資產</span></div></div>
-          <div class="legend">${parts.map((p, i) => `<div class="legend-row"><span class="dot" style="--c:var(${p[2]})"></span><strong>${p[0]}</strong><span>${money(p[1])} TWD</span></div>`).join("")}</div>
+          <div class="donut" style="--donut-bg:conic-gradient(${segments});"><div class="donut-text"><strong>${money(grossAssets)}</strong><span class="muted">資產總額</span></div></div>
+          <div class="legend">${parts.map((p) => `<div class="legend-row"><span class="dot" style="--c:var(${p[2]})"></span><strong>${p[0]}</strong><span>${money(p[1])} TWD · ${chartTotal ? (Math.max(0, p[1]) / chartTotal * 100).toFixed(1) : "0.0"}%</span></div>`).join("")}</div>
         </div></article>
         ${renderPnlCalendar()}
       `;
@@ -3484,22 +3877,27 @@
         </div>
         ${renderCashCharts()}
         ${renderCashAnalysisCharts()}
-        <article class="panel"><div class="panel-pad">
-          <h3>預備金設定</h3>
-          <div class="setting-grid">
-            ${settingTile("預備金", textInput(reserve, "rates.reserve", "number"), "算入總資產，但不算入銀行現金統計")}
+        <details class="dashboard-disclosure" data-disclosure-key="cashSettings" ${uiMeta.disclosures?.cashSettings ? "open" : ""}>
+          <summary>預備金與匯率設定</summary>
+          <div class="disclosure-content">
+            <div class="panel-pad">
+              <h3>預備金設定</h3>
+              <div class="setting-grid">
+                ${settingTile("預備金", textInput(reserve, "rates.reserve", "number"), "算入總資產，但不算入銀行現金統計")}
+              </div>
+            </div>
+            <div class="panel-pad">
+              <h3>幣別匯率設定</h3>
+              <p class="section-note">以 1 單位外幣可折合多少台幣計算；TWD 固定為 1。${data.fxRateMeta?.generatedAt ? `最近自動更新：${new Date(data.fxRateMeta.generatedAt).toLocaleString("zh-TW")}｜${data.fxRateMeta.source || "自動匯率"}` : "目前使用手動匯率。"}</p>
+              <div class="setting-grid fx-rate-grid">
+                ${currencies.map(code => settingTile(code, textInput(fxRate(code), `fxRates.${code}`, "number"), "TWD / 1 " + code)).join("")}
+              </div>
+            </div>
           </div>
-        </div></article>
-        <article class="panel"><div class="panel-pad">
-          <h3>幣別匯率設定</h3>
-          <p class="section-note">以 1 單位外幣可折合多少台幣計算；TWD 固定為 1。${data.fxRateMeta?.generatedAt ? `最近自動更新：${new Date(data.fxRateMeta.generatedAt).toLocaleString("zh-TW")}｜${data.fxRateMeta.source || "自動匯率"}` : "目前使用手動匯率。"}</p>
-          <div class="setting-grid fx-rate-grid">
-            ${currencies.map(code => settingTile(code, textInput(fxRate(code), `fxRates.${code}`, "number"), "TWD / 1 " + code)).join("")}
-          </div>
-        </div></article>
-        <article class="panel"><div class="table-wrap"><table>
+        </details>
+        <article class="panel"><div class="table-wrap"><table class="dashboard-mobile-table">
           <thead><tr><th>銀行名稱</th><th>幣別</th><th>匯率</th><th>現金餘額</th><th>折台幣</th><th>操作</th></tr></thead>
-          <tbody>${cashAccounts.map((r, i) => `<tr><td>${r.source === "accounting" ? escapeHtml(r.bank || "") : textInput(r.bank, `cash.${i}.bank`)}</td><td>${r.source === "accounting" ? escapeHtml(normalizeCurrency(r.currency)) : textInput(normalizeCurrency(r.currency), `cash.${i}.currency`)}</td><td>${rateText(fxRate(r.currency))}</td><td>${r.source === "accounting" ? money(r.amount, normalizeCurrency(r.currency)) : textInput(r.amount, `cash.${i}.amount`, "number")}</td><td>${money(twdCash(r))}</td><td>${r.source === "accounting" ? "記帳 App" : `<button class="icon-btn" data-del="cash.${i}">刪</button>`}</td></tr>`).join("")}</tbody>
+          <tbody>${cashAccounts.map((r, i) => `<tr><td data-label="銀行名稱" data-wide>${r.source === "accounting" ? escapeHtml(r.bank || "") : textInput(r.bank, `cash.${i}.bank`)}</td><td data-label="幣別">${r.source === "accounting" ? escapeHtml(normalizeCurrency(r.currency)) : textInput(normalizeCurrency(r.currency), `cash.${i}.currency`)}</td><td data-label="匯率">${rateText(fxRate(r.currency))}</td><td data-label="現金餘額">${r.source === "accounting" ? money(r.amount, normalizeCurrency(r.currency)) : textInput(r.amount, `cash.${i}.amount`, "number")}</td><td data-label="折合台幣">${money(twdCash(r))}</td><td data-label="資料來源 / 操作">${r.source === "accounting" ? `<span class="source-badge accounting">記帳 App 同步</span>` : `<span class="source-badge manual">手動資料</span> <button class="icon-btn" data-del="cash.${i}">刪</button>`}</td></tr>`).join("")}</tbody>
         </table></div></article>
       `;
     }
@@ -3738,8 +4136,70 @@
         ${renderPieChart("買入 / 賣出筆數", purchaseTypeRows(), "交易筆數", "")}
       </div>`;
     }
+    function recentTradeTemplates() {
+      const seen = new Set();
+      return [...(data.purchaseRecords || [])].reverse().filter(row => {
+        const code = String(row.code || "").trim().toUpperCase();
+        if (!code) return false;
+        const key = `${row.market || "TW"}:${code}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      }).slice(0, 5).map(row => ({
+        market: row.market || "TW",
+        currency: tradeCurrency(row),
+        code: row.code || "",
+        name: row.name || ""
+      }));
+    }
+    function appendQuickTrade(market, template = {}) {
+      if (market === "DIVIDEND") {
+        data.dividends.push({ date: localDateString(), source: "", currency: "TWD", amount: 0, note: "" });
+        currentTab = "dividend";
+        saveState();
+        render();
+        toast("已新增一筆配息，請補上來源與金額");
+        return;
+      }
+      const normalizedMarket = market === "US" ? "US" : "TW";
+      data.purchaseRecords.push({
+        date: localDateString(),
+        type: "buy",
+        market: normalizedMarket,
+        currency: template.currency || (normalizedMarket === "US" ? "USD" : "TWD"),
+        code: template.code || "",
+        name: template.name || "",
+        shares: 0,
+        price: 0,
+        fee: 0,
+        tax: 0,
+        note: ""
+      });
+      currentTab = "purchase";
+      uiMeta.disclosures ||= {};
+      uiMeta.disclosures.purchaseEditor = true;
+      saveMeta();
+      saveState();
+      render();
+      toast(`已新增${normalizedMarket === "US" ? "美股" : "台股"}交易，請補上股數與成交價`);
+    }
+    function duplicateLatestTrade() {
+      const latest = (data.purchaseRecords || []).at(-1);
+      if (!latest) {
+        appendQuickTrade("TW");
+        return;
+      }
+      data.purchaseRecords.push({ ...structuredClone(latest), date: localDateString() });
+      uiMeta.disclosures ||= {};
+      uiMeta.disclosures.purchaseEditor = true;
+      saveMeta();
+      saveState();
+      render();
+      toast("已複製上一筆交易並更新為今天");
+    }
     function renderPurchaseRecords() {
       const summary = buildTradeSummary();
+      const templates = recentTradeTemplates();
       const rate = summary.totals.soldBasisTwd ? summary.totals.realizedTwd / summary.totals.soldBasisTwd * 100 : 0;
       const sortedPositions = [...summary.positions].sort((a, b) => {
         const aOpen = Number(a.shares) > 0 ? 1 : 0;
@@ -3752,6 +4212,21 @@
         .map((row, index) => ({ row, index }))
         .sort((a, b) => String(b.row.date || "").localeCompare(String(a.row.date || "")) || b.index - a.index);
       return `${section("purchase", "購買股票紀錄", "可記錄買入與賣出，並依平均成本估算已實現損益。", `<button class="btn green small" data-add="purchaseRecords">+ 新增交易紀錄</button>`)}
+        <article class="quick-trade-panel">
+          <div class="quick-trade-head">
+            <div><h3>快速新增交易</h3><p>先建立常用交易，再到下方編輯成交明細。</p></div>
+            <div class="quick-trade-actions">
+              <button class="btn blue small" type="button" data-quick-trade="TW">台股買入</button>
+              <button class="btn green small" type="button" data-quick-trade="US">美股買入</button>
+              <button class="btn purple small" type="button" data-quick-trade="DIVIDEND">配息收入</button>
+              <button class="btn dark small" type="button" data-duplicate-trade>複製上一筆</button>
+            </div>
+          </div>
+          <div class="quick-template-list">
+            <span class="quick-template-label">最近標的</span>
+            ${templates.length ? templates.map((row, index) => `<button class="template-chip" type="button" data-trade-template="${index}">${escapeHtml(row.market)} · ${escapeHtml(row.code)}${row.name ? ` ${escapeHtml(row.name)}` : ""}</button>`).join("") : `<span class="muted">完成第一筆交易後，這裡會自動產生捷徑。</span>`}
+          </div>
+        </article>
         <div class="cards">
           ${card("累計買入成本", money(summary.totals.buyTwd), "TWD｜已折匯率")}
           ${card("累計賣出金額", money(summary.totals.sellTwd), "TWD｜已扣費用稅費")}
@@ -3759,15 +4234,18 @@
           ${card("已實現報酬率", `${rate.toFixed(2)}%`, "以賣出成本計")}
         </div>
         ${renderPurchaseAnalysisCharts(summary)}
-        <article class="panel"><div class="table-wrap"><table class="purchase-record-table">
+        <details class="dashboard-disclosure" data-disclosure-key="purchaseEditor" ${uiMeta.disclosures?.purchaseEditor ? "open" : ""}>
+          <summary>交易明細編輯（${sortedRecords.length} 筆）</summary>
+          <article class="panel"><div class="table-wrap"><table class="purchase-record-table dashboard-mobile-table">
           <thead><tr><th>交易日期</th><th>類型</th><th>市場</th><th>幣別</th><th>股票代碼</th><th>股票名稱</th><th>股數</th><th>成交價</th><th>手續費</th><th>稅費</th><th>預定金額</th><th>現金流</th><th>已實現損益</th><th>操作</th></tr></thead>
           <tbody>${sortedRecords.map(({ row: r, index: i }) => {
             const type = tradeType(r);
             const realized = summary.realizedByIndex.get(i);
             const cashFlow = type === "sell" ? purchaseCost(r) : -purchaseCost(r);
-            return `<tr><td>${dateInput(r.date, `purchaseRecords.${i}.date`)}</td><td>${selectInput(type, `purchaseRecords.${i}.type`, [["buy", "買入"], ["sell", "賣出"]])}</td><td>${selectInput(r.market || "TW", `purchaseRecords.${i}.market`, [["TW", "台股"], ["US", "美股"]])}</td><td>${textInput(tradeCurrency(r), `purchaseRecords.${i}.currency`)}</td><td>${textInput(r.code, `purchaseRecords.${i}.code`)}</td><td>${textInput(r.name, `purchaseRecords.${i}.name`)}</td><td>${textInput(r.shares, `purchaseRecords.${i}.shares`, "number")}</td><td>${textInput(r.price, `purchaseRecords.${i}.price`, "number")}</td><td>${textInput(r.fee || 0, `purchaseRecords.${i}.fee`, "number")}</td><td>${textInput(r.tax || 0, `purchaseRecords.${i}.tax`, "number")}</td><td>${r.plannedAmount ? money(r.plannedAmount, tradeCurrency(r)) : "-"}</td><td class="${cashFlow >= 0 ? "ok" : ""}">${cashFlow >= 0 ? "+" : "-"}${money(Math.abs(cashFlow), tradeCurrency(r))}</td><td class="${realized === null ? "" : realized >= 0 ? "ok" : "gain"}">${realized === null ? "-" : money(realized, tradeCurrency(r))}</td><td><button class="icon-btn" data-del="purchaseRecords.${i}">刪</button></td></tr>`;
+            return `<tr><td data-label="交易日期">${dateInput(r.date, `purchaseRecords.${i}.date`)}</td><td data-label="類型">${selectInput(type, `purchaseRecords.${i}.type`, [["buy", "買入"], ["sell", "賣出"]])}</td><td data-label="市場">${selectInput(r.market || "TW", `purchaseRecords.${i}.market`, [["TW", "台股"], ["US", "美股"]])}</td><td data-label="幣別">${textInput(tradeCurrency(r), `purchaseRecords.${i}.currency`)}</td><td data-label="股票代碼">${textInput(r.code, `purchaseRecords.${i}.code`)}</td><td data-label="股票名稱">${textInput(r.name, `purchaseRecords.${i}.name`)}</td><td data-label="股數">${textInput(r.shares, `purchaseRecords.${i}.shares`, "number")}</td><td data-label="成交價">${textInput(r.price, `purchaseRecords.${i}.price`, "number")}</td><td data-label="手續費">${textInput(r.fee || 0, `purchaseRecords.${i}.fee`, "number")}</td><td data-label="稅費">${textInput(r.tax || 0, `purchaseRecords.${i}.tax`, "number")}</td><td data-label="預定金額">${r.plannedAmount ? money(r.plannedAmount, tradeCurrency(r)) : "-"}</td><td data-label="現金流" class="${cashFlow >= 0 ? "ok" : ""}">${cashFlow >= 0 ? "+" : "-"}${money(Math.abs(cashFlow), tradeCurrency(r))}</td><td data-label="已實現損益" class="${realized === null ? "" : realized >= 0 ? "ok" : "gain"}">${realized === null ? "-" : money(realized, tradeCurrency(r))}</td><td data-label="操作"><button class="icon-btn" data-del="purchaseRecords.${i}">刪</button></td></tr>`;
           }).join("")}</tbody>
         </table></div></article>
+        </details>
         <article class="panel"><div class="panel-pad"><h3>目前持股摘要</h3></div><div class="table-wrap"><table>
           <thead><tr><th>市場</th><th>幣別</th><th>股票代碼</th><th>股票名稱</th><th>累計買入股數</th><th>累計賣出股數</th><th>剩餘股數</th><th>平均成本</th><th>已實現損益</th></tr></thead>
           <tbody>${sortedPositions.map(r => {
@@ -3860,8 +4338,9 @@
           <article class="panel"><div class="table-wrap"><table><thead><tr><th>目標</th><th>分配比例</th><th>每 100,000 預估金額</th><th>操作</th></tr></thead><tbody>${data.allocation.map((r, i) => `<tr><td>${textInput(r.target, `allocation.${i}.target`)}</td><td>${textInput(r.ratio, `allocation.${i}.ratio`, "number")}%</td><td>${money(r.ratio * 1000)}</td><td><button class="icon-btn" data-del="allocation.${i}">刪</button></td></tr>`).join("")}</tbody></table></div></article>`;
       }
       const t = allTotals();
-      const twRatio = t.total ? (t.tw / t.total * 100).toFixed(1) : "0.0";
-      const usRatio = t.total ? (t.us / t.total * 100).toFixed(1) : "0.0";
+      const grossAssets = t.total + t.cards;
+      const twRatio = grossAssets ? (t.tw / grossAssets * 100).toFixed(1) : "0.0";
+      const usRatio = grossAssets ? (t.us / grossAssets * 100).toFixed(1) : "0.0";
       return `${section(key, title, "目前提供資產總覽卡片。")}
         <div class="cards">${card("目前淨資產", money(t.total), "TWD", "dark")}${card("可投入現金", money(t.cash - t.cards), "TWD")}${card("台股比重", `${twRatio}%`, "目前配置")}${card("美股比重", `${usRatio}%`, "目前配置")}</div>
         <div class="notice">此區可作為後續圖表與資料檢視擴充區。</div>`;
@@ -3873,12 +4352,24 @@
     }
     function applyUiState() {
       document.body.classList.toggle("privacy-mode", Boolean(uiMeta.privacyMode));
+      const darkMode = uiMeta.themeMode === "dark";
+      document.body.classList.toggle("dark-theme", darkMode);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", darkMode ? "#0e1624" : "#101c34");
       const privacyButton = document.getElementById("privacyToggle");
       if (privacyButton) {
         privacyButton.textContent = uiMeta.privacyMode ? "顯示金額" : "隱私模式";
         privacyButton.classList.toggle("purple", Boolean(uiMeta.privacyMode));
         privacyButton.classList.toggle("blue", !uiMeta.privacyMode);
       }
+      const themeButton = document.getElementById("themeToggle");
+      if (themeButton) {
+        themeButton.innerHTML = `<i data-lucide="${darkMode ? "sun" : "moon"}"></i><span>${darkMode ? "淺色模式" : "深色模式"}</span>`;
+      }
+      document.querySelectorAll("[data-mobile-theme-label]").forEach(label => {
+        label.textContent = darkMode ? "淺色模式" : "深色模式";
+      });
+      const dataManagementMeta = document.getElementById("dataManagementMeta");
+      if (dataManagementMeta) dataManagementMeta.innerHTML = renderBackupMeta();
       document.querySelectorAll(".mobile-quick-nav [data-tab]").forEach(button => {
         button.classList.toggle("active", button.dataset.tab === currentTab);
       });
@@ -4054,6 +4545,22 @@
       document.querySelectorAll("[data-asset-snapshot]").forEach(el => el.addEventListener("click", recordAssetSnapshot));
       document.querySelectorAll("[data-calendar-prev]").forEach(el => el.addEventListener("click", () => { calendarMonth = shiftMonth(calendarMonth || localMonthString(), -1); render(); }));
       document.querySelectorAll("[data-calendar-next]").forEach(el => el.addEventListener("click", () => { calendarMonth = shiftMonth(calendarMonth || localMonthString(), 1); render(); }));
+      document.querySelectorAll("[data-quick-trade]").forEach(el => el.addEventListener("click", () => appendQuickTrade(el.dataset.quickTrade)));
+      document.querySelectorAll("[data-trade-template]").forEach(el => el.addEventListener("click", () => {
+        const template = recentTradeTemplates()[Number(el.dataset.tradeTemplate)];
+        if (template) appendQuickTrade(template.market, template);
+      }));
+      document.querySelectorAll("[data-duplicate-trade]").forEach(el => el.addEventListener("click", duplicateLatestTrade));
+      document.querySelectorAll("[data-chart-period]").forEach(el => el.addEventListener("click", () => {
+        uiMeta.chartPeriod = el.dataset.chartPeriod;
+        saveMeta();
+        render();
+      }));
+      document.querySelectorAll("[data-disclosure-key]").forEach(el => el.addEventListener("toggle", () => {
+        uiMeta.disclosures ||= {};
+        uiMeta.disclosures[el.dataset.disclosureKey] = el.open;
+        saveMeta();
+      }));
     }
     function download(name, text, type) {
       const a = document.createElement("a");
@@ -4252,6 +4759,15 @@
       setTimeout(() => box.remove(), 1800);
     }
     document.addEventListener("click", (e) => {
+      if (e.target.closest("[data-open-data-management]")) {
+        document.getElementById("mobileMoreSheet")?.close();
+        document.getElementById("dataManagementDialog")?.showModal();
+        return;
+      }
+      if (e.target.closest("[data-close-data-management]")) {
+        document.getElementById("dataManagementDialog")?.close();
+        return;
+      }
       if (e.target.closest("[data-mobile-more]")) {
         document.getElementById("mobileMoreSheet")?.showModal();
         return;
@@ -4280,6 +4796,13 @@
       saveMeta();
       applyUiState();
       toast(uiMeta.privacyMode ? "已開啟隱私模式" : "已關閉隱私模式");
+    });
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      uiMeta.themeMode = uiMeta.themeMode === "dark" ? "light" : "dark";
+      saveMeta();
+      applyUiState();
+      if (window.lucide) window.lucide.createIcons();
+      toast(uiMeta.themeMode === "dark" ? "已切換為深色模式" : "已切換為淺色模式");
     });
     document.getElementById("saveData").addEventListener("click", () => document.getElementById("importJson").click());
     document.getElementById("importJson").addEventListener("change", async (e) => {
@@ -4327,6 +4850,7 @@
         data = structuredClone(seed);
         persist();
         render();
+        document.getElementById("dataManagementDialog")?.close();
       }
     });
     render();
