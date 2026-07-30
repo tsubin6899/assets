@@ -1571,6 +1571,234 @@
       #entryTable td:nth-child(10),
       #analysisTable td:nth-child(10) { justify-self: end; }
     }
+    /* Credit-card statement reconciliation */
+    .credit-reconcile-layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 370px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+    .credit-reconcile-form {
+      display: grid;
+      gap: 12px;
+    }
+    .credit-reconcile-form label {
+      display: grid;
+      gap: 6px;
+    }
+    .credit-reconcile-form textarea {
+      min-height: 92px;
+    }
+    .credit-reconcile-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .credit-reconcile-actions .primary-action {
+      grid-column: 1 / -1;
+    }
+    .credit-reconcile-main {
+      min-width: 0;
+      display: grid;
+      gap: 16px;
+    }
+    .credit-reconcile-summary {
+      margin-bottom: 0;
+    }
+    .credit-reconcile-summary .card {
+      min-height: 102px;
+    }
+    .statement-status {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 14px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--soft);
+    }
+    .statement-status strong,
+    .statement-status small {
+      display: block;
+    }
+    .statement-status small {
+      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .statement-status-badge {
+      flex: 0 0 auto;
+      padding: 6px 10px;
+      border-radius: 999px;
+      color: #795319;
+      background: #fff0ce;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .statement-status-badge.matched {
+      color: #287353;
+      background: #dff1e8;
+    }
+    .statement-status-badge.difference {
+      color: #9c3f36;
+      background: #f8ded9;
+    }
+    .statement-tools {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .statement-tools > div {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .statement-check-cell {
+      width: 58px;
+      text-align: center;
+    }
+    .statement-check {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--green);
+    }
+    .statement-source {
+      display: inline-flex;
+      padding: 3px 7px;
+      border-radius: 999px;
+      color: #2f657c;
+      background: #e5f2f8;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .statement-source.installment {
+      color: #755591;
+      background: #f0e7f5;
+    }
+    .statement-history {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .statement-history-card {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--paper);
+    }
+    .statement-history-card strong,
+    .statement-history-card small {
+      display: block;
+    }
+    .statement-history-card small {
+      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .statement-history-actions {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+    }
+    .statement-history-actions .btn {
+      min-height: 32px;
+    }
+    body.dark-theme .statement-status,
+    body.dark-theme .statement-history-card {
+      color: var(--ink);
+      border-color: var(--line);
+      background: #1d2c34;
+    }
+    body.dark-theme .statement-status-badge.matched {
+      color: #a4e4ca;
+      background: rgba(53,146,116,.18);
+    }
+    body.dark-theme .statement-status-badge.difference {
+      color: #f2afa5;
+      background: rgba(194,87,75,.18);
+    }
+    body.dark-theme .statement-source {
+      color: #b8dbe7;
+      background: rgba(47,127,159,.18);
+    }
+    body.dark-theme .statement-source.installment {
+      color: #d7b8e5;
+      background: rgba(143,100,173,.2);
+    }
+    @media (max-width: 960px) {
+      .credit-reconcile-layout {
+        grid-template-columns: 1fr;
+      }
+      .credit-reconcile-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .credit-reconcile-form .full,
+      .credit-reconcile-actions {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (max-width: 860px) {
+      .credit-reconcile-form {
+        grid-template-columns: 1fr;
+      }
+      .credit-reconcile-form .full,
+      .credit-reconcile-actions {
+        grid-column: auto;
+      }
+      .credit-reconcile-summary {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .credit-reconcile-summary .number {
+        font-size: 22px;
+      }
+      .statement-history {
+        grid-template-columns: 1fr;
+      }
+      #creditReconcileTable .table-wrap {
+        overflow: visible;
+      }
+      #statementMatchTable,
+      #statementMatchTable tbody {
+        display: block;
+        min-width: 0;
+      }
+      #statementMatchTable thead {
+        display: none;
+      }
+      #statementMatchTable tr {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        gap: 6px 10px;
+        margin: 10px;
+        padding: 13px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: var(--paper);
+        box-shadow: 0 7px 18px rgba(31,38,51,.07);
+      }
+      #statementMatchTable td {
+        display: block;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+      }
+      #statementMatchTable td:nth-child(1) { grid-column: 1; grid-row: 1 / span 3; align-self: center; }
+      #statementMatchTable td:nth-child(2) { grid-column: 2; grid-row: 1; color: var(--muted); font-size: 12px; }
+      #statementMatchTable td:nth-child(3) { grid-column: 2; grid-row: 2; font-weight: 700; }
+      #statementMatchTable td:nth-child(4) { grid-column: 2; grid-row: 3; color: var(--muted); font-size: 12px; }
+      #statementMatchTable td:nth-child(5) { grid-column: 3; grid-row: 1 / span 3; align-self: center; font-size: 17px; font-weight: 800; }
+      #statementMatchTable td:nth-child(6) { grid-column: 2; grid-row: 4; }
+    }
   </style>
 </head>
 <body>
@@ -1722,6 +1950,7 @@
         <div class="panel-pad">
           <h2>信用卡設定</h2>
           <p class="hint">可建立多張信用卡；信用卡消費會歸到指定卡片，方便看待繳金額。</p>
+          <button class="btn small purple" type="button" data-view="creditReconcileView">前往信用卡對帳</button>
           <form id="creditForm" class="manager-form account-form">
             <input id="newCreditName" placeholder="信用卡名稱，例如：國泰 CUBE">
             <input id="newCreditCurrency" placeholder="幣別，例如 TWD / USD" value="TWD">
@@ -1776,6 +2005,52 @@
           </div>
         </div>
       </article>
+    </section>
+
+    <section class="view" id="creditReconcileView">
+      <div class="credit-reconcile-layout">
+        <aside class="panel">
+          <div class="panel-pad">
+            <h2>信用卡對帳</h2>
+            <p class="hint">選擇信用卡與帳單月份，App 會依結帳日整理刷卡、退款及分期明細，再與銀行帳單金額比對。</p>
+            <form id="creditReconcileForm" class="credit-reconcile-form">
+              <label>信用卡<select id="reconcileCreditCard" required></select></label>
+              <label>帳單月份<input id="reconcileBillMonth" type="month" required></label>
+              <label>銀行帳單應繳金額<input id="reconcileStatementAmount" type="number" min="0" step="1" inputmode="decimal" placeholder="輸入信用卡帳單金額" required></label>
+              <label class="full">對帳備註<textarea id="reconcileStatementNote" placeholder="例如：現金回饋折抵、年費、海外手續費或尚待確認的消費"></textarea></label>
+              <div class="credit-reconcile-actions">
+                <button class="btn small light" type="button" data-use-credit-bill>帶入已建帳單</button>
+                <button class="btn small blue" type="button" data-refresh-credit-check>重新計算</button>
+                <button class="btn green primary-action" type="submit">儲存本月核對結果</button>
+              </div>
+            </form>
+            <div class="transfer-tip">差額＝銀行帳單金額－App 帳期明細。正數通常代表 App 少記，負數可能是重複記帳、退款或帳單折抵尚未登錄。</div>
+          </div>
+        </aside>
+        <section class="credit-reconcile-main">
+          <div class="cards credit-reconcile-summary" id="creditReconcileSummary"></div>
+          <article class="panel">
+            <div class="panel-pad">
+              <div id="creditReconcileStatus"></div>
+              <div class="statement-tools">
+                <div>
+                  <button class="btn small green" type="button" data-match-all-statement>全部標記已核對</button>
+                  <button class="btn small light" type="button" data-clear-statement-matches>清除勾選</button>
+                </div>
+                <span class="hint" id="creditReconcileRange"></span>
+              </div>
+            </div>
+            <div id="creditReconcileTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-pad">
+              <h3>歷史對帳紀錄</h3>
+              <p class="hint">點「查看」可載入當時勾選與帳單金額；若 App 明細後續修改，重新儲存即可更新差額。</p>
+              <div class="statement-history" id="creditReconcileHistory"></div>
+            </div>
+          </article>
+        </section>
+      </div>
     </section>
 
     <section class="view" id="transferView">
@@ -1969,6 +2244,7 @@
     <div class="mobile-more-head"><h3 id="mobileMoreTitle">更多功能</h3><button class="icon-action" type="button" title="關閉" aria-label="關閉" data-close-mobile-more><i data-lucide="x"></i></button></div>
     <div class="mobile-more-grid">
       <button type="button" data-view="creditView"><i data-lucide="credit-card"></i>信用卡設定</button>
+      <button type="button" data-view="creditReconcileView"><i data-lucide="list-checks"></i>信用卡對帳</button>
       <button type="button" data-view="recurringView"><i data-lucide="calendar-clock"></i>固定收支</button>
       <button type="button" data-view="categoryView"><i data-lucide="tags"></i>分類設定</button>
       <a href="personal-assets-dashboard.html"><i data-lucide="layout-dashboard"></i>資產儀表板</a>
@@ -1996,6 +2272,7 @@
   <script>
     const accountingKey = "personal-accounting-tsubin-v1";
     const accountingUiKey = "personal-accounting-ui-tsubin-v1";
+    const accountingCloudMetaKey = "personal-accounting-cloud-sync-meta-v1";
     const dashboardStorageKey = "personal-assets-dashboard-tsubin-v2";
     const trustedDeviceKey = "tsubin-accounting-trusted-device-v1";
     let sharedFxRates = { TWD: 1 };
@@ -2004,6 +2281,7 @@
       ["entryView", "收入支出"],
       ["accountView", "帳戶設定"],
       ["creditView", "信用卡設定"],
+      ["creditReconcileView", "信用卡對帳"],
       ["transferView", "帳戶轉帳"],
       ["recurringView", "固定收支"],
       ["categoryView", "分類設定"],
@@ -2013,6 +2291,7 @@
       entryView: "receipt-text",
       accountView: "wallet-cards",
       creditView: "credit-card",
+      creditReconcileView: "list-checks",
       transferView: "arrow-left-right",
       recurringView: "calendar-clock",
       categoryView: "tags",
@@ -2022,6 +2301,7 @@
       entryView: "收",
       accountView: "戶",
       creditView: "卡",
+      creditReconcileView: "核",
       transferView: "轉",
       recurringView: "固",
       categoryView: "類",
@@ -2104,6 +2384,11 @@
     const templateAccountSelect = document.getElementById("templateAccount");
     const reconcileAccountSelect = document.getElementById("reconcileAccount");
     const cycleCardSelect = document.getElementById("cycleCard");
+    const creditReconcileForm = document.getElementById("creditReconcileForm");
+    const reconcileCreditCardSelect = document.getElementById("reconcileCreditCard");
+    const reconcileBillMonthInput = document.getElementById("reconcileBillMonth");
+    const reconcileStatementAmountInput = document.getElementById("reconcileStatementAmount");
+    const reconcileStatementNoteInput = document.getElementById("reconcileStatementNote");
     const recurringTypeSelect = document.getElementById("recurringType");
     const recurringCategorySelect = document.getElementById("recurringCategory");
     const recurringItemSelect = document.getElementById("recurringItem");
@@ -2132,8 +2417,16 @@
     let receiptDataUrl = "";
     let monthlyBackups = [];
     let autoCloudSaveTimer = 0;
+    let cloudSyncInProgress = false;
+    let cloudHydrating = false;
+    let autoSyncedUserId = "";
+    let cloudSyncError = false;
+    let cloudRetryCount = 0;
+    let cloudSyncMeta = loadCloudSyncMeta();
     let privacyMode = false;
     let themeMode = "light";
+    let statementDraftKey = "";
+    let statementDraftMatched = new Set();
     const defaultCategories = {
       income: ["薪資", "股息", "利息", "獎金", "退款", "現金盤點調整", "其他收入"],
       expense: ["餐飲", "交通", "生活用品", "房租房貸", "水電瓦斯", "保險", "醫療", "娛樂", "教育", "投資費用", "現金盤點調整", "其他支出"]
@@ -2301,6 +2594,7 @@
         const recurringRules = normalizeRecurringRules(saved.recurringRules);
         const budgets = normalizeBudgets(saved.budgets);
         const reconciliations = normalizeReconciliations(saved.reconciliations);
+        const creditStatementChecks = normalizeCreditStatementChecks(saved.creditStatementChecks);
         return {
           entries,
           transfers,
@@ -2310,6 +2604,7 @@
           recurringRules,
           budgets,
           reconciliations,
+          creditStatementChecks,
           categories: normalizeCategories(saved.categories, entries),
           items: normalizeItems(saved.items, entries),
           accounts: normalizeAccounts(saved.accounts, entries),
@@ -2325,6 +2620,7 @@
           recurringRules: [],
           budgets: [],
           reconciliations: [],
+          creditStatementChecks: [],
           categories: structuredClone(defaultCategories),
           items: structuredClone(defaultItems),
           accounts: structuredClone(defaultAccounts),
@@ -2339,6 +2635,7 @@
       ledger.recycleBin = Array.isArray(ledger.recycleBin) ? ledger.recycleBin : [];
       ledger.monthCloseouts = Array.isArray(ledger.monthCloseouts) ? ledger.monthCloseouts : [];
       ledger.budgetRollovers = ledger.budgetRollovers && typeof ledger.budgetRollovers === "object" ? ledger.budgetRollovers : {};
+      ledger.creditStatementChecks = normalizeCreditStatementChecks(ledger.creditStatementChecks);
     }
     function moveToRecycle(type, row) {
       ensureEnhancements();
@@ -2477,9 +2774,49 @@
         createdAt: row.createdAt || new Date().toISOString()
       })).filter(row => row.account);
     }
+    function normalizeCreditStatementChecks(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        id: row.id || uid(),
+        card: String(row.card || "").trim(),
+        billMonth: String(row.billMonth || "").slice(0, 7),
+        statementAmount: Number(row.statementAmount) || 0,
+        appAmount: Number(row.appAmount) || 0,
+        diff: Number(row.diff) || 0,
+        matchedKeys: normalizeList(row.matchedKeys, []),
+        rowCount: Math.max(0, Number(row.rowCount) || 0),
+        matchedAmount: Number(row.matchedAmount) || 0,
+        note: String(row.note || "").trim(),
+        checkedAt: row.checkedAt || row.updatedAt || new Date().toISOString(),
+        updatedAt: row.updatedAt || row.checkedAt || new Date().toISOString()
+      })).filter(row => row.card && /^\d{4}-\d{2}$/.test(row.billMonth));
+    }
     function saveLedger() {
       localStorage.setItem(accountingKey, JSON.stringify(ledger));
+      if (!cloudHydrating) {
+        cloudSyncMeta.lastLocalChangeAt = new Date().toISOString();
+        saveCloudSyncMeta();
+      }
       scheduleCloudBackup();
+    }
+    function loadCloudSyncMeta() {
+      try {
+        return {
+          lastLocalChangeAt: "",
+          lastSyncedLocalChangeAt: "",
+          lastCloudSaveAt: "",
+          lastCloudLoadAt: "",
+          ...JSON.parse(localStorage.getItem(accountingCloudMetaKey) || "{}")
+        };
+      } catch {
+        return { lastLocalChangeAt: "", lastSyncedLocalChangeAt: "", lastCloudSaveAt: "", lastCloudLoadAt: "" };
+      }
+    }
+    function saveCloudSyncMeta() {
+      localStorage.setItem(accountingCloudMetaKey, JSON.stringify(cloudSyncMeta));
+    }
+    function hasPendingCloudChanges() {
+      return Boolean(cloudSyncMeta.lastLocalChangeAt)
+        && cloudSyncMeta.lastLocalChangeAt !== cloudSyncMeta.lastSyncedLocalChangeAt;
     }
     function loadUiPreferences() {
       try {
@@ -2518,13 +2855,16 @@
     }
     function updateCloudControls() {
       const loggedIn = Boolean(cloudUser);
-      document.getElementById("cloudSave").disabled = !loggedIn;
-      document.getElementById("cloudLoad").disabled = !loggedIn;
+      document.getElementById("cloudSave").disabled = !loggedIn || cloudSyncInProgress;
+      document.getElementById("cloudLoad").disabled = !loggedIn || cloudSyncInProgress;
       document.getElementById("cloudLogout").disabled = !loggedIn;
       document.getElementById("cloudLogin").disabled = !cloudReady || loggedIn;
       document.getElementById("cloudEmail").disabled = loggedIn;
       if (!cloudReady) setCloudStatus("雲端未設定");
-      else if (loggedIn) setCloudStatus("此裝置已登入");
+      else if (loggedIn && cloudSyncInProgress) setCloudStatus("雲端同步中...");
+      else if (loggedIn && cloudSyncError) setCloudStatus("自動同步失敗，等待重試");
+      else if (loggedIn && hasPendingCloudChanges()) setCloudStatus("等待自動同步");
+      else if (loggedIn) setCloudStatus("已登入・自動同步");
       else setCloudStatus("未登入");
     }
     function rememberCloudDevice(user) {
@@ -2589,18 +2929,21 @@
       cloudUser = sessionData.session?.user || null;
       if (cloudUser) {
         rememberCloudDevice(cloudUser);
-        refreshCloudBackups();
-        ensureMonthlyCloudBackup();
+        await autoSyncCloudData();
+        await refreshCloudBackups();
+        await ensureMonthlyCloudBackup();
       }
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
+      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         cloudUser = session?.user || null;
         if (session?.user) {
           rememberCloudDevice(session.user);
           cleanCloudAuthUrl();
-          refreshCloudBackups();
-          ensureMonthlyCloudBackup();
+          await autoSyncCloudData();
+          await refreshCloudBackups();
+          await ensureMonthlyCloudBackup();
         } else if (_event === "SIGNED_OUT") {
           localStorage.removeItem(trustedDeviceKey);
+          autoSyncedUserId = "";
         }
         updateCloudControls();
       });
@@ -2658,7 +3001,7 @@
     }
     function scheduleCloudBackup() {
       clearTimeout(autoCloudSaveTimer);
-      if (!supabaseClient || !cloudUser) return;
+      if (cloudHydrating || !supabaseClient || !cloudUser) return;
       autoCloudSaveTimer = setTimeout(() => saveCloudData({ silent: true }), 1800);
     }
     async function refreshCloudBackups() {
@@ -2690,11 +3033,19 @@
     async function saveCloudData({ silent = false } = {}) {
       if (!supabaseClient || !cloudUser) {
         if (!silent) toast("請先登入雲端同步");
-        return;
+        return false;
       }
+      if (cloudSyncInProgress) {
+        scheduleCloudBackup();
+        return false;
+      }
+      cloudSyncInProgress = true;
+      updateCloudControls();
+      let saved = false;
       try {
         const existing = await readCloudProfile();
         monthlyBackups = buildMonthlyBackups(existing.accountingMonthlyBackups);
+        const syncedRevision = cloudSyncMeta.lastLocalChangeAt;
         const payload = {
           ...existing,
           accountingLedger: ledger,
@@ -2704,30 +3055,80 @@
           .from(cloudTable)
           .upsert({ user_id: cloudUser.id, data: payload }, { onConflict: "user_id" });
         if (error) throw error;
+        cloudSyncMeta.lastCloudSaveAt = new Date().toISOString();
+        cloudSyncMeta.lastSyncedLocalChangeAt = syncedRevision;
+        saveCloudSyncMeta();
+        cloudSyncError = false;
+        cloudRetryCount = 0;
+        saved = true;
         renderBackupList();
         if (!silent) toast("記帳資料已儲存到雲端，並更新本月備份");
+        return true;
       } catch (error) {
+        cloudSyncError = true;
         if (!silent) toast(`雲端儲存失敗：${error.message}`);
+        return false;
+      } finally {
+        cloudSyncInProgress = false;
+        updateCloudControls();
+        if (saved && hasPendingCloudChanges()) scheduleCloudBackup();
       }
     }
-    async function loadCloudData() {
+    async function loadCloudData({ silent = false } = {}) {
       if (!supabaseClient || !cloudUser) {
-        toast("請先登入雲端同步");
-        return;
+        if (!silent) toast("請先登入雲端同步");
+        return false;
       }
+      if (cloudSyncInProgress) return false;
+      cloudSyncInProgress = true;
+      updateCloudControls();
       try {
         const payload = await readCloudProfile();
         if (!payload.accountingLedger) {
-          toast("雲端尚無記帳資料，已保留本機資料");
-          return;
+          if (!silent) toast("雲端尚無記帳資料，已保留本機資料");
+          return false;
         }
         ledger = hydrateLedger(payload.accountingLedger);
         monthlyBackups = normalizeMonthlyBackups(payload.accountingMonthlyBackups);
-        saveLedger();
+        cloudHydrating = true;
+        localStorage.setItem(accountingKey, JSON.stringify(ledger));
+        cloudHydrating = false;
+        const syncedAt = new Date().toISOString();
+        cloudSyncMeta.lastLocalChangeAt = syncedAt;
+        cloudSyncMeta.lastSyncedLocalChangeAt = syncedAt;
+        cloudSyncMeta.lastCloudLoadAt = syncedAt;
+        saveCloudSyncMeta();
+        cloudSyncError = false;
+        cloudRetryCount = 0;
         render();
-        toast("已載入雲端記帳資料");
+        if (!silent) toast("已載入雲端記帳資料");
+        return true;
       } catch (error) {
-        toast(`雲端載入失敗：${error.message}`);
+        cloudHydrating = false;
+        cloudSyncError = true;
+        if (!silent) toast(`雲端載入失敗：${error.message}`);
+        return false;
+      } finally {
+        cloudSyncInProgress = false;
+        updateCloudControls();
+      }
+    }
+    async function autoSyncCloudData() {
+      if (!supabaseClient || !cloudUser || autoSyncedUserId === cloudUser.id) return;
+      autoSyncedUserId = cloudUser.id;
+      let synced = false;
+      if (hasPendingCloudChanges()) {
+        synced = await saveCloudData({ silent: true });
+      } else {
+        synced = await loadCloudData({ silent: true });
+        if (!synced && !cloudSyncError) synced = await saveCloudData({ silent: true });
+      }
+      if (!synced && cloudSyncError && cloudRetryCount < 2) {
+        cloudRetryCount += 1;
+        autoSyncedUserId = "";
+        setTimeout(() => {
+          if (cloudUser && navigator.onLine !== false) autoSyncCloudData();
+        }, 15000);
       }
     }
     function hydrateLedger(payload = {}) {
@@ -2741,6 +3142,7 @@
         recurringRules: normalizeRecurringRules(payload.recurringRules),
         budgets: normalizeBudgets(payload.budgets),
         reconciliations: normalizeReconciliations(payload.reconciliations),
+        creditStatementChecks: normalizeCreditStatementChecks(payload.creditStatementChecks),
         categories: normalizeCategories(payload.categories, entries),
         items: normalizeItems(payload.items, entries),
         accounts: normalizeAccounts(payload.accounts, entries),
@@ -2801,6 +3203,7 @@
       renderAccountOptions(transferToSelect, transferToSelect.value);
       renderAccountOptions(transferFeeAccountSelect, transferFeeAccountSelect.value, true);
       renderCreditBillOptions();
+      renderCreditReconcileOptions();
       renderInstallmentOptions();
       renderUtilityOptions();
       renderAnalysisFilterOptions();
@@ -2859,6 +3262,13 @@
       billPayAccountSelect.innerHTML = payAccounts.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.currency)}</option>`).join("");
       if (selectedCard && cards.some(account => account.name === selectedCard)) billCardSelect.value = selectedCard;
       if (selectedPayAccount && payAccounts.some(account => account.name === selectedPayAccount)) billPayAccountSelect.value = selectedPayAccount;
+    }
+    function renderCreditReconcileOptions() {
+      const cards = ledger.accounts.filter(account => account.type === "信用卡");
+      const selectedCard = reconcileCreditCardSelect.value;
+      reconcileCreditCardSelect.innerHTML = cards.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.currency)}</option>`).join("");
+      if (selectedCard && cards.some(account => account.name === selectedCard)) reconcileCreditCardSelect.value = selectedCard;
+      if (!reconcileBillMonthInput.value) reconcileBillMonthInput.value = monthOf();
     }
     function renderInstallmentOptions() {
       const cards = ledger.accounts.filter(account => account.type === "信用卡");
@@ -2981,6 +3391,7 @@
       ledger.templates.forEach(row => { if (row.account === from) row.account = to; });
       ledger.recurringRules.forEach(row => { if (row.account === from) row.account = to; });
       ledger.reconciliations.forEach(row => { if (row.account === from) row.account = to; });
+      (ledger.creditStatementChecks || []).forEach(row => { if (row.card === from) row.card = to; });
     }
     function saveEdit(values) {
       if (!editState) return;
@@ -3191,6 +3602,125 @@
             ${row.autoInstallment ? "" : `<button class="icon-action edit" type="button" title="編輯帳單" aria-label="編輯帳單" data-edit-bill="${escapeHtml(row.id)}"><i data-lucide="pen-line"></i></button><button class="bill-delete-button icon-action delete" type="button" title="刪除帳單" aria-label="刪除帳單" data-remove-bill="${escapeHtml(row.id)}"><i data-lucide="trash-2"></i></button>`}
           </div>
         </div>`).join("");
+    }
+    function creditStatementEntryKey(row) {
+      return `${row.virtualInstallment ? "installment" : "entry"}:${row.id}`;
+    }
+    function creditStatementRows(cardName, billMonth) {
+      const card = ledger.accounts.find(account => account.type === "信用卡" && account.name === cardName);
+      if (!card || !billMonth) return [];
+      return allEntryRows()
+        .filter(row => row.account === cardName)
+        .filter(row => (row.virtualInstallment ? row.billMonth : creditStatementMonth(card, row.date)) === billMonth)
+        .map(row => ({
+          ...row,
+          statementKey: creditStatementEntryKey(row),
+          statementAmount: (row.type === "income" ? -1 : 1) * (Number(row.amount) || 0)
+        }))
+        .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+    }
+    function creditStatementRange(card, billMonth) {
+      if (!card || !billMonth) return "";
+      const statementDay = Number(card.statementDay) || 0;
+      if (!statementDay) return `${billMonth}-01 ～ ${billMonth}-${String(daysInMonth(billMonth)).padStart(2, "0")}（未設定結帳日，暫按曆月）`;
+      const previousMonth = shiftMonth(billMonth, -1);
+      const previousClose = `${previousMonth}-${String(Math.min(statementDay, daysInMonth(previousMonth))).padStart(2, "0")}`;
+      const start = shiftDate(previousClose, 1);
+      const end = `${billMonth}-${String(Math.min(statementDay, daysInMonth(billMonth))).padStart(2, "0")}`;
+      return `${start} ～ ${end}`;
+    }
+    function creditStatementRecord(card, billMonth) {
+      return (ledger.creditStatementChecks || []).find(row => row.card === card && row.billMonth === billMonth);
+    }
+    function registeredCreditBillAmount(card, billMonth) {
+      const bill = (ledger.creditBills || []).find(row => row.card === card && row.billMonth === billMonth);
+      return bill ? billTotalAmount(bill) : null;
+    }
+    function loadCreditStatementDraft(force = false) {
+      const card = reconcileCreditCardSelect.value;
+      const billMonth = reconcileBillMonthInput.value || monthOf();
+      const key = `${card}__${billMonth}`;
+      if (!force && statementDraftKey === key) return;
+      const saved = creditStatementRecord(card, billMonth);
+      statementDraftKey = key;
+      statementDraftMatched = new Set(saved?.matchedKeys || []);
+      reconcileStatementAmountInput.value = saved ? saved.statementAmount : "";
+      reconcileStatementNoteInput.value = saved?.note || "";
+    }
+    function creditStatementStatus(hasActual, diff, rows, matchedKeys = statementDraftMatched) {
+      const allMatched = rows.length ? rows.every(row => matchedKeys.has(row.statementKey)) : true;
+      if (!hasActual) return { label: "待輸入帳單", cls: "", note: "輸入銀行帳單應繳金額後，即可開始核對差額。" };
+      if (Math.abs(diff) < 1 && allMatched) return { label: "核對完成", cls: "matched", note: "帳單金額與 App 明細相符，且所有明細都已逐筆確認。" };
+      if (Math.abs(diff) < 1) return { label: "金額相符", cls: "matched", note: "總金額相符，但仍有 App 明細尚未勾選確認。" };
+      return { label: "仍有差額", cls: "difference", note: diff > 0 ? "銀行帳單較高，請檢查是否有漏記消費、年費或手續費。" : "App 明細較高，請檢查重複記帳、退款或帳單折抵。" };
+    }
+    function renderCreditReconcileHistory() {
+      const target = document.getElementById("creditReconcileHistory");
+      const rows = [...(ledger.creditStatementChecks || [])]
+        .sort((a, b) => String(b.billMonth).localeCompare(String(a.billMonth)) || String(b.updatedAt).localeCompare(String(a.updatedAt)));
+      target.innerHTML = rows.length ? rows.map(row => {
+        const complete = Math.abs(Number(row.diff) || 0) < 1 && (!row.rowCount || row.matchedKeys.length >= row.rowCount);
+        return `<div class="statement-history-card">
+          <div>
+            <strong>${escapeHtml(row.card)}｜${escapeHtml(row.billMonth)}</strong>
+            <small>帳單 ${money(row.statementAmount)}｜App ${money(row.appAmount)}｜差額 ${row.diff >= 0 ? "+" : ""}${money(row.diff)}<br>已核對 ${row.matchedKeys.length} / ${row.rowCount || row.matchedKeys.length} 筆｜${escapeHtml(String(row.updatedAt || "").slice(0, 10))}</small>
+            ${row.note ? `<small>備註：${escapeHtml(row.note)}</small>` : ""}
+          </div>
+          <div class="statement-history-actions">
+            <span class="statement-status-badge ${complete ? "matched" : "difference"}">${complete ? "相符" : "待確認"}</span>
+            <button class="btn small blue" type="button" data-load-credit-check="${escapeHtml(row.id)}">查看</button>
+            <button class="icon-action delete" type="button" title="刪除對帳紀錄" aria-label="刪除對帳紀錄" data-remove-credit-check="${escapeHtml(row.id)}"><i data-lucide="trash-2"></i></button>
+          </div>
+        </div>`;
+      }).join("") : `<div class="empty">尚未儲存信用卡對帳紀錄</div>`;
+    }
+    function renderCreditReconciliation() {
+      const summaryTarget = document.getElementById("creditReconcileSummary");
+      const statusTarget = document.getElementById("creditReconcileStatus");
+      const tableTarget = document.getElementById("creditReconcileTable");
+      const rangeTarget = document.getElementById("creditReconcileRange");
+      const cardName = reconcileCreditCardSelect.value;
+      const billMonth = reconcileBillMonthInput.value || monthOf();
+      const cardRow = ledger.accounts.find(account => account.type === "信用卡" && account.name === cardName);
+      if (!cardRow) {
+        summaryTarget.innerHTML = card("尚未建立信用卡", "－", "請先到信用卡設定新增卡片", "accent");
+        statusTarget.innerHTML = `<div class="statement-status"><div><strong>無法開始對帳</strong><small>建立信用卡後，這裡會依帳期列出明細。</small></div><span class="statement-status-badge">待設定</span></div>`;
+        tableTarget.innerHTML = `<div class="empty">尚無信用卡可供核對</div>`;
+        rangeTarget.textContent = "";
+        renderCreditReconcileHistory();
+        if (window.lucide) window.lucide.createIcons();
+        return;
+      }
+      loadCreditStatementDraft();
+      const rows = creditStatementRows(cardName, billMonth);
+      const appAmount = sum(rows, row => row.statementAmount);
+      const hasActual = reconcileStatementAmountInput.value !== "";
+      const statementAmount = hasActual ? Number(reconcileStatementAmountInput.value) || 0 : 0;
+      const diff = statementAmount - appAmount;
+      const matchedRows = rows.filter(row => statementDraftMatched.has(row.statementKey));
+      const matchedAmount = sum(matchedRows, row => row.statementAmount);
+      const status = creditStatementStatus(hasActual, diff, rows);
+      summaryTarget.innerHTML = [
+        card("App 帳期明細", money(appAmount), `${rows.length} 筆｜${escapeHtml(cardRow.currency)}`, "dark"),
+        card("銀行帳單金額", hasActual ? money(statementAmount) : "待輸入", escapeHtml(cardRow.currency)),
+        card("帳單差額", hasActual ? `${diff >= 0 ? "+" : ""}${money(diff)}` : "－", hasActual ? escapeHtml(cardRow.currency) : "輸入帳單後計算", Math.abs(diff) < 1 && hasActual ? "" : "accent"),
+        card("逐筆核對進度", `${matchedRows.length} / ${rows.length}`, `已勾金額 ${money(matchedAmount)}`, "accent")
+      ].join("");
+      statusTarget.innerHTML = `<div class="statement-status"><div><strong>${escapeHtml(cardName)}｜${escapeHtml(billMonth)} 對帳狀態</strong><small>${escapeHtml(status.note)}</small></div><span class="statement-status-badge ${status.cls}">${status.label}</span></div>`;
+      rangeTarget.textContent = `帳期 ${creditStatementRange(cardRow, billMonth)}`;
+      tableTarget.innerHTML = rows.length ? `<div class="table-wrap"><table id="statementMatchTable">
+        <thead><tr><th>核對</th><th>日期</th><th>商家 / 項目</th><th>分類</th><th>帳單增減</th><th>來源</th></tr></thead>
+        <tbody>${rows.map(row => `<tr>
+          <td class="statement-check-cell"><input class="statement-check" type="checkbox" title="已在信用卡帳單找到" aria-label="${escapeHtml(row.date)} ${escapeHtml(row.merchant || row.item || row.category)} 已核對" data-statement-match="${escapeHtml(row.statementKey)}" ${statementDraftMatched.has(row.statementKey) ? "checked" : ""}></td>
+          <td>${escapeHtml(row.date || "")}</td>
+          <td>${escapeHtml(row.merchant || row.item || "未填商家")} ${row.item && row.item !== row.merchant ? `<small class="hint">${escapeHtml(row.item)}</small>` : ""}</td>
+          <td>${escapeHtml(row.category || "未分類")}</td>
+          <td class="${row.statementAmount >= 0 ? "amount-expense" : "amount-income"}">${row.statementAmount >= 0 ? "+" : "-"}${money(Math.abs(row.statementAmount))}</td>
+          <td><span class="statement-source ${row.virtualInstallment ? "installment" : ""}">${row.virtualInstallment ? "分期" : row.type === "income" ? "退款 / 回饋" : "日常記帳"}</span></td>
+        </tr>`).join("")}</tbody>
+      </table></div>` : `<div class="empty">這張卡在 ${escapeHtml(billMonth)} 帳期沒有 App 明細；請確認信用卡、結帳日與記帳帳戶。</div>`;
+      renderCreditReconcileHistory();
+      if (window.lucide) window.lucide.createIcons();
     }
     function billTotalAmount(bill) {
       if (!bill) return 0;
@@ -3693,6 +4223,7 @@
       renderTransfers();
       renderTemplates();
       renderReconciliations();
+      renderCreditReconciliation();
       renderRecurringRules();
       renderBudgetAlerts(rows);
       renderBudgetOverview();
@@ -3700,7 +4231,7 @@
       renderFinanceCommandCenter();
       renderBackupList();
       renderEnhancedReports();
-      document.querySelectorAll("button[data-delete], button[data-delete-transfer], button[data-remove-bill], button[data-remove-installment], button[data-remove-account], button[data-remove-reconcile], button[data-remove-recurring], button[data-remove-budget]").forEach(button => {
+      document.querySelectorAll("button[data-delete], button[data-delete-transfer], button[data-remove-bill], button[data-remove-installment], button[data-remove-account], button[data-remove-reconcile], button[data-remove-credit-check], button[data-remove-recurring], button[data-remove-budget]").forEach(button => {
         button.classList.add("icon-action", "delete");
         button.title ||= "刪除";
         button.setAttribute("aria-label", button.title);
@@ -3846,6 +4377,62 @@
       if (viewButton) {
         switchView(viewButton.dataset.view);
         document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
+      const statementMatch = event.target.closest("[data-statement-match]");
+      if (statementMatch) {
+        if (statementMatch.checked) statementDraftMatched.add(statementMatch.dataset.statementMatch);
+        else statementDraftMatched.delete(statementMatch.dataset.statementMatch);
+        renderCreditReconciliation();
+        return;
+      }
+      if (event.target.closest("[data-match-all-statement]")) {
+        creditStatementRows(reconcileCreditCardSelect.value, reconcileBillMonthInput.value || monthOf())
+          .forEach(row => statementDraftMatched.add(row.statementKey));
+        renderCreditReconciliation();
+        return;
+      }
+      if (event.target.closest("[data-clear-statement-matches]")) {
+        statementDraftMatched.clear();
+        renderCreditReconciliation();
+        return;
+      }
+      if (event.target.closest("[data-use-credit-bill]")) {
+        const amount = registeredCreditBillAmount(reconcileCreditCardSelect.value, reconcileBillMonthInput.value || monthOf());
+        if (amount == null) {
+          toast("這個月份尚未在信用卡設定建立帳單");
+          return;
+        }
+        reconcileStatementAmountInput.value = amount;
+        renderCreditReconciliation();
+        toast("已帶入信用卡設定中的帳單金額");
+        return;
+      }
+      if (event.target.closest("[data-refresh-credit-check]")) {
+        renderCreditReconciliation();
+        toast("已依目前記帳明細重新計算");
+        return;
+      }
+      const loadCreditCheck = event.target.closest("[data-load-credit-check]");
+      if (loadCreditCheck) {
+        const row = (ledger.creditStatementChecks || []).find(item => item.id === loadCreditCheck.dataset.loadCreditCheck);
+        if (!row) return;
+        reconcileCreditCardSelect.value = row.card;
+        reconcileBillMonthInput.value = row.billMonth;
+        statementDraftKey = "";
+        loadCreditStatementDraft(true);
+        switchView("creditReconcileView");
+        renderCreditReconciliation();
+        return;
+      }
+      const removeCreditCheck = event.target.closest("[data-remove-credit-check]");
+      if (removeCreditCheck) {
+        if (!confirm("確定刪除這筆信用卡對帳紀錄？日常記帳明細不會被刪除。")) return;
+        ledger.creditStatementChecks = (ledger.creditStatementChecks || []).filter(row => row.id !== removeCreditCheck.dataset.removeCreditCheck);
+        statementDraftKey = "";
+        saveLedger();
+        render();
+        toast("已刪除信用卡對帳紀錄");
         return;
       }
       if (event.target.closest("[data-month-close]")) {
@@ -4299,6 +4886,56 @@
       render();
       toast("已新增信用卡帳單");
     });
+    [reconcileCreditCardSelect, reconcileBillMonthInput].forEach(control => control.addEventListener("change", () => {
+      statementDraftKey = "";
+      loadCreditStatementDraft(true);
+      renderCreditReconciliation();
+    }));
+    reconcileStatementAmountInput.addEventListener("input", renderCreditReconciliation);
+    creditReconcileForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const card = reconcileCreditCardSelect.value;
+      const billMonth = reconcileBillMonthInput.value || monthOf();
+      if (!card || !billMonth) {
+        toast("請選擇信用卡與帳單月份");
+        return;
+      }
+      if (reconcileStatementAmountInput.value === "") {
+        toast("請輸入銀行信用卡帳單金額");
+        return;
+      }
+      const rows = creditStatementRows(card, billMonth);
+      const rowKeys = new Set(rows.map(row => row.statementKey));
+      const matchedKeys = [...statementDraftMatched].filter(key => rowKeys.has(key));
+      const appAmount = sum(rows, row => row.statementAmount);
+      const statementAmount = Number(reconcileStatementAmountInput.value) || 0;
+      const diff = statementAmount - appAmount;
+      const matchedAmount = sum(rows.filter(row => matchedKeys.includes(row.statementKey)), row => row.statementAmount);
+      ledger.creditStatementChecks ||= [];
+      const existing = creditStatementRecord(card, billMonth);
+      const now = new Date().toISOString();
+      const next = {
+        id: existing?.id || uid(),
+        card,
+        billMonth,
+        statementAmount,
+        appAmount,
+        diff,
+        matchedKeys,
+        rowCount: rows.length,
+        matchedAmount,
+        note: reconcileStatementNoteInput.value.trim(),
+        checkedAt: existing?.checkedAt || now,
+        updatedAt: now
+      };
+      if (existing) Object.assign(existing, next);
+      else ledger.creditStatementChecks.push(next);
+      statementDraftKey = `${card}__${billMonth}`;
+      statementDraftMatched = new Set(matchedKeys);
+      saveLedger();
+      render();
+      toast(Math.abs(diff) < 1 && matchedKeys.length === rows.length ? "信用卡帳單已核對完成" : "已儲存本月對帳結果");
+    });
     function updateRecurringEndDate() {
       const hasEndDate = recurringEndModeSelect.value === "end-date";
       recurringEndDateInput.disabled = !hasEndDate;
@@ -4548,6 +5185,7 @@
         recurringRules: normalizeRecurringRules(payload.recurringRules),
         budgets: normalizeBudgets(payload.budgets),
         reconciliations: normalizeReconciliations(payload.reconciliations),
+        creditStatementChecks: normalizeCreditStatementChecks(payload.creditStatementChecks),
         categories: normalizeCategories(payload.categories, payload.entries),
         items: normalizeItems(payload.items, payload.entries),
         accounts: normalizeAccounts(payload.accounts, payload.entries),
@@ -4569,6 +5207,7 @@
         recurringRules: [],
         budgets: [],
         reconciliations: [],
+        creditStatementChecks: [],
         categories: structuredClone(defaultCategories),
         items: structuredClone(defaultItems),
         accounts: structuredClone(defaultAccounts),
@@ -4583,6 +5222,7 @@
     document.getElementById("installmentDate").value = today();
     document.getElementById("installmentStartMonth").value = monthOf();
     document.getElementById("billMonth").value = monthOf();
+    reconcileBillMonthInput.value = monthOf();
     monthFilter.value = monthOf();
     recurringMonthSelect.value = monthOf().slice(5, 7);
     updateRecurringEndDate();
@@ -4600,7 +5240,18 @@
     initCloudSync();
     scheduleNextDateRefresh();
     document.addEventListener("visibilitychange", () => {
-      if (!document.hidden) refreshWhenDateChanges();
+      if (!document.hidden) {
+        refreshWhenDateChanges();
+        if (cloudUser && hasPendingCloudChanges()) scheduleCloudBackup();
+      } else if (cloudUser && hasPendingCloudChanges()) {
+        saveCloudData({ silent: true });
+      }
+    });
+    window.addEventListener("online", () => {
+      autoSyncedUserId = "";
+      cloudSyncError = false;
+      cloudRetryCount = 0;
+      autoSyncCloudData();
     });
     window.addEventListener("resize", updateMobileHeaderOffset);
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {

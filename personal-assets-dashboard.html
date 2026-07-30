@@ -2295,29 +2295,32 @@
     let supabaseClient = null;
     let cloudUser = null;
     let cloudReady = false;
+    let autoCloudSaveTimer = 0;
+    let cloudSyncInProgress = false;
+    let cloudHydrating = false;
+    let autoSyncedUserId = "";
+    let cloudSyncError = false;
+    let cloudRetryCount = 0;
     let uiMeta = loadMeta();
 
     function load() {
       try {
         const saved = JSON.parse(localStorage.getItem(storageKey));
-        return saved ? {
-          ...structuredClone(seed),
-          ...saved,
-          rates: { ...seed.rates, ...(saved.rates || {}) },
-          fxRates: { ...seed.fxRates, ...(saved.fxRates || {}) },
-          fxRateMeta: { ...seed.fxRateMeta, ...(saved.fxRateMeta || {}) },
-          safety: { ...seed.safety, ...(saved.safety || {}) },
-          targetAllocation: { ...seed.targetAllocation, ...(saved.targetAllocation || {}) }
-        } : structuredClone(seed);
+        return saved ? hydrateData(saved) : structuredClone(seed);
       }
       catch { return structuredClone(seed); }
     }
     function persist() {
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      saveState();
       toast("資料已儲存在本機瀏覽器");
     }
     function saveState() {
       localStorage.setItem(storageKey, JSON.stringify(data));
+      if (!cloudHydrating) {
+        uiMeta.lastLocalChangeAt = new Date().toISOString();
+        saveMeta();
+        scheduleCloudBackup();
+      }
     }
     function loadMeta() {
       try {
@@ -2334,6 +2337,10 @@
     }
     function saveMeta() {
       localStorage.setItem(metaKey, JSON.stringify(uiMeta));
+    }
+    function hasPendingCloudChanges() {
+      return Boolean(uiMeta.lastLocalChangeAt)
+        && uiMeta.lastLocalChangeAt !== uiMeta.lastSyncedLocalChangeAt;
     }
     function markMeta(key) {
       uiMeta[key] = new Date().toISOString();
@@ -2361,12 +2368,15 @@
     }
     function updateCloudControls() {
       const loggedIn = Boolean(cloudUser);
-      document.getElementById("cloudSave").disabled = !loggedIn;
-      document.getElementById("cloudLoad").disabled = !loggedIn;
+      document.getElementById("cloudSave").disabled = !loggedIn || cloudSyncInProgress;
+      document.getElementById("cloudLoad").disabled = !loggedIn || cloudSyncInProgress;
       document.getElementById("cloudLogout").disabled = !loggedIn;
       document.getElementById("cloudLogin").disabled = !cloudReady;
       if (!cloudReady) setCloudStatus("雲端未設定");
-      else if (loggedIn) setCloudStatus("已登入雲端");
+      else if (loggedIn && cloudSyncInProgress) setCloudStatus("雲端同步中...");
+      else if (loggedIn && cloudSyncError) setCloudStatus("自動同步失敗，等待重試");
+      else if (loggedIn && hasPendingCloudChanges()) setCloudStatus("等待自動同步");
+      else if (loggedIn) setCloudStatus("已登入・自動同步");
       else setCloudStatus("未登入");
     }
     async function loadPublicConfig() {
@@ -2420,9 +2430,15 @@
       cloudReady = true;
       const { data: sessionData } = await supabaseClient.auth.getSession();
       cloudUser = sessionData.session?.user || null;
-      supabaseClient.auth.onAuthStateChange((_event, session) => {
+      if (cloudUser) await autoSyncCloudData();
+      supabaseClient.auth.onAuthStateChange(async (_event, session) => {
         cloudUser = session?.user || null;
-        if (session?.user) cleanCloudAuthUrl();
+        if (session?.user) {
+          cleanCloudAuthUrl();
+          await autoSyncCloudData();
+        } else if (_event === "SIGNED_OUT") {
+          autoSyncedUserId = "";
+        }
         updateCloudControls();
       });
       updateCloudControls();
@@ -2451,76 +2467,147 @@
       updateCloudControls();
       toast("已登出雲端同步");
     }
-    async function saveCloudData() {
-      if (!supabaseClient || !cloudUser) {
-        toast("請先登入雲端同步");
-        return;
-      }
-      const payload = hydrateData(data);
-      const localAccounting = loadAccountingLedger();
-      const { data: existingRow } = await supabaseClient
-        .from(cloudTable)
-        .select("data")
-        .eq("user_id", cloudUser.id)
-        .maybeSingle();
-      const hasLocalAccounting = Boolean(
-        localAccounting.entries.length ||
-        (localAccounting.transfers || []).length ||
-        (localAccounting.creditBills || []).length ||
-        (localAccounting.creditInstallments || []).length ||
-        (localAccounting.templates || []).length ||
-        (localAccounting.recurringRules || []).length ||
-        (localAccounting.budgets || []).length ||
-        (localAccounting.reconciliations || []).length
-      );
-      payload.accountingLedger = hasLocalAccounting ? localAccounting : existingRow?.data?.accountingLedger;
-      const { error } = await supabaseClient
-        .from(cloudTable)
-        .upsert({ user_id: cloudUser.id, data: payload }, { onConflict: "user_id" });
-      if (error) {
-        toast(`雲端儲存失敗：${error.message}`);
-        return;
-      }
-      markMeta("lastCloudSaveAt");
-      toast("已儲存到雲端");
-      render();
+    function scheduleCloudBackup() {
+      clearTimeout(autoCloudSaveTimer);
+      if (cloudHydrating || !supabaseClient || !cloudUser) return;
+      autoCloudSaveTimer = setTimeout(() => saveCloudData({ silent: true }), 1800);
     }
-    async function loadCloudData() {
+    async function saveCloudData({ silent = false } = {}) {
       if (!supabaseClient || !cloudUser) {
-        toast("請先登入雲端同步");
-        return;
+        if (!silent) toast("請先登入雲端同步");
+        return false;
       }
-      const { data: row, error } = await supabaseClient
-        .from(cloudTable)
-        .select("data, updated_at")
-        .eq("user_id", cloudUser.id)
-        .maybeSingle();
-      if (error) {
-        toast(`雲端載入失敗：${error.message}`);
-        return;
+      if (cloudSyncInProgress) {
+        scheduleCloudBackup();
+        return false;
       }
-      if (!row?.data) {
-        toast("雲端尚無資料，已保留本機資料");
-        return;
+      cloudSyncInProgress = true;
+      updateCloudControls();
+      let saved = false;
+      try {
+        const payload = hydrateData(data);
+        const localAccounting = loadAccountingLedger();
+        const { data: existingRow, error: readError } = await supabaseClient
+          .from(cloudTable)
+          .select("data")
+          .eq("user_id", cloudUser.id)
+          .maybeSingle();
+        if (readError) throw readError;
+        const hasLocalAccounting = Boolean(
+          localAccounting.entries.length ||
+          (localAccounting.transfers || []).length ||
+          (localAccounting.creditBills || []).length ||
+          (localAccounting.creditInstallments || []).length ||
+          (localAccounting.templates || []).length ||
+          (localAccounting.recurringRules || []).length ||
+          (localAccounting.budgets || []).length ||
+          (localAccounting.reconciliations || []).length ||
+          (localAccounting.creditStatementChecks || []).length
+        );
+        payload.accountingLedger = existingRow?.data?.accountingLedger || (hasLocalAccounting ? localAccounting : undefined);
+        const syncedRevision = uiMeta.lastLocalChangeAt || "";
+        const { error } = await supabaseClient
+          .from(cloudTable)
+          .upsert({ user_id: cloudUser.id, data: payload }, { onConflict: "user_id" });
+        if (error) throw error;
+        const syncedAt = new Date().toISOString();
+        uiMeta.lastCloudSaveAt = syncedAt;
+        uiMeta.lastSyncedLocalChangeAt = syncedRevision;
+        saveMeta();
+        cloudSyncError = false;
+        cloudRetryCount = 0;
+        saved = true;
+        if (!silent) {
+          toast("已儲存到雲端");
+          render();
+        }
+        return true;
+      } catch (error) {
+        cloudSyncError = true;
+        if (!silent) toast(`雲端儲存失敗：${error.message}`);
+        return false;
+      } finally {
+        cloudSyncInProgress = false;
+        updateCloudControls();
+        if (saved && hasPendingCloudChanges()) scheduleCloudBackup();
       }
-      data = hydrateData(row.data);
-      if (row.data.accountingLedger) {
-        localStorage.setItem(accountingStorageKey, JSON.stringify(row.data.accountingLedger));
+    }
+    async function loadCloudData({ silent = false } = {}) {
+      if (!supabaseClient || !cloudUser) {
+        if (!silent) toast("請先登入雲端同步");
+        return false;
       }
-      saveState();
-      markMeta("lastCloudLoadAt");
-      render();
-      toast("已載入雲端資料");
+      if (cloudSyncInProgress) return false;
+      cloudSyncInProgress = true;
+      updateCloudControls();
+      try {
+        const { data: row, error } = await supabaseClient
+          .from(cloudTable)
+          .select("data, updated_at")
+          .eq("user_id", cloudUser.id)
+          .maybeSingle();
+        if (error) throw error;
+        if (!row?.data) {
+          if (!silent) toast("雲端尚無資料，已保留本機資料");
+          return false;
+        }
+        data = hydrateData(row.data);
+        if (row.data.accountingLedger && !silent) {
+          localStorage.setItem(accountingStorageKey, JSON.stringify(row.data.accountingLedger));
+        }
+        cloudHydrating = true;
+        saveState();
+        cloudHydrating = false;
+        const syncedAt = new Date().toISOString();
+        uiMeta.lastLocalChangeAt = syncedAt;
+        uiMeta.lastSyncedLocalChangeAt = syncedAt;
+        uiMeta.lastCloudLoadAt = syncedAt;
+        uiMeta.lastKnownCloudUpdatedAt = row.updated_at || "";
+        saveMeta();
+        cloudSyncError = false;
+        cloudRetryCount = 0;
+        render();
+        if (!silent) toast("已載入雲端資料");
+        return true;
+      } catch (error) {
+        cloudHydrating = false;
+        cloudSyncError = true;
+        if (!silent) toast(`雲端載入失敗：${error.message}`);
+        return false;
+      } finally {
+        cloudSyncInProgress = false;
+        updateCloudControls();
+      }
+    }
+    async function autoSyncCloudData() {
+      if (!supabaseClient || !cloudUser || autoSyncedUserId === cloudUser.id) return;
+      autoSyncedUserId = cloudUser.id;
+      let synced = false;
+      if (hasPendingCloudChanges()) {
+        synced = await saveCloudData({ silent: true });
+      } else {
+        synced = await loadCloudData({ silent: true });
+        if (!synced && !cloudSyncError) synced = await saveCloudData({ silent: true });
+      }
+      if (!synced && cloudSyncError && cloudRetryCount < 2) {
+        cloudRetryCount += 1;
+        autoSyncedUserId = "";
+        setTimeout(() => {
+          if (cloudUser && navigator.onLine !== false) autoSyncCloudData();
+        }, 15000);
+      }
     }
     function hydrateData(payload) {
+      const source = payload || {};
+      const { accountingLedger: _accountingLedger, accountingMonthlyBackups: _accountingBackups, ...assetPayload } = source;
       return {
         ...structuredClone(seed),
-        ...(payload || {}),
-        rates: { ...seed.rates, ...((payload || {}).rates || {}) },
-        fxRates: { ...seed.fxRates, ...((payload || {}).fxRates || {}) },
-        fxRateMeta: { ...seed.fxRateMeta, ...((payload || {}).fxRateMeta || {}) },
-        safety: { ...seed.safety, ...((payload || {}).safety || {}) },
-        targetAllocation: { ...seed.targetAllocation, ...((payload || {}).targetAllocation || {}) }
+        ...assetPayload,
+        rates: { ...seed.rates, ...(assetPayload.rates || {}) },
+        fxRates: { ...seed.fxRates, ...(assetPayload.fxRates || {}) },
+        fxRateMeta: { ...seed.fxRateMeta, ...(assetPayload.fxRateMeta || {}) },
+        safety: { ...seed.safety, ...(assetPayload.safety || {}) },
+        targetAllocation: { ...seed.targetAllocation, ...(assetPayload.targetAllocation || {}) }
       };
     }
     function purchaseRecordKey(row) {
@@ -3016,7 +3103,7 @@
         schedule.lastProcessedMonth = month;
         added += 1;
       });
-      if (added) localStorage.setItem(storageKey, JSON.stringify(data));
+      if (added) saveState();
       return added;
     }
     function shiftMonth(month, delta) {
@@ -4474,7 +4561,7 @@
         toast("已新增今日快照");
       }
       calendarMonth = snapshot.date.slice(0, 7);
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      saveState();
       render();
     }
     function recordAssetSnapshot() {
@@ -4625,7 +4712,7 @@
       };
       updateWatchlist("twWatchlist", "TW");
       updateWatchlist("usWatchlist", "US");
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      saveState();
       render();
       toast(updated ? `已更新 ${updated} 筆股價` : "沒有找到可套用的股價");
     }
@@ -4646,7 +4733,7 @@
           generatedAt: payload.generatedAt || new Date().toISOString(),
           source: payload.source || "自動匯率"
         };
-        localStorage.setItem(storageKey, JSON.stringify(data));
+        saveState();
         render();
       }
       toast(updated ? `已更新 ${updated} 個幣別匯率` : "沒有找到可套用的匯率");
@@ -4655,7 +4742,7 @@
     function applyLatestValuations(payload) {
       const valuations = payload.valuations || {};
       data.valuationCache = { ...(data.valuationCache || {}), ...valuations };
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      saveState();
       render();
       return Object.keys(valuations).length;
     }
@@ -4816,7 +4903,7 @@
         data = hydrateData(payload);
         toast("已匯入完整存檔");
       }
-      localStorage.setItem(storageKey, JSON.stringify(data));
+      saveState();
       render();
       e.target.value = "";
     });
@@ -4859,6 +4946,19 @@
     });
     window.addEventListener("storage", (event) => {
       if (event.key === accountingStorageKey && currentTab === "bookkeeping") render();
+    });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden && cloudUser && hasPendingCloudChanges()) {
+        saveCloudData({ silent: true });
+      } else if (!document.hidden && cloudUser && hasPendingCloudChanges()) {
+        scheduleCloudBackup();
+      }
+    });
+    window.addEventListener("online", () => {
+      autoSyncedUserId = "";
+      cloudSyncError = false;
+      cloudRetryCount = 0;
+      autoSyncCloudData();
     });
     window.addEventListener("resize", updateHeaderOffset);
     initCloudSync();
