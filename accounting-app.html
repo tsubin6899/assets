@@ -257,6 +257,7 @@
       gap: 10px;
       margin-top: 14px;
     }
+    [hidden] { display: none !important; }
     .manager-grid {
       display: grid;
       gap: 14px;
@@ -1853,6 +1854,12 @@
               <label>分類<select id="category" required></select></label>
               <label>項目<select id="item"></select></label>
               <label>帳戶<select id="account" required></select></label>
+              <label id="purchaseRegionField" hidden>刷卡消費地區
+                <select id="purchaseRegion">
+                  <option value="domestic" selected>國內消費</option>
+                  <option value="foreign">國外消費</option>
+                </select>
+              </label>
               <details id="entryOptional" class="entry-optional full" open>
                 <summary>更多選填資訊</summary>
                 <div class="entry-optional-fields">
@@ -2357,6 +2364,8 @@
     const itemSelect = document.getElementById("item");
     const itemCategorySelect = document.getElementById("itemCategory");
     const accountSelect = document.getElementById("account");
+    const purchaseRegionField = document.getElementById("purchaseRegionField");
+    const purchaseRegionSelect = document.getElementById("purchaseRegion");
     const accountTypeLabel = document.createElement("label");
     accountTypeLabel.textContent = "帳戶類型";
     const accountTypeSelect = document.createElement("select");
@@ -2509,6 +2518,63 @@
     function money(value) {
       return Math.round(Number(value) || 0).toLocaleString("zh-TW");
     }
+    function foreignTransactionFeeAmount(value) {
+      return Math.round((Number(value) || 0) * 15 / 1000);
+    }
+    function sourceEntryDescriptor(row) {
+      const subject = row.merchant || row.item || row.category || "未命名支出";
+      return `${row.date || ""}「${subject}」${money(row.amount)} 元（支出 ID：${row.id}）`;
+    }
+    function ensureForeignFeeTaxonomy() {
+      ledger.categories.expense = normalizeList([...(ledger.categories.expense || []), "手續費"], []);
+      ledger.items.expense ||= {};
+      ledger.items.expense["手續費"] = normalizeList([...(ledger.items.expense["手續費"] || []), "國外消費手續費"], []);
+    }
+    function syncForeignTransactionFee(sourceEntry) {
+      if (!sourceEntry || sourceEntry.isForeignTransactionFee) return null;
+      const account = ledger.accounts.find(item => item.name === sourceEntry.account);
+      const shouldHaveFee = sourceEntry.type === "expense"
+        && account?.type === "信用卡"
+        && sourceEntry.purchaseRegion === "foreign";
+      const relatedFees = ledger.entries.filter(row => row.isForeignTransactionFee && row.derivedFromEntryId === sourceEntry.id);
+      if (!shouldHaveFee) {
+        if (relatedFees.length) {
+          const relatedIds = new Set(relatedFees.map(row => row.id));
+          ledger.entries = ledger.entries.filter(row => !relatedIds.has(row.id));
+        }
+        return null;
+      }
+      ensureForeignFeeTaxonomy();
+      const existing = relatedFees[0];
+      const fee = existing || { id: uid(), createdAt: new Date(Date.now() + 1).toISOString() };
+      Object.assign(fee, {
+        type: "expense",
+        date: sourceEntry.date || today(),
+        amount: foreignTransactionFeeAmount(sourceEntry.amount),
+        category: "手續費",
+        item: "國外消費手續費",
+        account: sourceEntry.account,
+        merchant: "信用卡國外消費手續費",
+        note: `1.5% 國外消費手續費｜衍生自 ${sourceEntryDescriptor(sourceEntry)}`,
+        receiptDataUrl: "",
+        purchaseRegion: "",
+        billMonth: creditStatementMonth(account, sourceEntry.date || today()),
+        isForeignTransactionFee: true,
+        derivedFromEntryId: sourceEntry.id,
+        feeRate: 0.015
+      });
+      if (!existing) ledger.entries.push(fee);
+      if (relatedFees.length > 1) {
+        ledger.entries = ledger.entries.filter(row => !row.isForeignTransactionFee || row.derivedFromEntryId !== sourceEntry.id || row.id === fee.id);
+      }
+      return fee;
+    }
+    function reconcileForeignTransactionFees() {
+      const sourceRows = ledger.entries.filter(row => !row.isForeignTransactionFee);
+      sourceRows.forEach(syncForeignTransactionFee);
+      const sourceIds = new Set(sourceRows.map(row => row.id));
+      ledger.entries = ledger.entries.filter(row => !row.isForeignTransactionFee || sourceIds.has(row.derivedFromEntryId));
+    }
     function normalizeCurrency(value) {
       return String(value || "TWD").trim().toUpperCase();
     }
@@ -2583,10 +2649,19 @@
       const rows = [...ledger.entries, ...installmentEntries()];
       return options.includePendingRecurring ? rows : rows.filter(row => isRealizedEntry(row));
     }
+    function normalizeEntries(saved) {
+      return (Array.isArray(saved) ? saved : []).map(row => ({
+        ...row,
+        purchaseRegion: row.purchaseRegion === "foreign" ? "foreign" : row.purchaseRegion === "domestic" ? "domestic" : "",
+        isForeignTransactionFee: Boolean(row.isForeignTransactionFee),
+        derivedFromEntryId: String(row.derivedFromEntryId || ""),
+        feeRate: row.isForeignTransactionFee ? Number(row.feeRate) || 0.015 : Number(row.feeRate) || 0
+      }));
+    }
     function loadLedger() {
       try {
         const saved = JSON.parse(localStorage.getItem(accountingKey) || "{}");
-        const entries = Array.isArray(saved.entries) ? saved.entries : [];
+        const entries = normalizeEntries(saved.entries);
         const transfers = normalizeTransfers(saved.transfers);
         const creditBills = normalizeCreditBills(saved.creditBills);
         const creditInstallments = normalizeCreditInstallments(saved.creditInstallments);
@@ -3089,6 +3164,7 @@
           return false;
         }
         ledger = hydrateLedger(payload.accountingLedger);
+        reconcileForeignTransactionFees();
         monthlyBackups = normalizeMonthlyBackups(payload.accountingMonthlyBackups);
         cloudHydrating = true;
         localStorage.setItem(accountingKey, JSON.stringify(ledger));
@@ -3132,7 +3208,7 @@
       }
     }
     function hydrateLedger(payload = {}) {
-      const entries = Array.isArray(payload.entries) ? payload.entries : [];
+      const entries = normalizeEntries(payload.entries);
       return {
         entries,
         transfers: normalizeTransfers(payload.transfers),
@@ -3173,10 +3249,17 @@
       currentType = type;
       entryTypeButtons.forEach(button => button.classList.toggle("active", button.dataset.type === type));
       refreshLists();
+      updatePurchaseRegionVisibility();
+    }
+    function updatePurchaseRegionVisibility() {
+      const account = ledger.accounts.find(item => item.name === accountSelect.value);
+      const visible = currentType === "expense" && account?.type === "信用卡";
+      purchaseRegionField.hidden = !visible;
+      if (!visible) purchaseRegionSelect.value = "domestic";
     }
     function refreshLists() {
       const merchantCounts = new Map();
-      ledger.entries.forEach(row => {
+      ledger.entries.filter(row => !row.isForeignTransactionFee).forEach(row => {
         const merchant = String(row.merchant || "").trim();
         if (merchant) merchantCounts.set(merchant, (merchantCounts.get(merchant) || 0) + 1);
       });
@@ -3243,6 +3326,7 @@
       if (!accounts.length) accounts = ledger.accounts;
       accountSelect.innerHTML = accounts.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.currency)}</option>`).join("");
       if (currentAccount && accounts.some(account => account.name === currentAccount)) accountSelect.value = currentAccount;
+      updatePurchaseRegionVisibility();
     }
     function renderAccountOptions(select, selectedValue, allowEmpty = false) {
       if (!select) return;
@@ -3330,6 +3414,10 @@
       if (kind === "entry") {
         const row = ledger.entries.find(item => item.id === id);
         if (!row) return;
+        if (row.isForeignTransactionFee) {
+          toast("此筆手續費由原支出自動管理，請編輯原支出");
+          return;
+        }
         title.textContent = "編輯收支明細";
         editFields.innerHTML = `
           <label>日期<input name="date" type="date" value="${escapeHtml(row.date)}" required></label>
@@ -3338,8 +3426,19 @@
           <label>分類<input name="category" value="${escapeHtml(row.category)}" required></label>
           <label>項目<input name="item" value="${escapeHtml(row.item || "")}"></label>
           <label>帳戶<select name="account">${editOptions(ledger.accounts.map(account => account.name), row.account)}</select></label>
+          <label data-edit-purchase-region>刷卡消費地區<select name="purchaseRegion"><option value="domestic"${row.purchaseRegion !== "foreign" ? " selected" : ""}>國內消費</option><option value="foreign"${row.purchaseRegion === "foreign" ? " selected" : ""}>國外消費</option></select></label>
           <label>商家 / 對象<input name="merchant" value="${escapeHtml(row.merchant || "")}"></label>
           <label>備註<input name="note" value="${escapeHtml(row.note || "")}"></label>`;
+        const editTypeSelect = editFields.querySelector('[name="type"]');
+        const editAccountSelect = editFields.querySelector('[name="account"]');
+        const editPurchaseRegionField = editFields.querySelector("[data-edit-purchase-region]");
+        const updateEditPurchaseRegion = () => {
+          const account = ledger.accounts.find(item => item.name === editAccountSelect.value);
+          editPurchaseRegionField.hidden = editTypeSelect.value !== "expense" || account?.type !== "信用卡";
+        };
+        editTypeSelect.addEventListener("change", updateEditPurchaseRegion);
+        editAccountSelect.addEventListener("change", updateEditPurchaseRegion);
+        updateEditPurchaseRegion();
       } else if (kind === "account") {
         const row = ledger.accounts.find(item => item.id === id);
         if (!row) return;
@@ -3399,7 +3498,9 @@
         const row = ledger.entries.find(item => item.id === editState.id);
         if (!row) return;
         const account = ledger.accounts.find(item => item.name === values.account);
-        Object.assign(row, { date: values.date || today(), type: values.type === "income" ? "income" : "expense", amount: Number(values.amount) || 0, category: String(values.category || "").trim(), item: String(values.item || "").trim(), account: values.account || "", merchant: String(values.merchant || "").trim(), note: String(values.note || "").trim(), billMonth: account?.type === "信用卡" ? creditStatementMonth(account, values.date || today()) : "" });
+        const type = values.type === "income" ? "income" : "expense";
+        Object.assign(row, { date: values.date || today(), type, amount: Number(values.amount) || 0, category: String(values.category || "").trim(), item: String(values.item || "").trim(), account: values.account || "", merchant: String(values.merchant || "").trim(), note: String(values.note || "").trim(), purchaseRegion: type === "expense" && account?.type === "信用卡" && values.purchaseRegion === "foreign" ? "foreign" : type === "expense" && account?.type === "信用卡" ? "domestic" : "", billMonth: account?.type === "信用卡" ? creditStatementMonth(account, values.date || today()) : "" });
+        syncForeignTransactionFee(row);
       } else if (editState.kind === "account") {
         const row = ledger.accounts.find(item => item.id === editState.id);
         const name = String(values.name || "").trim();
@@ -3716,7 +3817,7 @@
           <td>${escapeHtml(row.merchant || row.item || "未填商家")} ${row.item && row.item !== row.merchant ? `<small class="hint">${escapeHtml(row.item)}</small>` : ""}</td>
           <td>${escapeHtml(row.category || "未分類")}</td>
           <td class="${row.statementAmount >= 0 ? "amount-expense" : "amount-income"}">${row.statementAmount >= 0 ? "+" : "-"}${money(Math.abs(row.statementAmount))}</td>
-          <td><span class="statement-source ${row.virtualInstallment ? "installment" : ""}">${row.virtualInstallment ? "分期" : row.type === "income" ? "退款 / 回饋" : "日常記帳"}</span></td>
+          <td><span class="statement-source ${row.virtualInstallment ? "installment" : ""}">${row.virtualInstallment ? "分期" : row.isForeignTransactionFee ? "國外手續費" : row.type === "income" ? "退款 / 回饋" : "日常記帳"}</span></td>
         </tr>`).join("")}</tbody>
       </table></div>` : `<div class="empty">這張卡在 ${escapeHtml(billMonth)} 帳期沒有 App 明細；請確認信用卡、結帳日與記帳帳戶。</div>`;
       renderCreditReconcileHistory();
@@ -3837,9 +3938,15 @@
         return;
       }
       document.getElementById(target).innerHTML = `${prefix}<div class="table-wrap"><table>
-        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>項目</th><th>金額</th><th>帳戶</th><th>商家 / 對象</th><th>備註</th><th>收據</th><th>操作</th></tr></thead>
+        <thead><tr><th>日期</th><th>類型</th><th>分類</th><th>項目</th><th>金額</th><th>帳戶</th><th>刷卡地區 / 來源</th><th>商家 / 對象</th><th>備註</th><th>收據</th><th>操作</th></tr></thead>
         <tbody>${rows.map(row => {
           const account = ledger.accounts.find(item => item.name === row.account);
+          const sourceEntry = row.isForeignTransactionFee ? ledger.entries.find(item => item.id === row.derivedFromEntryId) : null;
+          const purchaseRegion = row.isForeignTransactionFee
+            ? `國外手續費${sourceEntry ? `<br><small>衍生自 ${escapeHtml(sourceEntry.merchant || sourceEntry.item || sourceEntry.category)}<br>ID：${escapeHtml(sourceEntry.id)}</small>` : `<br><small>來源 ID：${escapeHtml(row.derivedFromEntryId)}</small>`}`
+            : row.type === "expense" && account?.type === "信用卡"
+              ? (row.purchaseRegion === "foreign" ? "國外消費" : "國內消費")
+              : "-";
           return `<tr class="${row.recurringId ? "recurring-entry-row" : ""}">
           <td>${escapeHtml(row.date)}</td>
           <td>${row.type === "income" ? "收入" : "支出"}</td>
@@ -3847,10 +3954,11 @@
           <td>${escapeHtml(row.item || "-")}</td>
           <td class="${row.type === "income" ? "amount-income" : "amount-expense"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</td>
           <td>${escapeHtml(row.account)}${account ? `<br><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}</small>` : ""}</td>
+          <td>${purchaseRegion}</td>
           <td>${escapeHtml(row.merchant)}</td>
           <td>${escapeHtml(row.note)}</td>
           <td>${row.receiptDataUrl ? `<button class="btn small blue receipt-link" type="button" data-view-receipt="${escapeHtml(row.id)}">查看</button>` : "-"}</td>
-          <td>${row.virtualInstallment ? `<span class="bill-status">分期</span>` : `<button class="icon-action edit" type="button" title="編輯收支" aria-label="編輯收支" data-edit-entry="${escapeHtml(row.id)}"><i data-lucide="pen-line"></i></button><button class="btn small dark" type="button" data-delete="${row.id}">刪除</button>`}</td>
+          <td>${row.virtualInstallment ? `<span class="bill-status">分期</span>` : row.isForeignTransactionFee ? `<span class="bill-status">自動產生</span>` : `<button class="icon-action edit" type="button" title="編輯收支" aria-label="編輯收支" data-edit-entry="${escapeHtml(row.id)}"><i data-lucide="pen-line"></i></button><button class="btn small dark" type="button" data-delete="${row.id}">刪除</button>`}</td>
         </tr>`;
         }).join("")}</tbody>
       </table></div>`;
@@ -4007,6 +4115,8 @@
       }
       document.getElementById("merchant").value = row.merchant || "";
       document.getElementById("note").value = row.note && !String(row.note).includes("固定收支自動產生") ? row.note : "";
+      purchaseRegionSelect.value = row.purchaseRegion === "foreign" ? "foreign" : "domestic";
+      updatePurchaseRegionVisibility();
       if (scroll) document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
       document.getElementById("amount").focus({ preventScroll: true });
     }
@@ -4334,10 +4444,11 @@
         return;
       }
       const selectedAccount = ledger.accounts.find(account => account.name === accountSelect.value);
-      ledger.entries.push({
+      const entryDate = document.getElementById("date").value || today();
+      const entry = {
         id: uid(),
         type: currentType,
-        date: document.getElementById("date").value || today(),
+        date: entryDate,
         amount,
         category: categorySelect.value || (currentType === "income" ? "其他收入" : "其他支出"),
         item: itemSelect.value,
@@ -4345,9 +4456,12 @@
         merchant: document.getElementById("merchant").value.trim(),
         note: document.getElementById("note").value.trim(),
         receiptDataUrl,
-        billMonth: selectedAccount?.type === "信用卡" ? creditStatementMonth(selectedAccount, document.getElementById("date").value || today()) : "",
+        purchaseRegion: currentType === "expense" && selectedAccount?.type === "信用卡" && purchaseRegionSelect.value === "foreign" ? "foreign" : currentType === "expense" && selectedAccount?.type === "信用卡" ? "domestic" : "",
+        billMonth: selectedAccount?.type === "信用卡" ? creditStatementMonth(selectedAccount, entryDate) : "",
         createdAt: new Date().toISOString()
-      });
+      };
+      ledger.entries.push(entry);
+      const generatedFee = syncForeignTransactionFee(entry);
       saveLedger();
       form.reset();
       receiptDataUrl = "";
@@ -4356,7 +4470,7 @@
       document.getElementById("date").value = today();
       setType(currentType);
       render();
-      toast("已新增記帳");
+      toast(generatedFee ? `已新增記帳，並產生 ${money(generatedFee.amount)} 元國外手續費` : "已新增記帳");
     });
     document.addEventListener("click", event => {
       if (event.target.closest("[data-mobile-more]")) {
@@ -4468,6 +4582,7 @@
         if (!item) return;
         const map = { entry: "entries", account: "accounts", bill: "creditBills", recurring: "recurringRules", budget: "budgets" };
         if (map[item.type]) ledger[map[item.type]].push(item.row);
+        if (item.type === "entry" && !item.row.isForeignTransactionFee) syncForeignTransactionFee(item.row);
         ledger.recycleBin = ledger.recycleBin.filter(row => row.id !== item.id);
         saveLedger(); editDialog.close(); render(); toast("已從回收桶還原"); return;
       }
@@ -4483,7 +4598,7 @@
       if (del && confirm("確定刪除此筆記帳？")) {
         const row = ledger.entries.find(item => item.id === del.dataset.delete);
         if (row) moveToRecycle("entry", row);
-        ledger.entries = ledger.entries.filter(row => row.id !== del.dataset.delete);
+        ledger.entries = ledger.entries.filter(row => row.id !== del.dataset.delete && row.derivedFromEntryId !== del.dataset.delete);
         saveLedger();
         render();
         toast("已刪除");
@@ -4499,6 +4614,7 @@
         const backup = monthlyBackups.find(row => row.month === restoreBackup.dataset.restoreBackup);
         if (backup && confirm(`確定還原 ${backup.month} 的月結備份？目前本機資料會被備份內容取代。`)) {
           ledger = hydrateLedger(backup.ledger);
+          reconcileForeignTransactionFees();
           saveLedger();
           render();
           toast(`已還原 ${backup.month} 月結備份`);
@@ -5128,6 +5244,7 @@
     document.getElementById("scanInvoice").addEventListener("click", recognizeInvoice);
     categorySelect.addEventListener("change", refreshLists);
     accountTypeSelect.addEventListener("change", () => renderEntryAccountOptions());
+    accountSelect.addEventListener("change", updatePurchaseRegionVisibility);
     itemCategorySelect.addEventListener("change", refreshLists);
     [monthFilter, typeFilter, accountFilter, categoryFilter, minAmountFilter, maxAmountFilter, searchInput].forEach(el => {
       el.addEventListener("input", render);
@@ -5135,8 +5252,8 @@
     });
     document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", () => {
-      const header = ["日期", "類型", "分類", "項目", "金額", "帳戶", "商家/對象", "備註"];
-      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.item || "", row.amount, row.account, row.merchant, row.note].map(csvEscape).join(","))];
+      const header = ["日期", "類型", "分類", "項目", "金額", "帳戶", "刷卡消費地區", "商家/對象", "備註", "衍生來源支出ID"];
+      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.item || "", row.amount, row.account, row.isForeignTransactionFee ? "國外手續費" : row.purchaseRegion === "foreign" ? "國外消費" : row.purchaseRegion === "domestic" ? "國內消費" : "", row.merchant, row.note, row.derivedFromEntryId || ""].map(csvEscape).join(","))];
       download("tsubin-accounting-data.csv", "\ufeff" + lines.join("\n"), "text/csv;charset=utf-8");
     });
     document.getElementById("importButton").addEventListener("click", () => document.getElementById("importFile").click());
@@ -5158,7 +5275,7 @@
     });
     document.getElementById("duplicateLastEntry").addEventListener("click", () => {
       const lastEntry = [...ledger.entries]
-        .filter(row => isRealizedEntry(row))
+        .filter(row => isRealizedEntry(row) && !row.isForeignTransactionFee)
         .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0];
       if (!lastEntry) {
         toast("目前沒有可以複製的上一筆記帳");
@@ -5177,7 +5294,7 @@
         return;
       }
       ledger = {
-        entries: payload.entries,
+        entries: normalizeEntries(payload.entries),
         transfers: normalizeTransfers(payload.transfers),
         creditBills: normalizeCreditBills(payload.creditBills),
         creditInstallments: normalizeCreditInstallments(payload.creditInstallments),
@@ -5191,6 +5308,7 @@
         accounts: normalizeAccounts(payload.accounts, payload.entries),
         methods: normalizeList(payload.methods, [])
       };
+      reconcileForeignTransactionFees();
       saveLedger();
       render();
       toast("已匯入記帳資料");
@@ -5234,6 +5352,7 @@
     applyPrivacyMode();
     applyThemeMode();
     loadSharedFxRates();
+    reconcileForeignTransactionFees();
     setType("expense");
     render();
     refreshSharedFxRates().then(render);
