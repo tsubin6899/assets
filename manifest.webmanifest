@@ -1,14 +1,14 @@
 {
-  "name": "個人資產儀表板｜阿斌Tsubin",
+  "name": "個人資產儀表板｜阿斌 Tsubin",
   "short_name": "資產儀表板",
-  "description": "管理台股、美股、現金、貴金屬、基金、定期投入與交易紀錄。",
+  "description": "整合台股、美股、現金、基金、貴金屬、資產配置與財務健康提醒。",
   "lang": "zh-Hant-TW",
   "start_url": "./personal-assets-dashboard.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#edf0f2",
-  "theme_color": "#edf0f2",
+  "theme_color": "#172033",
   "icons": [
     {
       "src": "icons/icon-192.png",

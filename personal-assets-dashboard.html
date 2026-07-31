@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>個人資產儀表板｜阿斌Tsubin</title>
-  <meta name="theme-color" content="#101c34">
-  <meta name="application-name" content="阿斌資產儀表板">
-  <meta name="apple-mobile-web-app-title" content="阿斌資產儀表板">
+  <title>個人資產儀表板｜阿斌 Tsubin</title>
+  <meta name="theme-color" content="#172033">
+  <meta name="application-name" content="個人資產儀表板">
+  <meta name="apple-mobile-web-app-title" content="個人資產儀表板">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="manifest.webmanifest">
@@ -2039,6 +2039,293 @@
         min-height: 44px;
       }
     }
+
+    /* 2026 unified product shell and decision-first asset overview */
+    .product-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 9px;
+    }
+    .product-switcher a {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 11px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      color: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .product-switcher a.active {
+      color: #172033;
+      border-color: #fffdf8;
+      background: #fffdf8;
+    }
+    .product-switcher svg { width: 15px; height: 15px; }
+    .compact-sync-status {
+      margin-left: auto;
+      color: rgba(255,255,255,.72);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .product-more {
+      width: 36px;
+      height: 36px;
+      display: none;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+    }
+    .product-more svg { width: 17px; height: 17px; }
+    .net-worth-hero {
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(260px, .8fr);
+      gap: 22px;
+      margin-bottom: 16px;
+      padding: 24px;
+      border-radius: 16px;
+      color: #fff;
+      background: #183746;
+      box-shadow: 0 18px 44px rgba(23,52,65,.19);
+    }
+    .core-metrics {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .core-metrics .card { min-height: 108px; }
+    .net-worth-hero::after {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -90px;
+      top: -120px;
+      border-radius: 50%;
+      background: rgba(98,181,157,.16);
+      pointer-events: none;
+    }
+    .hero-period {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: rgba(255,255,255,.7);
+      font-size: 12px;
+      font-weight: 750;
+    }
+    .hero-net-value {
+      display: block;
+      margin-top: 8px;
+      font-size: clamp(32px, 4vw, 52px);
+      line-height: 1;
+      letter-spacing: -.035em;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-change {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: 12px;
+      color: #a9ead5;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .hero-change.negative { color: #ffc0b8; }
+    .hero-change small {
+      color: rgba(255,255,255,.62);
+      font-size: 11px;
+      font-weight: 650;
+    }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    .hero-actions .btn {
+      min-height: 42px;
+      border: 1px solid rgba(255,255,255,.22);
+      color: #fff;
+      background: rgba(255,255,255,.1);
+      box-shadow: none;
+    }
+    .hero-actions .btn.primary {
+      color: #183746;
+      border-color: #fff;
+      background: #fff;
+    }
+    .hero-trend {
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      min-width: 0;
+    }
+    .hero-trend-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      color: rgba(255,255,255,.68);
+      font-size: 11px;
+    }
+    .hero-spark-bars {
+      height: 104px;
+      display: flex;
+      align-items: end;
+      gap: 6px;
+      padding-top: 10px;
+      border-bottom: 1px solid rgba(255,255,255,.22);
+    }
+    .hero-spark-bars i {
+      flex: 1;
+      min-width: 5px;
+      height: var(--h);
+      border-radius: 5px 5px 0 0;
+      background: rgba(141,213,191,.74);
+    }
+    .hero-health {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-health span {
+      min-height: 46px;
+      display: grid;
+      align-content: center;
+      gap: 2px;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 10px;
+      background: rgba(255,255,255,.065);
+    }
+    .hero-health small { color: rgba(255,255,255,.64); font-size: 10px; }
+    .hero-health strong { font-size: 13px; }
+    .allocation-bars .legend-row {
+      position: relative;
+      overflow: hidden;
+      min-height: 44px;
+      padding: 10px;
+      border-radius: 9px;
+      background: #f7f9f8;
+    }
+    .allocation-bars .legend-row::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: auto;
+      bottom: 0;
+      width: var(--share);
+      height: 3px;
+      background: var(--c);
+    }
+    .empty-state-action {
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 8px;
+      padding: 28px;
+      color: var(--muted);
+      text-align: center;
+    }
+    .empty-state-action strong { color: var(--ink); font-size: 18px; }
+    .mobile-quick-nav a {
+      min-width: 0;
+      min-height: 46px;
+      border: 0;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 4px 2px;
+      color: #172033;
+      background: transparent;
+      font-size: 10px;
+      font-weight: 650;
+      text-decoration: none;
+    }
+    body.privacy-mode .hero-net-value,
+    body.privacy-mode .hero-change,
+    body.privacy-mode .hero-health strong {
+      color: transparent !important;
+      text-shadow: 0 0 12px rgba(255,255,255,.72);
+      user-select: none;
+    }
+    .dark-theme .mobile-quick-nav a { color: var(--muted); }
+    .dark-theme .mobile-quick-nav a.primary { color: #fffdf7; }
+    .dark-theme .allocation-bars .legend-row { background: #20313a; }
+    .mobile-quick-nav a svg { width: 18px; height: 18px; }
+    body:not(.dark-theme) .stock-holding-card,
+    body:not(.dark-theme) .watchlist-row,
+    body:not(.dark-theme) .chart-card,
+    body:not(.dark-theme) .card,
+    body:not(.dark-theme) .panel {
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(31,55,59,.055);
+    }
+    @media (max-width: 980px) {
+      .product-more { display: grid; flex: 0 0 auto; }
+    }
+    @media (max-width: 720px) {
+      .product-switcher { margin-bottom: 5px; }
+      .product-switcher a { min-height: 36px; }
+      .compact-sync-status { max-width: 86px; overflow: hidden; text-overflow: ellipsis; }
+      .product-more { display: grid; flex: 0 0 auto; }
+      .brand-kicker { display: none; }
+      .net-worth-hero {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        margin: 0 0 12px;
+        padding: 18px 16px 16px;
+        border-radius: 14px;
+      }
+      .hero-net-value { font-size: 36px; }
+      .hero-trend { display: none; }
+      .hero-actions { display: grid; grid-template-columns: 1fr 1fr; margin-top: 15px; }
+      .hero-actions .btn { min-height: 46px; padding: 8px; }
+      .hero-health { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+      .hero-health span { min-height: 54px; padding: 7px; }
+      .hero-health strong { font-size: 12px; }
+      .core-metrics { grid-template-columns: 1fr 1fr; }
+      .core-metrics .card:nth-child(3),
+      .core-metrics .card:nth-child(4) { display: none; }
+      #overview .financial-pulse .pulse-head p,
+      #overview .financial-pulse .pulse-note { display: none; }
+      #overview .financial-pulse .pulse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #overview .dashboard-alerts .alert-tile:nth-child(n+3) { display: none; }
+      #overview .asset-grid .donut { display: none; }
+      #overview .asset-grid { display: block; }
+      #overview .allocation-bars { display: grid; gap: 7px; }
+      .mobile-quick-nav .mobile-add-button {
+        min-height: 58px;
+        margin-top: -16px;
+        border-radius: 16px;
+        color: #fffdf8;
+        background: #172033;
+        box-shadow: 0 10px 24px rgba(23,32,51,.28);
+      }
+      .mobile-quick-nav button,
+      .mobile-quick-nav a,
+      input, select, textarea,
+      .btn, .icon-btn, .range-chip {
+        min-height: 44px;
+      }
+      .icon-btn { min-width: 44px; }
+    }
+    @media (max-width: 390px) {
+      .product-switcher a { padding: 0 9px; font-size: 11px; }
+      .compact-sync-status { display: none; }
+      .hero-net-value { font-size: 32px; }
+      .hero-health { grid-template-columns: 1fr; }
+      .hero-health span { min-height: 44px; grid-template-columns: 1fr auto; align-items: center; }
+      .mobile-quick-nav { left: 6px; right: 6px; gap: 3px; padding: 6px; }
+    }
   </style>
 </head>
 <body>
@@ -2046,6 +2333,12 @@
     <header class="app-header">
       <div class="brand-row">
         <div class="brand-copy">
+          <div class="product-switcher" aria-label="主要 App">
+            <a href="accounting-app.html"><i data-lucide="receipt-text"></i>日常記帳</a>
+            <a class="active" href="personal-assets-dashboard.html" aria-current="page"><i data-lucide="layout-dashboard"></i>資產儀表板</a>
+            <span class="compact-sync-status" data-compact-sync-status>本機資料</span>
+            <button class="product-more" type="button" data-mobile-more aria-label="更多功能"><i data-lucide="ellipsis"></i></button>
+          </div>
           <span class="brand-kicker">Personal Assets</span>
           <h1>個人資產儀表板｜阿斌 Tsubin</h1>
           <p class="sub">台股、美股、現金、貴金屬、定期投入與支出規畫。</p>
@@ -2090,15 +2383,18 @@
     <section class="view" id="chart"></section>
   </main>
   <nav class="mobile-quick-nav" aria-label="手機快速操作">
-    <button type="button" data-tab="overview"><i data-lucide="layout-dashboard"></i><span>總覽</span></button>
-    <button type="button" data-tab="cash"><i data-lucide="wallet-cards"></i><span>現金</span></button>
-    <button type="button" data-tab="purchase"><i data-lucide="arrow-left-right"></i><span>交易</span></button>
-    <button type="button" data-mobile-snapshot><i data-lucide="camera"></i><span>快照</span></button>
-    <button type="button" class="primary" data-mobile-more><i data-lucide="ellipsis"></i><span>更多</span></button>
+    <a href="accounting-app.html"><i data-lucide="home"></i><span>首頁</span></a>
+    <a href="accounting-app.html#analytics"><i data-lucide="list"></i><span>明細</span></a>
+    <a class="primary mobile-add-button" href="accounting-app.html#quick-entry"><i data-lucide="plus"></i><span>記帳</span></a>
+    <button type="button" data-tab="chart"><i data-lucide="chart-no-axes-combined"></i><span>分析</span></button>
+    <button type="button" data-tab="overview"><i data-lucide="landmark"></i><span>資產</span></button>
   </nav>
   <dialog class="mobile-more-sheet" id="mobileMoreSheet" aria-labelledby="mobileMoreTitle">
     <div class="mobile-more-head"><h3 id="mobileMoreTitle">更多功能</h3><button class="icon-btn" type="button" title="關閉" aria-label="關閉" data-close-mobile-more><i data-lucide="x"></i></button></div>
     <div class="mobile-more-grid">
+      <button type="button" data-mobile-snapshot><i data-lucide="camera"></i>記錄今日快照</button>
+      <button type="button" data-tab="cash"><i data-lucide="wallet-cards"></i>現金帳戶</button>
+      <button type="button" data-tab="purchase"><i data-lucide="arrow-left-right"></i>交易紀錄</button>
       <button type="button" data-tab="tw"><i data-lucide="trending-up"></i>台股部位</button>
       <button type="button" data-tab="us"><i data-lucide="chart-no-axes-combined"></i>美股部位</button>
       <button type="button" data-tab="metal"><i data-lucide="gem"></i>貴金屬</button>
@@ -2289,6 +2585,9 @@
     };
     let data = load();
     let currentTab = "overview";
+    let backgroundedAt = 0;
+    const requestedTab = decodeURIComponent(location.hash.replace(/^#/, ""));
+    if (tabs.some(([id]) => id === requestedTab)) currentTab = requestedTab;
     const stockSort = { tw: "value", us: "value" };
     if (["gold", "silver"].includes(currentTab)) currentTab = "metal";
     let calendarMonth = null;
@@ -2365,6 +2664,11 @@
     function setCloudStatus(text) {
       const el = document.getElementById("cloudStatus");
       if (el) el.textContent = text;
+      const compact = document.querySelector("[data-compact-sync-status]");
+      if (compact) {
+        compact.textContent = /同步中/.test(text) ? "同步中…" : /失敗|錯誤/.test(text) ? "同步異常" : /等待/.test(text) ? "待同步" : /已登入|完成/.test(text) ? "已同步" : "本機資料";
+        compact.dataset.state = /失敗|錯誤/.test(text) ? "error" : /同步中|等待/.test(text) ? "pending" : "ready";
+      }
     }
     function updateCloudControls() {
       const loggedIn = Boolean(cloudUser);
@@ -2537,6 +2841,7 @@
         if (!silent) toast("請先登入雲端同步");
         return false;
       }
+      if (!silent && hasPendingCloudChanges() && !confirm("本機有尚未同步的修改。載入雲端版本會取代目前資產資料，確定繼續嗎？")) return false;
       if (cloudSyncInProgress) return false;
       cloudSyncInProgress = true;
       updateCloudControls();
@@ -3869,6 +4174,52 @@
         </div>
       </article>`;
     }
+    function compactTwd(value) {
+      const amount = Number(value) || 0;
+      const absolute = Math.abs(amount);
+      if (absolute >= 100000000) return `${(amount / 100000000).toFixed(2).replace(/\.?0+$/, "")} 億`;
+      if (absolute >= 10000) return `${(amount / 10000).toFixed(1).replace(/\.0$/, "")} 萬`;
+      return money(amount);
+    }
+    function renderNetWorthHero(t, grossAssets, monthChange) {
+      const monthlyExpense = monthlyExpenseEstimate();
+      const cashMonths = monthlyExpense > 0 ? t.cash / monthlyExpense : null;
+      const debtRatio = grossAssets > 0 ? t.cards / grossAssets * 100 : 0;
+      const issues = dataHealthItems();
+      const snapshots = [...(data.assetSnapshots || [])]
+        .filter(row => Number(row.total ?? row.net))
+        .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")))
+        .slice(-12);
+      const values = snapshots.map(row => Number(row.total ?? row.net) || 0);
+      const floor = values.length ? Math.min(...values) : 0;
+      const ceiling = values.length ? Math.max(...values) : 0;
+      const range = Math.max(1, ceiling - floor);
+      const bars = values.length
+        ? values.map(value => `<i style="--h:${Math.round(28 + (value - floor) / range * 72)}%"></i>`).join("")
+        : `<i style="--h:56%"></i><i style="--h:60%"></i><i style="--h:64%"></i><i style="--h:68%"></i>`;
+      const firstDate = snapshots[0]?.date || "建立快照後";
+      const lastDate = snapshots.at(-1)?.date || "顯示趨勢";
+      return `<article class="net-worth-hero">
+        <div>
+          <span class="hero-period">本月淨資產</span>
+          <strong class="hero-net-value" title="${money(t.total)} TWD">NT$ ${compactTwd(t.total)}</strong>
+          <span class="hero-change ${monthChange.value < 0 ? "negative" : ""}">${monthChange.value >= 0 ? "↑" : "↓"} ${monthChange.value >= 0 ? "+" : "-"}${compactTwd(Math.abs(monthChange.value))}<small>${escapeHtml(monthChange.note)}</small></span>
+          <div class="hero-actions">
+            <a class="btn primary" href="accounting-app.html#quick-entry"><i data-lucide="plus"></i>快速記帳</a>
+            <button class="btn" type="button" data-snapshot-all><i data-lucide="camera"></i>記錄快照</button>
+          </div>
+        </div>
+        <div class="hero-trend" aria-label="近十二筆淨資產快照趨勢">
+          <div class="hero-trend-label"><span>${escapeHtml(firstDate)}</span><span>${escapeHtml(lastDate)}</span></div>
+          <div class="hero-spark-bars">${bars}</div>
+        </div>
+        <div class="hero-health">
+          <span><small>現金安全</small><strong>${cashMonths == null ? "待設定" : `${cashMonths.toFixed(1)} 個月`}</strong></span>
+          <span><small>信用卡負債比</small><strong>${debtRatio.toFixed(1)}%</strong></span>
+          <span><small>待處理提醒</small><strong>${issues.length ? `${issues.length} 筆` : "目前正常"}</strong></span>
+        </div>
+      </article>`;
+    }
     function renderOverview() {
       const t = allTotals();
       const grossAssets = t.total + t.cards;
@@ -3886,24 +4237,26 @@
       }).join(", ");
       return `
         ${section("overview", "總覽儀表板", "跨資產總覽與配置比例。")}
+        ${renderNetWorthHero(t, grossAssets, monthChange)}
+        ${renderOverviewAlerts()}
         <div class="cards core-metrics">
           ${card("資產總額", money(grossAssets), "TWD｜尚未扣除負債", "dark")}
           ${card("負債總額", money(t.cards), "TWD｜信用卡待繳", "liability-card")}
-          ${card("淨資產", money(t.total), "TWD｜資產扣除負債", "accent")}
-          ${card("本月淨資產變化", `${monthChange.value >= 0 ? "+" : ""}${money(monthChange.value)}`, monthChange.note, monthChange.value >= 0 ? "change-positive" : "change-negative")}
         </div>
+        <article class="panel"><div class="panel-pad asset-grid">
+          <div class="donut" style="--donut-bg:conic-gradient(${segments});"><div class="donut-text"><strong>${money(grossAssets)}</strong><span class="muted">資產總額</span></div></div>
+          <div class="legend allocation-bars">${parts.map((p) => {
+            const share = chartTotal ? Math.max(0, p[1]) / chartTotal * 100 : 0;
+            return `<div class="legend-row" style="--share:${share.toFixed(1)}%;--c:var(${p[2]})"><span class="dot" style="--c:var(${p[2]})"></span><strong>${p[0]}</strong><span>${money(p[1])} TWD · ${share.toFixed(1)}%</span></div>`;
+          }).join("")}</div>
+        </div></article>
         ${renderFinancialPulse()}
-        ${renderOverviewAlerts()}
         <div class="cards">
           ${card("投入成本估算", money(t.cost), "TWD")}
           ${card("全資產未實現損益", money(t.gain), "TWD", "accent")}
           ${card("現金類資產", money(t.cash), "TWD")}
           ${card("投資資產市值", money(grossAssets - t.cash), "TWD")}
         </div>
-        <article class="panel"><div class="panel-pad asset-grid">
-          <div class="donut" style="--donut-bg:conic-gradient(${segments});"><div class="donut-text"><strong>${money(grossAssets)}</strong><span class="muted">資產總額</span></div></div>
-          <div class="legend">${parts.map((p) => `<div class="legend-row"><span class="dot" style="--c:var(${p[2]})"></span><strong>${p[0]}</strong><span>${money(p[1])} TWD · ${chartTotal ? (Math.max(0, p[1]) / chartTotal * 100).toFixed(1) : "0.0"}%</span></div>`).join("")}</div>
-        </div></article>
         ${renderPnlCalendar()}
       `;
     }
@@ -3946,7 +4299,7 @@
               <div class="stock-card-assessment"><div class="stock-card-assessment-head"><div class="valuation-action ${signal.tone}"><small>長期持有評估</small><strong>${signal.action}</strong></div><span class="valuation-score">評分 ${signal.score}｜信心 ${signal.confidence}</span></div><div class="stock-card-reason">${signal.reasons.map(escapeHtml).join("<br>")}</div></div>
               <div class="stock-card-footer"><div class="valuation-source">${valuationSourceHtml(signal)}</div><button class="btn purple small research-btn" type="button" data-research-key="${escapeHtml(valuationKey(r))}">研究設定</button></div>
             </section>`;
-          }).join("") || `<div class="muted">尚未有持股明細</div>`}</div></article>
+          }).join("") || `<div class="empty-state-action"><strong>尚未有${escapeHtml(title)}持股</strong><span>新增交易後會自動計算部位、成本與損益。</span><button class="btn green small" type="button" data-tab="purchase">新增第一筆交易</button></div>`}</div></article>
       `;
     }
     function renderCash() {
@@ -4872,10 +5225,14 @@
       const tab = e.target.closest("[data-tab]");
       if (tab) {
         currentTab = tab.dataset.tab;
+        history.replaceState(null, "", `${location.pathname}${location.search}#${currentTab}`);
         render();
         document.getElementById("mobileMoreSheet")?.close();
       }
-      if (e.target.closest("[data-mobile-snapshot]")) recordTodayFullSnapshot();
+      if (e.target.closest("[data-mobile-snapshot]")) {
+        recordTodayFullSnapshot();
+        document.getElementById("mobileMoreSheet")?.close();
+      }
       if (e.target.closest("[data-mobile-prices]")) document.getElementById("importPrices").click();
     });
     document.getElementById("privacyToggle").addEventListener("click", () => {
@@ -4948,10 +5305,17 @@
       if (event.key === accountingStorageKey && currentTab === "bookkeeping") render();
     });
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden && cloudUser && hasPendingCloudChanges()) {
-        saveCloudData({ silent: true });
-      } else if (!document.hidden && cloudUser && hasPendingCloudChanges()) {
-        scheduleCloudBackup();
+      if (document.hidden) {
+        backgroundedAt = Date.now();
+        if (cloudUser && hasPendingCloudChanges()) saveCloudData({ silent: true });
+      } else {
+        if (backgroundedAt && Date.now() - backgroundedAt >= 120000 && !uiMeta.privacyMode) {
+          uiMeta.privacyMode = true;
+          applyUiState();
+          toast("已自動隱藏金額");
+        }
+        backgroundedAt = 0;
+        if (cloudUser && hasPendingCloudChanges()) scheduleCloudBackup();
       }
     });
     window.addEventListener("online", () => {
@@ -4960,6 +5324,7 @@
       cloudRetryCount = 0;
       autoSyncCloudData();
     });
+    window.addEventListener("offline", () => setCloudStatus("離線・資料會保存在本機"));
     window.addEventListener("resize", updateHeaderOffset);
     initCloudSync();
     autoApplyLatestPrices();

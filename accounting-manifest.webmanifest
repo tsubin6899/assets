@@ -1,7 +1,7 @@
 {
-  "name": "日常記帳",
+  "name": "日常記帳 App｜阿斌 Tsubin",
   "short_name": "日常記帳",
-  "description": "快速記錄日常收入、支出、付款帳戶、信用卡與分類統計。",
+  "description": "快速管理收入、支出、帳戶、信用卡、預算、固定收支與對帳。",
   "lang": "zh-Hant-TW",
   "start_url": "./accounting-app.html",
   "scope": "./",

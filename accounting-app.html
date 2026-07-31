@@ -890,7 +890,14 @@
       pointer-events: none;
       transition: .2s ease;
     }
-    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.show {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
     .mobile-actions { display: none; }
     .mobile-more-sheet {
       width: min(100% - 24px, 440px);
@@ -1800,13 +1807,213 @@
       #statementMatchTable td:nth-child(5) { grid-column: 3; grid-row: 1 / span 3; align-self: center; font-size: 17px; font-weight: 800; }
       #statementMatchTable td:nth-child(6) { grid-column: 2; grid-row: 4; }
     }
+
+    /* 2026 mobile product shell and one-handed entry refinement */
+    .product-switcher {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 9px;
+    }
+    .product-switcher a {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 11px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      color: rgba(255,255,255,.78);
+      background: rgba(255,255,255,.06);
+      font-size: 12px;
+      font-weight: 750;
+      text-decoration: none;
+    }
+    .product-switcher a.active {
+      color: #172033;
+      border-color: #fffdf8;
+      background: #fffdf8;
+    }
+    .product-switcher svg { width: 15px; height: 15px; }
+    .compact-sync-status {
+      margin-left: auto;
+      color: rgba(255,255,255,.72);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .product-more {
+      width: 36px;
+      height: 36px;
+      display: none;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 50%;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+    }
+    .product-more svg { width: 17px; height: 17px; }
+    .amount-capture-row {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 82px;
+      gap: 9px;
+      align-items: end;
+    }
+    .amount-capture-row .amount-field { grid-column: auto; }
+    .scan-quick-button {
+      min-height: 58px;
+      display: grid;
+      place-items: center;
+      align-content: center;
+      gap: 3px;
+      border: 1px solid #bfd4d1;
+      border-radius: 10px;
+      color: #24586b;
+      background: #eff8f6;
+      font-size: 11px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+    .scan-quick-button svg { width: 20px; height: 20px; }
+    .smart-category-chip {
+      color: #76521e;
+      border-color: #e5d3ad;
+      background: #fff9eb;
+    }
+    .mobile-recent-panel { display: none; }
+    .mobile-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .mobile-section-head h2 { margin: 0; }
+    .mobile-recent-list { display: grid; gap: 8px; margin-top: 12px; }
+    .mobile-calendar-toggle {
+      width: 100%;
+      margin-top: 8px;
+      justify-content: center;
+      gap: 7px;
+    }
+    .mobile-calendar-toggle svg { width: 17px; height: 17px; }
+    .mobile-recent-item {
+      min-height: 56px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 4px 12px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+      border-top: 0;
+      border-right: 0;
+      border-left: 0;
+      color: inherit;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+    }
+    .mobile-recent-item:last-child { border-bottom: 0; }
+    .mobile-recent-item strong { font-size: 14px; }
+    .mobile-recent-item small { color: var(--muted); font-size: 11px; }
+    .mobile-recent-item .recent-amount {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      font-size: 16px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+    .toast .toast-undo {
+      min-height: 34px;
+      margin-left: 12px;
+      padding: 0 11px;
+      border: 1px solid rgba(255,255,255,.48);
+      border-radius: 8px;
+      color: #fff;
+      background: transparent;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .mobile-actions a.btn { text-decoration: none; }
+    body:not(.dark-theme) .panel,
+    body:not(.dark-theme) .card,
+    body:not(.dark-theme) .chart-card,
+    body:not(.dark-theme) .account-tile {
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(31,38,51,.055);
+    }
+    body:not(.dark-theme) .monthly-pulse,
+    body:not(.dark-theme) #entryView .invoice-box {
+      background: #f8faf9;
+    }
+    @media (max-width: 860px) {
+      .product-switcher { margin-bottom: 5px; }
+      .product-switcher a { min-height: 36px; }
+      .compact-sync-status { max-width: 86px; overflow: hidden; text-overflow: ellipsis; }
+      .product-more { display: grid; flex: 0 0 auto; }
+      .brand-row h1 { margin-top: 4px; font-size: 19px; }
+      .kicker { display: none; }
+      .top-actions { margin-top: 2px; }
+      .cloud-sync {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      .cloud-sync #cloudSave { display: none; }
+      .cloud-email { width: 100%; min-width: 0; }
+      #entryForm { grid-template-columns: 1fr; }
+      .amount-capture-row { grid-template-columns: minmax(0, 1fr) 74px; }
+      .amount-field input { min-height: 68px; font-size: 36px; }
+      .scan-quick-button { min-height: 68px; }
+      #entryForm > label,
+      #entryForm > details,
+      #entryForm > .entry-submit-row { grid-column: 1 / -1; }
+      #entryOptional:not([open]) { padding-bottom: 0; }
+      .mobile-recent-panel { display: block; }
+      #entryView .toolbar,
+      #entryView .calendar-panel,
+      #entryView > .view-grid > section > .selected-day-details:not(.mobile-open) { display: none; }
+      #entryView.show-mobile-calendar .toolbar,
+      #entryView.show-mobile-calendar .calendar-panel { display: flex; }
+      #entryView.show-mobile-calendar .calendar-panel { display: block; }
+      .mobile-actions .btn,
+      .mobile-actions a.btn { min-width: 0; min-height: 48px; }
+      .mobile-actions .mobile-add-button {
+        min-height: 58px;
+        margin-top: -16px;
+        border-radius: 16px;
+        color: #fffdf8;
+        background: #172033;
+        box-shadow: 0 10px 24px rgba(23,32,51,.28);
+      }
+      input, select, textarea,
+      .btn, .icon-action, .quick-template-chip, .recurring-action {
+        min-height: 44px;
+      }
+      .icon-action { min-width: 44px; }
+      .quick-template-chip { padding-inline: 14px; }
+      .entry-submit-row { grid-template-columns: 1fr auto; }
+      .entry-submit-row .btn { min-height: 50px; }
+    }
+    @media (max-width: 390px) {
+      .product-switcher a { padding: 0 9px; font-size: 11px; }
+      .compact-sync-status { display: none; }
+      .amount-capture-row { grid-template-columns: minmax(0, 1fr) 68px; }
+      .scan-quick-button span { font-size: 10px; }
+      .mobile-actions { left: 6px; right: 6px; gap: 3px; padding: 6px; }
+    }
   </style>
 </head>
 <body>
   <main class="app">
     <header class="app-header">
       <div class="brand-row">
-        <div>
+        <div class="brand-copy">
+          <div class="product-switcher" aria-label="主要 App">
+            <a class="active" href="accounting-app.html" aria-current="page"><i data-lucide="receipt-text"></i>日常記帳</a>
+            <a href="personal-assets-dashboard.html"><i data-lucide="layout-dashboard"></i>資產儀表板</a>
+            <span class="compact-sync-status" data-compact-sync-status>本機資料</span>
+            <button class="product-more" type="button" data-mobile-more aria-label="更多功能"><i data-lucide="ellipsis"></i></button>
+          </div>
           <span class="kicker">Daily Ledger</span>
           <h1>日常記帳 App｜阿斌 Tsubin</h1>
           <p class="sub">收入支出、帳戶、信用卡、分類與統計分析集中管理。</p>
@@ -1848,8 +2055,15 @@
               <span class="quick-template-label">常用快速記帳</span>
               <div id="quickTemplateBar" class="quick-template-bar"></div>
             </div>
+            <div class="quick-template-wrap smart-category-wrap">
+              <span class="quick-template-label">最近常用分類</span>
+              <div id="smartCategoryBar" class="quick-template-bar" aria-label="最近常用分類"></div>
+            </div>
             <form id="entryForm" class="form-grid">
-              <label class="amount-field">金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" placeholder="0" required></label>
+              <div class="amount-capture-row">
+                <label class="amount-field">金額<input id="amount" type="number" min="0" step="1" inputmode="decimal" placeholder="0" required></label>
+                <button class="scan-quick-button" type="button" data-open-invoice-photo aria-label="拍照辨識發票"><i data-lucide="camera"></i><span>拍發票</span></button>
+              </div>
               <label>日期<input id="date" type="date" required></label>
               <label>分類<select id="category" required></select></label>
               <label>項目<select id="item"></select></label>
@@ -1860,7 +2074,7 @@
                   <option value="foreign">國外消費</option>
                 </select>
               </label>
-              <details id="entryOptional" class="entry-optional full" open>
+              <details id="entryOptional" class="entry-optional full">
                 <summary>更多選填資訊</summary>
                 <div class="entry-optional-fields">
                   <label>商家 / 對象<input id="merchant" list="merchantSuggestions" placeholder="超商、餐廳、薪資等"></label>
@@ -1902,6 +2116,16 @@
         </aside>
         <section>
           <section class="monthly-pulse" id="monthlyPulse" aria-label="本月收支脈搏"></section>
+          <article class="panel mobile-recent-panel">
+            <div class="panel-pad">
+              <div class="mobile-section-head">
+                <div><h2>最近記帳</h2><p class="hint">快速確認最近五筆交易。</p></div>
+                <button class="btn small blue" type="button" data-view="analyticsView">查看全部</button>
+              </div>
+              <div id="mobileRecentEntries" class="mobile-recent-list"></div>
+              <button class="btn light mobile-calendar-toggle" type="button" data-toggle-mobile-calendar><i data-lucide="calendar-days"></i><span>查看收支行事曆</span></button>
+            </div>
+          </article>
           <div class="toolbar">
             <div>
               <h2>行事曆明細</h2>
@@ -2241,15 +2465,17 @@
     </section>
   </main>
   <nav class="mobile-actions" aria-label="手機快速操作">
-    <button class="btn" type="button" data-view="entryView"><i data-lucide="receipt-text"></i><span>記帳</span></button>
-    <button class="btn" type="button" data-view="accountView"><i data-lucide="wallet-cards"></i><span>帳戶</span></button>
-    <button class="btn" type="button" data-view="transferView"><i data-lucide="arrow-left-right"></i><span>轉帳</span></button>
-    <button class="btn" type="button" data-view="analyticsView"><i data-lucide="chart-no-axes-combined"></i><span>統計</span></button>
-    <button class="btn primary" type="button" data-mobile-more><i data-lucide="ellipsis"></i><span>更多</span></button>
+    <button class="btn" type="button" data-view="entryView"><i data-lucide="home"></i><span>首頁</span></button>
+    <button class="btn" type="button" data-view="analyticsView"><i data-lucide="list"></i><span>明細</span></button>
+    <button class="btn primary mobile-add-button" type="button" data-quick-entry><i data-lucide="plus"></i><span>記帳</span></button>
+    <a class="btn" href="personal-assets-dashboard.html#chart"><i data-lucide="chart-no-axes-combined"></i><span>分析</span></a>
+    <a class="btn" href="personal-assets-dashboard.html"><i data-lucide="landmark"></i><span>資產</span></a>
   </nav>
   <dialog class="mobile-more-sheet" id="mobileMoreSheet" aria-labelledby="mobileMoreTitle">
     <div class="mobile-more-head"><h3 id="mobileMoreTitle">更多功能</h3><button class="icon-action" type="button" title="關閉" aria-label="關閉" data-close-mobile-more><i data-lucide="x"></i></button></div>
     <div class="mobile-more-grid">
+      <button type="button" data-view="accountView"><i data-lucide="wallet-cards"></i>帳戶設定</button>
+      <button type="button" data-view="transferView"><i data-lucide="arrow-left-right"></i>帳戶轉帳</button>
       <button type="button" data-view="creditView"><i data-lucide="credit-card"></i>信用卡設定</button>
       <button type="button" data-view="creditReconcileView"><i data-lucide="list-checks"></i>信用卡對帳</button>
       <button type="button" data-view="recurringView"><i data-lucide="calendar-clock"></i>固定收支</button>
@@ -2260,6 +2486,7 @@
       <button type="button" data-mobile-trigger="exportCsv"><i data-lucide="sheet"></i>匯出 CSV</button>
       <button type="button" data-mobile-trigger="privacyToggle"><i data-lucide="eye-off"></i>隱私模式</button>
       <button type="button" data-mobile-trigger="themeToggle"><i data-lucide="moon"></i>深色模式</button>
+      <button type="button" data-enable-reminders><i data-lucide="bell-ring"></i>到期提醒</button>
       <button type="button" data-mobile-trigger="importButton"><i data-lucide="file-up"></i>匯入資料</button>
       <button class="danger" type="button" data-mobile-trigger="clearData"><i data-lucide="trash-2"></i>清空資料</button>
     </div>
@@ -2434,6 +2661,9 @@
     let cloudSyncMeta = loadCloudSyncMeta();
     let privacyMode = false;
     let themeMode = "light";
+    let lastUsedAccount = "";
+    let backgroundedAt = 0;
+    let lastCreatedEntryId = "";
     let statementDraftKey = "";
     let statementDraftMatched = new Set();
     const defaultCategories = {
@@ -2895,13 +3125,13 @@
     }
     function loadUiPreferences() {
       try {
-        return { privacyMode: false, themeMode: "light", ...JSON.parse(localStorage.getItem(accountingUiKey) || "{}") };
+        return { privacyMode: false, themeMode: "light", lastUsedAccount: "", ...JSON.parse(localStorage.getItem(accountingUiKey) || "{}") };
       } catch {
-        return { privacyMode: false, themeMode: "light" };
+        return { privacyMode: false, themeMode: "light", lastUsedAccount: "" };
       }
     }
     function saveUiPreferences() {
-      localStorage.setItem(accountingUiKey, JSON.stringify({ privacyMode, themeMode }));
+      localStorage.setItem(accountingUiKey, JSON.stringify({ privacyMode, themeMode, lastUsedAccount }));
     }
     function applyPrivacyMode() {
       document.body.classList.toggle("privacy-mode", privacyMode);
@@ -2927,6 +3157,11 @@
     function setCloudStatus(text) {
       const el = document.getElementById("cloudStatus");
       if (el) el.textContent = text;
+      const compact = document.querySelector("[data-compact-sync-status]");
+      if (compact) {
+        compact.textContent = /同步中/.test(text) ? "同步中…" : /失敗|錯誤/.test(text) ? "同步異常" : /等待/.test(text) ? "待同步" : /已登入|完成/.test(text) ? "已同步" : "本機資料";
+        compact.dataset.state = /失敗|錯誤/.test(text) ? "error" : /同步中|等待/.test(text) ? "pending" : "ready";
+      }
     }
     function updateCloudControls() {
       const loggedIn = Boolean(cloudUser);
@@ -3154,6 +3389,7 @@
         if (!silent) toast("請先登入雲端同步");
         return false;
       }
+      if (!silent && hasPendingCloudChanges() && !confirm("本機有尚未同步的修改。載入雲端版本會取代目前資料，確定繼續嗎？")) return false;
       if (cloudSyncInProgress) return false;
       cloudSyncInProgress = true;
       updateCloudControls();
@@ -3315,7 +3551,7 @@
       ], accountTypes);
     }
     function renderEntryAccountOptions(preferredAccount = "") {
-      const currentAccount = preferredAccount || accountSelect.value;
+      const currentAccount = preferredAccount || lastUsedAccount || accountSelect.value;
       const currentAccountRow = ledger.accounts.find(account => account.name === currentAccount);
       const selectedType = accountTypeSelect.value || currentAccountRow?.type || "";
       const types = getAccountTypeOptions();
@@ -4100,6 +4336,98 @@
           : `<span class="hint">建立快速模板後，可在這裡一鍵帶入。</span>`;
       }
     }
+    function renderSmartCategories() {
+      const target = document.getElementById("smartCategoryBar");
+      if (!target) return;
+      const scores = new Map();
+      [...ledger.entries]
+        .filter(row => isRealizedEntry(row) && !row.isForeignTransactionFee && row.type === currentType)
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+        .slice(0, 80)
+        .forEach((row, index) => {
+          const category = String(row.category || "").trim();
+          if (category) scores.set(category, (scores.get(category) || 0) + Math.max(1, 8 - Math.floor(index / 10)));
+        });
+      const categories = [...scores.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 6)
+        .map(([category]) => category);
+      const fallback = (ledger.categories[currentType] || []).slice(0, 4);
+      const visible = categories.length ? categories : fallback;
+      target.innerHTML = visible.length
+        ? visible.map(category => `<button class="quick-template-chip smart-category-chip" type="button" data-smart-category="${escapeHtml(category)}">${escapeHtml(category)}</button>`).join("")
+        : `<span class="hint">新增第一筆記帳後會顯示常用分類。</span>`;
+    }
+    function renderMobileRecentEntries() {
+      const target = document.getElementById("mobileRecentEntries");
+      if (!target) return;
+      const rows = [...allEntryRows()]
+        .filter(row => isRealizedEntry(row))
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+        .slice(0, 5);
+      target.innerHTML = rows.length
+        ? rows.map(row => `<button class="mobile-recent-item" type="button" data-edit-entry="${escapeHtml(row.id)}">
+            <strong>${escapeHtml(row.merchant || row.item || row.category || "未命名交易")}</strong>
+            <small>${escapeHtml(row.date)}・${escapeHtml(row.category)}・${escapeHtml(row.account)}</small>
+            <span class="recent-amount ${row.type === "income" ? "amount-income" : "amount-expense"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</span>
+          </button>`).join("")
+        : `<div class="empty"><strong>還沒有記帳資料</strong><br><span class="hint">從上方輸入金額，建立第一筆紀錄。</span></div>`;
+    }
+    function suggestEntryFromMerchant() {
+      const merchant = document.getElementById("merchant").value.trim().toLowerCase();
+      if (!merchant) return;
+      const match = [...ledger.entries]
+        .filter(row => !row.isForeignTransactionFee && String(row.merchant || "").trim().toLowerCase() === merchant)
+        .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0];
+      if (!match) return;
+      setType(match.type === "income" ? "income" : "expense");
+      categorySelect.value = match.category || categorySelect.value;
+      refreshLists();
+      categorySelect.value = match.category || categorySelect.value;
+      itemSelect.value = match.item || "";
+      if (ledger.accounts.some(account => account.name === match.account)) {
+        lastUsedAccount = match.account;
+        renderEntryAccountOptions(match.account);
+        saveUiPreferences();
+      }
+      toast(`已依過去紀錄建議「${match.category || "分類"}」`);
+    }
+    function upcomingReminderSummary() {
+      const limit = shiftDate(today(), 7);
+      const bills = (ledger.creditBills || []).filter(row => !row.paid && row.dueDate && row.dueDate <= limit).length;
+      const recurring = (ledger.recurringRules || []).filter(rule => {
+        const state = recurringRuleState(rule);
+        return ["due", "pending"].includes(state.status) && state.date && state.date <= limit;
+      }).length;
+      return { bills, recurring, total: bills + recurring };
+    }
+    async function enableFinancialReminders() {
+      if (!("Notification" in window)) {
+        toast("此瀏覽器不支援系統通知");
+        return;
+      }
+      const permission = Notification.permission === "default" ? await Notification.requestPermission() : Notification.permission;
+      if (permission !== "granted") {
+        toast("尚未允許到期提醒");
+        return;
+      }
+      localStorage.setItem("tsubin-finance-reminders-enabled", "1");
+      const summary = upcomingReminderSummary();
+      toast(summary.total ? `已開啟提醒，目前有 ${summary.total} 項待處理` : "已開啟到期提醒");
+      maybeSendFinancialReminder(true);
+    }
+    function maybeSendFinancialReminder(force = false) {
+      if (!("Notification" in window) || Notification.permission !== "granted" || localStorage.getItem("tsubin-finance-reminders-enabled") !== "1") return;
+      const summary = upcomingReminderSummary();
+      if (!summary.total) return;
+      const stampKey = "tsubin-finance-reminder-last-date";
+      if (!force && localStorage.getItem(stampKey) === today()) return;
+      new Notification("財務待辦提醒", {
+        body: `信用卡帳單 ${summary.bills} 筆、固定收支 ${summary.recurring} 筆即將到期。`,
+        icon: "icons/accounting-192.png"
+      });
+      localStorage.setItem(stampKey, today());
+    }
     function populateEntryForm(row, { scroll = true } = {}) {
       if (!row) return;
       setType(row.type === "income" ? "income" : "expense");
@@ -4332,6 +4660,8 @@
       renderLedgerCalendar();
       renderTransfers();
       renderTemplates();
+      renderSmartCategories();
+      renderMobileRecentEntries();
       renderReconciliations();
       renderCreditReconciliation();
       renderRecurringRules();
@@ -4462,6 +4792,9 @@
       };
       ledger.entries.push(entry);
       const generatedFee = syncForeignTransactionFee(entry);
+      lastUsedAccount = entry.account;
+      lastCreatedEntryId = entry.id;
+      saveUiPreferences();
       saveLedger();
       form.reset();
       receiptDataUrl = "";
@@ -4469,10 +4802,58 @@
       receiptPreview.style.display = "none";
       document.getElementById("date").value = today();
       setType(currentType);
+      renderEntryAccountOptions(lastUsedAccount);
       render();
-      toast(generatedFee ? `已新增記帳，並產生 ${money(generatedFee.amount)} 元國外手續費` : "已新增記帳");
+      toastEl.innerHTML = `<span>${generatedFee ? `已記帳，含 ${money(generatedFee.amount)} 元國外手續費` : "已完成記帳"}</span><button class="toast-undo" type="button" data-undo-entry="${escapeHtml(entry.id)}">復原</button>`;
+      toastEl.classList.add("show");
+      clearTimeout(toastEl._timer);
+      toastEl._timer = setTimeout(() => toastEl.classList.remove("show"), 5200);
     });
     document.addEventListener("click", event => {
+      const undoEntry = event.target.closest("[data-undo-entry]");
+      if (undoEntry) {
+        const entryId = undoEntry.dataset.undoEntry;
+        ledger.entries = ledger.entries.filter(row => row.id !== entryId && row.derivedFromEntryId !== entryId);
+        if (lastCreatedEntryId === entryId) lastCreatedEntryId = "";
+        saveLedger();
+        render();
+        toast("已復原上一筆記帳");
+        return;
+      }
+      const quickEntry = event.target.closest("[data-quick-entry]");
+      if (quickEntry) {
+        switchView("entryView");
+        requestAnimationFrame(() => {
+          document.getElementById("amount")?.focus({ preventScroll: true });
+          document.getElementById("entryForm")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return;
+      }
+      const smartCategory = event.target.closest("[data-smart-category]");
+      if (smartCategory) {
+        categorySelect.value = smartCategory.dataset.smartCategory;
+        refreshLists();
+        categorySelect.value = smartCategory.dataset.smartCategory;
+        itemSelect.focus();
+        return;
+      }
+      if (event.target.closest("[data-open-invoice-photo]")) {
+        invoicePhoto.click();
+        return;
+      }
+      if (event.target.closest("[data-enable-reminders]")) {
+        enableFinancialReminders();
+        document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
+      const calendarToggle = event.target.closest("[data-toggle-mobile-calendar]");
+      if (calendarToggle) {
+        const entryView = document.getElementById("entryView");
+        const visible = entryView.classList.toggle("show-mobile-calendar");
+        calendarToggle.querySelector("span").textContent = visible ? "收合收支行事曆" : "查看收支行事曆";
+        if (visible) document.querySelector(".calendar-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
       if (event.target.closest("[data-mobile-more]")) {
         document.getElementById("mobileMoreSheet")?.showModal();
         return;
@@ -5243,8 +5624,13 @@
     });
     document.getElementById("scanInvoice").addEventListener("click", recognizeInvoice);
     categorySelect.addEventListener("change", refreshLists);
+    document.getElementById("merchant").addEventListener("change", suggestEntryFromMerchant);
     accountTypeSelect.addEventListener("change", () => renderEntryAccountOptions());
-    accountSelect.addEventListener("change", updatePurchaseRegionVisibility);
+    accountSelect.addEventListener("change", () => {
+      lastUsedAccount = accountSelect.value;
+      saveUiPreferences();
+      updatePurchaseRegionVisibility();
+    });
     itemCategorySelect.addEventListener("change", refreshLists);
     [monthFilter, typeFilter, accountFilter, categoryFilter, minAmountFilter, maxAmountFilter, searchInput].forEach(el => {
       el.addEventListener("input", render);
@@ -5349,21 +5735,41 @@
     const initialUiPreferences = loadUiPreferences();
     privacyMode = Boolean(initialUiPreferences.privacyMode);
     themeMode = initialUiPreferences.themeMode === "dark" ? "dark" : "light";
+    lastUsedAccount = String(initialUiPreferences.lastUsedAccount || "");
+    if (location.hash === "#analytics" || location.hash === "#history") currentView = "analyticsView";
+    else currentView = "entryView";
     applyPrivacyMode();
     applyThemeMode();
     loadSharedFxRates();
     reconcileForeignTransactionFees();
     setType("expense");
+    if (lastUsedAccount) renderEntryAccountOptions(lastUsedAccount);
     render();
+    if (location.hash === "#quick-entry") {
+      requestAnimationFrame(() => {
+        document.getElementById("amount")?.focus({ preventScroll: true });
+        document.getElementById("entryForm")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
     refreshSharedFxRates().then(render);
     initCloudSync();
+    setTimeout(() => maybeSendFinancialReminder(), 1200);
     scheduleNextDateRefresh();
     document.addEventListener("visibilitychange", () => {
       if (!document.hidden) {
+        if (backgroundedAt && Date.now() - backgroundedAt >= 120000 && !privacyMode) {
+          privacyMode = true;
+          applyPrivacyMode();
+          toast("已自動隱藏金額");
+        }
+        backgroundedAt = 0;
         refreshWhenDateChanges();
         if (cloudUser && hasPendingCloudChanges()) scheduleCloudBackup();
       } else if (cloudUser && hasPendingCloudChanges()) {
+        backgroundedAt = Date.now();
         saveCloudData({ silent: true });
+      } else {
+        backgroundedAt = Date.now();
       }
     });
     window.addEventListener("online", () => {
@@ -5372,6 +5778,7 @@
       cloudRetryCount = 0;
       autoSyncCloudData();
     });
+    window.addEventListener("offline", () => setCloudStatus("離線・資料會保存在本機"));
     window.addEventListener("resize", updateMobileHeaderOffset);
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
