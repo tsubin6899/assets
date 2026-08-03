@@ -1,526 +1,351 @@
 {
-  "generatedAt": "2026-07-31T08:17:48+00:00",
+  "generatedAt": "2026-08-03T06:34:01+00:00",
   "prices": {
-    "TW:0050": {
-      "symbol": "0050",
-      "twseChannel": "tse_0050.tw",
-      "market": "TW",
-      "instrumentType": "ETF",
-      "price": 102.85,
-      "currency": "TWD",
-      "previousClose": 93.5,
-      "change": 9.35,
-      "changePercent": 10.0,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:06+00:00"
-    },
-    "TW:2330": {
-      "symbol": "2330",
-      "twseChannel": "tse_2330.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 2425.0,
-      "currency": "TWD",
-      "previousClose": 2205.0,
-      "change": 220.0,
-      "changePercent": 9.9773,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:07+00:00"
-    },
-    "TW:00981A": {
-      "symbol": "00981A",
-      "twseChannel": "tse_00981A.tw",
-      "market": "TW",
-      "instrumentType": "ETF",
-      "price": 26.13,
-      "currency": "TWD",
-      "previousClose": 23.76,
-      "change": 2.37,
-      "changePercent": 9.9747,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:09+00:00"
-    },
-    "TW:009816": {
-      "symbol": "009816",
-      "twseChannel": "tse_009816.tw",
-      "market": "TW",
-      "instrumentType": "ETF",
-      "price": 14.65,
-      "currency": "TWD",
-      "previousClose": 13.41,
-      "change": 1.24,
-      "changePercent": 9.2468,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:10+00:00"
-    },
-    "TW:00991A": {
-      "symbol": "00991A",
-      "twseChannel": "tse_00991A.tw",
-      "market": "TW",
-      "instrumentType": "ETF",
-      "price": 15.41,
-      "currency": "TWD",
-      "previousClose": 14.01,
-      "change": 1.4,
-      "changePercent": 9.9929,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:12+00:00"
-    },
-    "TW:00988A": {
-      "symbol": "00988A",
-      "twseChannel": "tse_00988A.tw",
-      "market": "TW",
-      "instrumentType": "ETF",
-      "price": 16.26,
-      "currency": "TWD",
-      "previousClose": 14.16,
-      "change": 2.1,
-      "changePercent": 14.8305,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:14+00:00"
-    },
-    "TW:2317": {
-      "symbol": "2317",
-      "twseChannel": "tse_2317.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 250.5,
-      "currency": "TWD",
-      "previousClose": 229.5,
-      "change": 21.0,
-      "changePercent": 9.1503,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:16+00:00"
-    },
-    "TW:2454": {
-      "symbol": "2454",
-      "twseChannel": "tse_2454.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 3555.0,
-      "currency": "TWD",
-      "previousClose": 3235.0,
-      "change": 320.0,
-      "changePercent": 9.8918,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:16+00:00"
-    },
-    "TW:2382": {
-      "symbol": "2382",
-      "twseChannel": "tse_2382.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 291.5,
-      "currency": "TWD",
-      "previousClose": 279.0,
-      "change": 12.5,
-      "changePercent": 4.4803,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:17+00:00"
-    },
-    "TW:2344": {
-      "symbol": "2344",
-      "twseChannel": "tse_2344.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 130.0,
-      "currency": "TWD",
-      "previousClose": 118.5,
-      "change": 11.5,
-      "changePercent": 9.7046,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:19+00:00"
-    },
-    "TW:2408": {
-      "symbol": "2408",
-      "twseChannel": "tse_2408.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 360.5,
-      "currency": "TWD",
-      "previousClose": 328.0,
-      "change": 32.5,
-      "changePercent": 9.9085,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:21+00:00"
-    },
-    "TW:2337": {
-      "symbol": "2337",
-      "twseChannel": "tse_2337.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 100.5,
-      "currency": "TWD",
-      "previousClose": 91.8,
-      "change": 8.7,
-      "changePercent": 9.4771,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:25+00:00"
-    },
-    "TW:3376": {
-      "symbol": "3376",
-      "twseChannel": "tse_3376.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 171.0,
-      "currency": "TWD",
-      "previousClose": 160.0,
-      "change": 11.0,
-      "changePercent": 6.875,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:27+00:00"
-    },
-    "TW:2303": {
-      "symbol": "2303",
-      "twseChannel": "tse_2303.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 121.0,
-      "currency": "TWD",
-      "previousClose": 110.0,
-      "change": 11.0,
-      "changePercent": 10.0,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:28+00:00"
-    },
-    "TW:3231": {
-      "symbol": "3231",
-      "twseChannel": "tse_3231.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 176.0,
-      "currency": "TWD",
-      "previousClose": 160.0,
-      "change": 16.0,
-      "changePercent": 10.0,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:31+00:00"
-    },
-    "TW:2308": {
-      "symbol": "2308",
-      "twseChannel": "tse_2308.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 1640.0,
-      "currency": "TWD",
-      "previousClose": 1530.0,
-      "change": 110.0,
-      "changePercent": 7.1895,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:33+00:00"
-    },
-    "TW:2327": {
-      "symbol": "2327",
-      "twseChannel": "tse_2327.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 502.0,
-      "currency": "TWD",
-      "previousClose": 456.5,
-      "change": 45.5,
-      "changePercent": 9.9671,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:34+00:00"
-    },
-    "TW:3013": {
-      "symbol": "3013",
-      "twseChannel": "tse_3013.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 76.9,
-      "currency": "TWD",
-      "previousClose": 71.9,
-      "change": 5.0,
-      "changePercent": 6.9541,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:35+00:00"
-    },
-    "TW:3037": {
-      "symbol": "3037",
-      "twseChannel": "tse_3037.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 787.0,
-      "currency": "TWD",
-      "previousClose": 716.0,
-      "change": 71.0,
-      "changePercent": 9.9162,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:38+00:00"
-    },
-    "TW:1802": {
-      "symbol": "1802",
-      "twseChannel": "tse_1802.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 45.7,
-      "currency": "TWD",
-      "previousClose": 42.6,
-      "change": 3.1,
-      "changePercent": 7.277,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:39+00:00"
-    },
-    "TW:4958": {
-      "symbol": "4958",
-      "twseChannel": "tse_4958.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 413.5,
-      "currency": "TWD",
-      "previousClose": 376.0,
-      "change": 37.5,
-      "changePercent": 9.9734,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:40+00:00"
-    },
-    "TW:2603": {
-      "symbol": "2603",
-      "twseChannel": "tse_2603.tw",
-      "market": "TW",
-      "instrumentType": "EQUITY",
-      "price": 204.0,
-      "currency": "TWD",
-      "previousClose": 201.0,
-      "change": 3.0,
-      "changePercent": 1.4925,
-      "source": "TWSE MIS official API",
-      "fetchedAt": "2026-07-31T08:17:41+00:00"
-    },
     "US:AMAT": {
       "symbol": "AMAT",
       "yahooSymbol": "AMAT",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 501.77,
+      "price": 507.67,
       "currency": "USD",
-      "previousClose": 436.45,
-      "change": 65.32,
-      "changePercent": 14.9662,
+      "previousClose": 501.77,
+      "change": 5.9,
+      "changePercent": 1.1758,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:41+00:00"
+      "fetchedAt": "2026-08-03T06:33:56+00:00"
     },
     "US:SPCX": {
       "symbol": "SPCX",
       "yahooSymbol": "SPCX",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 112.2,
+      "price": 108.37,
       "currency": "USD",
-      "previousClose": 112.55,
-      "change": -0.35,
-      "changePercent": -0.311,
+      "previousClose": 112.2,
+      "change": -3.83,
+      "changePercent": -3.4136,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:42+00:00"
+      "fetchedAt": "2026-08-03T06:33:56+00:00"
     },
     "US:TSM": {
       "symbol": "TSM",
       "yahooSymbol": "TSM",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 403.31,
+      "price": 404.25,
       "currency": "USD",
-      "previousClose": 374.67,
-      "change": 28.64,
-      "changePercent": 7.6441,
+      "previousClose": 403.31,
+      "change": 0.94,
+      "changePercent": 0.2331,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:42+00:00"
+      "fetchedAt": "2026-08-03T06:33:56+00:00"
     },
     "US:UMC": {
       "symbol": "UMC",
       "yahooSymbol": "UMC",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 18.94,
+      "price": 19.03,
       "currency": "USD",
-      "previousClose": 17.11,
-      "change": 1.83,
-      "changePercent": 10.6955,
+      "previousClose": 18.94,
+      "change": 0.09,
+      "changePercent": 0.4752,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:42+00:00"
+      "fetchedAt": "2026-08-03T06:33:57+00:00"
     },
     "US:NVDA": {
       "symbol": "NVDA",
       "yahooSymbol": "NVDA",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 195.04,
+      "price": 200.75,
       "currency": "USD",
-      "previousClose": 190.01,
-      "change": 5.03,
-      "changePercent": 2.6472,
+      "previousClose": 195.04,
+      "change": 5.71,
+      "changePercent": 2.9276,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:43+00:00"
+      "fetchedAt": "2026-08-03T06:33:57+00:00"
     },
     "US:AAPL": {
       "symbol": "AAPL",
       "yahooSymbol": "AAPL",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 333.43,
+      "price": 308.91,
       "currency": "USD",
-      "previousClose": 338.19,
-      "change": -4.76,
-      "changePercent": -1.4075,
+      "previousClose": 333.43,
+      "change": -24.52,
+      "changePercent": -7.3539,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:43+00:00"
+      "fetchedAt": "2026-08-03T06:33:57+00:00"
     },
     "US:GOOG": {
       "symbol": "GOOG",
       "yahooSymbol": "GOOG",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 333.68,
+      "price": 356.65,
       "currency": "USD",
-      "previousClose": 335.76,
-      "change": -2.08,
-      "changePercent": -0.6195,
+      "previousClose": 333.68,
+      "change": 22.97,
+      "changePercent": 6.8838,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:43+00:00"
+      "fetchedAt": "2026-08-03T06:33:57+00:00"
     },
     "US:MSFT": {
       "symbol": "MSFT",
       "yahooSymbol": "MSFT",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 451.1,
+      "price": 464.72,
       "currency": "USD",
-      "previousClose": 390.54,
-      "change": 60.56,
-      "changePercent": 15.5067,
+      "previousClose": 451.1,
+      "change": 13.62,
+      "changePercent": 3.0193,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:44+00:00"
+      "fetchedAt": "2026-08-03T06:33:58+00:00"
     },
     "US:INTC": {
       "symbol": "INTC",
       "yahooSymbol": "INTC",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 91.13,
+      "price": 90.2,
       "currency": "USD",
-      "previousClose": 81.88,
-      "change": 9.25,
-      "changePercent": 11.297,
+      "previousClose": 91.13,
+      "change": -0.93,
+      "changePercent": -1.0205,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:44+00:00"
+      "fetchedAt": "2026-08-03T06:33:58+00:00"
     },
     "US:MU": {
       "symbol": "MU",
       "yahooSymbol": "MU",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 874.66,
+      "price": 823.03,
       "currency": "USD",
-      "previousClose": 739.0,
-      "change": 135.66,
-      "changePercent": 18.3572,
+      "previousClose": 874.66,
+      "change": -51.63,
+      "changePercent": -5.9029,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:45+00:00"
+      "fetchedAt": "2026-08-03T06:33:58+00:00"
     },
     "US:SNDK": {
       "symbol": "SNDK",
       "yahooSymbol": "SNDK",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 1279.96,
+      "price": 1214.83,
       "currency": "USD",
-      "previousClose": 1015.89,
-      "change": 264.07,
-      "changePercent": 25.994,
+      "previousClose": 1279.96,
+      "change": -65.13,
+      "changePercent": -5.0884,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:45+00:00"
+      "fetchedAt": "2026-08-03T06:33:59+00:00"
     },
     "US:META": {
       "symbol": "META",
       "yahooSymbol": "META",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 539.03,
+      "price": 556.71,
       "currency": "USD",
-      "previousClose": 585.61,
-      "change": -46.58,
-      "changePercent": -7.9541,
+      "previousClose": 539.03,
+      "change": 17.68,
+      "changePercent": 3.28,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:45+00:00"
+      "fetchedAt": "2026-08-03T06:33:59+00:00"
     },
     "US:TSLA": {
       "symbol": "TSLA",
       "yahooSymbol": "TSLA",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 308.85,
+      "price": 311.21,
       "currency": "USD",
-      "previousClose": 298.32,
-      "change": 10.53,
-      "changePercent": 3.5298,
+      "previousClose": 308.85,
+      "change": 2.36,
+      "changePercent": 0.7641,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:46+00:00"
+      "fetchedAt": "2026-08-03T06:33:59+00:00"
     },
     "US:AMZN": {
       "symbol": "AMZN",
       "yahooSymbol": "AMZN",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 235.5,
+      "price": 271.58,
       "currency": "USD",
-      "previousClose": 226.65,
-      "change": 8.85,
-      "changePercent": 3.9047,
+      "previousClose": 235.5,
+      "change": 36.08,
+      "changePercent": 15.3206,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:46+00:00"
+      "fetchedAt": "2026-08-03T06:34:00+00:00"
     },
     "US:AMD": {
       "symbol": "AMD",
       "yahooSymbol": "AMD",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 485.39,
+      "price": 476.15,
       "currency": "USD",
-      "previousClose": 429.56,
-      "change": 55.83,
-      "changePercent": 12.997,
+      "previousClose": 485.39,
+      "change": -9.24,
+      "changePercent": -1.9036,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:46+00:00"
+      "fetchedAt": "2026-08-03T06:34:00+00:00"
     },
     "US:VT": {
       "symbol": "VT",
       "yahooSymbol": "VT",
       "market": "US",
       "instrumentType": "ETF",
-      "price": 155.45,
+      "price": 155.86,
       "currency": "USD",
-      "previousClose": 152.22,
-      "change": 3.23,
-      "changePercent": 2.1219,
+      "previousClose": 155.45,
+      "change": 0.41,
+      "changePercent": 0.2638,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:47+00:00"
+      "fetchedAt": "2026-08-03T06:34:00+00:00"
     },
     "US:QQQ": {
       "symbol": "QQQ",
       "yahooSymbol": "QQQ",
       "market": "US",
       "instrumentType": "ETF",
-      "price": 683.55,
+      "price": 687.99,
       "currency": "USD",
-      "previousClose": 661.73,
-      "change": 21.82,
-      "changePercent": 3.2974,
+      "previousClose": 683.55,
+      "change": 4.44,
+      "changePercent": 0.6496,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:47+00:00"
+      "fetchedAt": "2026-08-03T06:34:00+00:00"
     },
     "US:SKHY": {
       "symbol": "SKHY",
       "yahooSymbol": "SKHY",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 149.0,
+      "price": 143.73,
       "currency": "USD",
-      "previousClose": 126.79,
-      "change": 22.21,
-      "changePercent": 17.5172,
+      "previousClose": 149.0,
+      "change": -5.27,
+      "changePercent": -3.5369,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-07-31T08:17:47+00:00"
+      "fetchedAt": "2026-08-03T06:34:01+00:00"
     }
   },
-  "errors": []
+  "errors": [
+    {
+      "market": "TW",
+      "symbol": "0050",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2330",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "00981A",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "009816",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "00991A",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "00988A",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2317",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2454",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2382",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2344",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2408",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2337",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "3376",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2303",
+      "error": "<urlopen error timed out>"
+    },
+    {
+      "market": "TW",
+      "symbol": "3231",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2308",
+      "error": "<urlopen error timed out>"
+    },
+    {
+      "market": "TW",
+      "symbol": "2327",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "3013",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "3037",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "1802",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "4958",
+      "error": "HTTP Error 502: Bad Gateway"
+    },
+    {
+      "market": "TW",
+      "symbol": "2603",
+      "error": "HTTP Error 502: Bad Gateway"
+    }
+  ]
 }

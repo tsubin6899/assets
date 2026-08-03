@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-07-31T08:18:07+00:00",
+  "generatedAt": "2026-08-03T06:34:31+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -22,8 +22,7 @@
     {
       "name": "CMoney 美股ETF VT",
       "url": "https://www.cmoney.tw/etf/us/VT",
-      "status": "unavailable",
-      "error": "CMoney overview returned no usable premium for VT"
+      "status": "available"
     }
   ],
   "valuations": {
@@ -31,11 +30,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 93.22,
+      "nav": 101.74,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-07-30",
+      "asOf": "2026-07-31",
       "dataStatus": "current",
       "stale": false
     },
@@ -48,17 +47,18 @@
       "dividendYield": 1.0,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00981A": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 23.82,
+      "nav": 25.87,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-07-30",
+      "asOf": "2026-07-31",
       "dataStatus": "current",
       "stale": false
     },
@@ -66,11 +66,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 13.37,
+      "nav": 14.55,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-07-30",
+      "asOf": "2026-07-31",
       "dataStatus": "current",
       "stale": false
     },
@@ -78,11 +78,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 13.98,
+      "nav": 15.27,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-07-30",
+      "asOf": "2026-07-31",
       "dataStatus": "current",
       "stale": false
     },
@@ -90,11 +90,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 14.11,
+      "nav": 14.91,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-07-29",
+      "asOf": "2026-07-30",
       "dataStatus": "current",
       "stale": false
     },
@@ -107,7 +107,8 @@
       "dividendYield": 3.12,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2454": {
       "assetType": "stock",
@@ -118,7 +119,8 @@
       "dividendYield": 1.65,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2382": {
       "assetType": "stock",
@@ -129,7 +131,8 @@
       "dividendYield": 5.59,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2344": {
       "assetType": "stock",
@@ -140,7 +143,8 @@
       "dividendYield": 0.42,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2408": {
       "assetType": "stock",
@@ -151,7 +155,8 @@
       "dividendYield": 0.41,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2337": {
       "assetType": "stock",
@@ -162,7 +167,8 @@
       "dividendYield": null,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "partial"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:3376": {
       "assetType": "stock",
@@ -173,7 +179,8 @@
       "dividendYield": 2.5,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2303": {
       "assetType": "stock",
@@ -184,7 +191,8 @@
       "dividendYield": 2.37,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:3231": {
       "assetType": "stock",
@@ -195,7 +203,8 @@
       "dividendYield": 3.44,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2308": {
       "assetType": "stock",
@@ -206,7 +215,8 @@
       "dividendYield": 0.76,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2327": {
       "assetType": "stock",
@@ -217,7 +227,8 @@
       "dividendYield": 1.31,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:3013": {
       "assetType": "stock",
@@ -228,7 +239,8 @@
       "dividendYield": 1.11,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:3037": {
       "assetType": "stock",
@@ -239,7 +251,8 @@
       "dividendYield": 0.28,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:1802": {
       "assetType": "stock",
@@ -250,7 +263,8 @@
       "dividendYield": null,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:4958": {
       "assetType": "stock",
@@ -261,7 +275,8 @@
       "dividendYield": 0.91,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2603": {
       "assetType": "stock",
@@ -272,19 +287,20 @@
       "dividendYield": 7.96,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-07-30",
-      "dataStatus": "current"
+      "dataStatus": "stale",
+      "stale": true
     },
     "US:AMAT": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 57.94,
-      "pe": 57.94,
-      "pb": 19.86,
+      "value": 58.62,
+      "pe": 58.62,
+      "pb": 20.09,
       "roe": 35.51,
       "revenueGrowth": 4.39,
       "epsGrowth": 0.58,
       "debtRatio": 43.76,
-      "fcfYield": 1.41,
+      "fcfYield": 1.39,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-10-26",
       "dataStatus": "current"
@@ -337,14 +353,14 @@
     "US:NVDA": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 39.8,
-      "pe": 39.8,
-      "pb": 30.4,
+      "value": 40.97,
+      "pe": 40.97,
+      "pb": 31.29,
       "roe": 101.49,
       "revenueGrowth": 61.4,
       "epsGrowth": 66.67,
       "debtRatio": 23.94,
-      "fcfYield": 2.15,
+      "fcfYield": 2.08,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2026-01-25",
       "dataStatus": "current"
@@ -352,14 +368,14 @@
     "US:AAPL": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 44.7,
-      "pe": 44.7,
-      "pb": 67.85,
+      "value": 41.41,
+      "pe": 41.41,
+      "pb": 62.86,
       "roe": 171.42,
       "revenueGrowth": 6.43,
       "epsGrowth": 22.7,
       "debtRatio": 79.48,
-      "fcfYield": 1.97,
+      "fcfYield": 2.13,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-09-27",
       "dataStatus": "current"
@@ -367,14 +383,14 @@
     "US:GOOG": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 30.87,
-      "pe": 30.87,
-      "pb": 9.83,
+      "value": 32.99,
+      "pe": 32.99,
+      "pb": 10.5,
       "roe": 35.7,
       "revenueGrowth": 13.87,
       "epsGrowth": 34.45,
       "debtRatio": 30.24,
-      "fcfYield": 1.8,
+      "fcfYield": 1.68,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-12-31",
       "dataStatus": "current"
@@ -382,14 +398,14 @@
     "US:MSFT": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 25.13,
-      "pe": 25.13,
-      "pb": 7.6,
+      "value": 25.89,
+      "pe": 25.89,
+      "pb": 7.83,
       "roe": 34.04,
       "revenueGrowth": 17.79,
       "epsGrowth": 31.6,
       "debtRatio": 41.67,
-      "fcfYield": 1.99,
+      "fcfYield": 1.93,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2026-06-30",
       "dataStatus": "current"
@@ -399,12 +415,12 @@
       "metric": null,
       "value": null,
       "pe": null,
-      "pb": 3.61,
+      "pb": 3.58,
       "roe": -0.25,
       "revenueGrowth": -0.47,
       "epsGrowth": -98.63,
       "debtRatio": null,
-      "fcfYield": -1.2,
+      "fcfYield": -1.21,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-12-27",
       "dataStatus": "current"
@@ -412,14 +428,14 @@
     "US:MU": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 115.24,
-      "pe": 115.24,
-      "pb": 18.17,
+      "value": 108.44,
+      "pe": 108.44,
+      "pb": 17.09,
       "roe": 17.2,
       "revenueGrowth": 48.85,
       "epsGrowth": 984.29,
       "debtRatio": 34.58,
-      "fcfYield": 0.17,
+      "fcfYield": 0.18,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-08-28",
       "dataStatus": "current"
@@ -429,12 +445,12 @@
       "metric": null,
       "value": null,
       "pe": null,
-      "pb": 20.14,
+      "pb": 19.11,
       "roe": -16.17,
       "revenueGrowth": 10.39,
       "epsGrowth": 144.49,
       "debtRatio": 29.03,
-      "fcfYield": -0.06,
+      "fcfYield": -0.07,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-06-27",
       "dataStatus": "current"
@@ -442,14 +458,14 @@
     "US:META": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 22.95,
-      "pe": 22.95,
-      "pb": 6.39,
+      "value": 23.7,
+      "pe": 23.7,
+      "pb": 6.6,
       "roe": 30.24,
       "revenueGrowth": 22.17,
       "epsGrowth": -1.55,
       "debtRatio": 40.65,
-      "fcfYield": 3.32,
+      "fcfYield": 3.22,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-12-31",
       "dataStatus": "current"
@@ -457,9 +473,9 @@
     "US:TSLA": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 285.97,
-      "pe": 285.97,
-      "pb": 13.27,
+      "value": 288.16,
+      "pe": 288.16,
+      "pb": 13.37,
       "roe": 4.89,
       "revenueGrowth": -2.93,
       "epsGrowth": -47.06,
@@ -472,14 +488,14 @@
     "US:AMZN": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 32.85,
-      "pe": 32.85,
-      "pb": 6.2,
+      "value": 37.88,
+      "pe": 37.88,
+      "pb": 7.15,
       "roe": 22.29,
       "revenueGrowth": 12.38,
       "epsGrowth": 29.66,
       "debtRatio": null,
-      "fcfYield": 5.21,
+      "fcfYield": 4.52,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-12-31",
       "dataStatus": "current"
@@ -487,14 +503,14 @@
     "US:AMD": {
       "assetType": "stock",
       "metric": "pe",
-      "value": 183.17,
-      "pe": 183.17,
-      "pb": 12.6,
+      "value": 179.68,
+      "pe": 179.68,
+      "pb": 12.36,
       "roe": 7.19,
       "revenueGrowth": 34.34,
       "epsGrowth": 165.0,
       "debtRatio": null,
-      "fcfYield": 0.85,
+      "fcfYield": 0.86,
       "source": "SEC EDGAR Company Facts (latest annual filing)",
       "asOf": "2025-12-27",
       "dataStatus": "current"
@@ -502,28 +518,28 @@
     "US:VT": {
       "assetType": "etf",
       "metric": "premium",
-      "value": 0.11,
-      "premium": 0.11,
+      "value": -0.06,
+      "premium": -0.06,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/VT",
       "referenceLabel": "CMoney ETF 資料",
-      "asOf": "2026-07-30",
+      "asOf": "2026-08-03",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-07-30T07:55:57+00:00",
-      "dataStatus": "stale",
-      "stale": true
+      "fetchedAt": "2026-08-03T06:34:24+00:00",
+      "dataStatus": "current",
+      "stale": false
     },
     "US:QQQ": {
       "assetType": "etf",
       "metric": "premium",
-      "value": -0.02,
-      "premium": -0.02,
+      "value": 0.02,
+      "premium": 0.02,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/QQQ",
       "referenceLabel": "CMoney ETF 資料",
-      "asOf": "2026-07-31",
+      "asOf": "2026-08-03",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-07-31T08:17:57+00:00",
+      "fetchedAt": "2026-08-03T06:34:23+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -543,5 +559,10 @@
       "dataStatus": "manual-needed"
     }
   },
-  "errors": []
+  "errors": [
+    {
+      "source": "TWSE OpenAPI",
+      "error": "Expecting value: line 1 column 1 (char 0)"
+    }
+  ]
 }
