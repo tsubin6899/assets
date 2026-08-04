@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-08-04T05:47:17+00:00",
+  "generatedAt": "2026-08-04T08:02:08+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -502,14 +502,14 @@
     "US:VT": {
       "assetType": "etf",
       "metric": "premium",
-      "value": -0.06,
-      "premium": -0.06,
+      "value": -0.12,
+      "premium": -0.12,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/VT",
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-08-04",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-08-04T05:47:11+00:00",
+      "fetchedAt": "2026-08-04T08:02:04+00:00",
       "dataStatus": "current",
       "stale": false
     },
