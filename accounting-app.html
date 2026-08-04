@@ -1689,6 +1689,65 @@
       color: #755591;
       background: #f0e7f5;
     }
+    .statement-month-badge {
+      display: inline-flex;
+      align-items: center;
+      margin-top: 5px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      color: #795319;
+      background: #fff0ce;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .statement-month-badge.posted,
+    .statement-month-badge.confirmed {
+      color: #287353;
+      background: #dff1e8;
+    }
+    .statement-month-badge.adjusted,
+    .statement-month-badge.deferred {
+      color: #755591;
+      background: #f0e7f5;
+    }
+    .statement-period-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .statement-period-actions .btn {
+      min-height: 30px;
+      padding: 5px 8px;
+      white-space: nowrap;
+    }
+    .statement-candidates {
+      display: grid;
+      gap: 9px;
+      margin-top: 12px;
+    }
+    .statement-candidate {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--soft);
+    }
+    .statement-candidate strong,
+    .statement-candidate small {
+      display: block;
+    }
+    .statement-candidate small {
+      margin-top: 3px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .statement-candidate-amount {
+      font-weight: 800;
+      white-space: nowrap;
+    }
     .statement-history {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1742,6 +1801,19 @@
     body.dark-theme .statement-source.installment {
       color: #d7b8e5;
       background: rgba(143,100,173,.2);
+    }
+    body.dark-theme .statement-month-badge.posted,
+    body.dark-theme .statement-month-badge.confirmed {
+      color: #a4e4ca;
+      background: rgba(53,146,116,.18);
+    }
+    body.dark-theme .statement-month-badge.adjusted,
+    body.dark-theme .statement-month-badge.deferred {
+      color: #d7b8e5;
+      background: rgba(143,100,173,.2);
+    }
+    body.dark-theme .statement-candidate {
+      background: #1d2c34;
     }
     @media (max-width: 960px) {
       .credit-reconcile-layout {
@@ -1806,6 +1878,13 @@
       #statementMatchTable td:nth-child(4) { grid-column: 2; grid-row: 3; color: var(--muted); font-size: 12px; }
       #statementMatchTable td:nth-child(5) { grid-column: 3; grid-row: 1 / span 3; align-self: center; font-size: 17px; font-weight: 800; }
       #statementMatchTable td:nth-child(6) { grid-column: 2; grid-row: 4; }
+      #statementMatchTable td:nth-child(7) { grid-column: 2 / -1; grid-row: 5; }
+      .statement-candidate {
+        grid-template-columns: minmax(0, 1fr) auto;
+      }
+      .statement-candidate .statement-period-actions {
+        grid-column: 1 / -1;
+      }
     }
 
     /* 2026 mobile product shell and one-handed entry refinement */
@@ -2079,6 +2158,8 @@
                 <div class="entry-optional-fields">
                   <label>商家 / 對象<input id="merchant" list="merchantSuggestions" placeholder="超商、餐廳、薪資等"></label>
                   <label>備註<textarea id="note" placeholder="可填發票、用途或提醒"></textarea></label>
+                  <label id="postedDateField" hidden>信用卡實際入帳日<input id="postedDate" type="date"><small class="hint">銀行 App 顯示入帳後再填即可。</small></label>
+                  <label id="statementMonthOverrideField" hidden>確認帳期<input id="statementMonthOverride" type="month"><small class="hint">留空時由消費日或入帳日自動預估。</small></label>
                   <label>收據附件<input id="receiptImage" type="file" accept="image/*" capture="environment"></label>
                   <img id="receiptPreview" class="receipt-preview" alt="收據預覽">
                 </div>
@@ -2243,7 +2324,7 @@
         <aside class="panel">
           <div class="panel-pad">
             <h2>信用卡對帳</h2>
-            <p class="hint">選擇信用卡與帳單月份，App 會依結帳日整理刷卡、退款及分期明細，再與銀行帳單金額比對。</p>
+            <p class="hint">App 會先依消費日預估帳期；若店家延後請款，可填入實際入帳日，或在右側將明細移至正確帳期。</p>
             <form id="creditReconcileForm" class="credit-reconcile-form">
               <label>信用卡<select id="reconcileCreditCard" required></select></label>
               <label>帳單月份<input id="reconcileBillMonth" type="month" required></label>
@@ -2272,6 +2353,13 @@
               </div>
             </div>
             <div id="creditReconcileTable"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-pad">
+              <h3>跨期候選明細</h3>
+              <p class="hint">顯示相鄰帳期與尚未確認的刷卡，可直接歸入目前帳期；不會改變原始消費日期。</p>
+              <div id="creditStatementCandidates" class="statement-candidates"></div>
+            </div>
           </article>
           <article class="panel">
             <div class="panel-pad">
@@ -2593,6 +2681,10 @@
     const accountSelect = document.getElementById("account");
     const purchaseRegionField = document.getElementById("purchaseRegionField");
     const purchaseRegionSelect = document.getElementById("purchaseRegion");
+    const postedDateField = document.getElementById("postedDateField");
+    const postedDateInput = document.getElementById("postedDate");
+    const statementMonthOverrideField = document.getElementById("statementMonthOverrideField");
+    const statementMonthOverrideInput = document.getElementById("statementMonthOverride");
     const accountTypeLabel = document.createElement("label");
     accountTypeLabel.textContent = "帳戶類型";
     const accountTypeSelect = document.createElement("select");
@@ -2711,6 +2803,12 @@
       const date = new Date(year, monthNumber - 1 + delta, 1);
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
     }
+    function monthDistance(fromMonth, toMonth) {
+      const [fromYear, fromNumber] = String(fromMonth || "").split("-").map(Number);
+      const [toYear, toNumber] = String(toMonth || "").split("-").map(Number);
+      if (![fromYear, fromNumber, toYear, toNumber].every(Number.isFinite)) return Number.MAX_SAFE_INTEGER;
+      return (toYear - fromYear) * 12 + toNumber - fromNumber;
+    }
     function shiftDate(dateString, delta) {
       const date = new Date(`${dateString}T00:00:00`);
       date.setDate(date.getDate() + delta);
@@ -2789,6 +2887,9 @@
         receiptDataUrl: "",
         purchaseRegion: "",
         billMonth: creditStatementMonth(account, sourceEntry.date || today()),
+        postedDate: sourceEntry.postedDate || "",
+        statementMonthOverride: sourceEntry.statementMonthOverride || "",
+        statementStatus: sourceEntry.statementStatus || "estimated",
         isForeignTransactionFee: true,
         derivedFromEntryId: sourceEntry.id,
         feeRate: 0.015
@@ -2883,6 +2984,9 @@
       return (Array.isArray(saved) ? saved : []).map(row => ({
         ...row,
         purchaseRegion: row.purchaseRegion === "foreign" ? "foreign" : row.purchaseRegion === "domestic" ? "domestic" : "",
+        postedDate: /^\d{4}-\d{2}-\d{2}$/.test(String(row.postedDate || "")) ? String(row.postedDate) : "",
+        statementMonthOverride: /^\d{4}-\d{2}$/.test(String(row.statementMonthOverride || "")) ? String(row.statementMonthOverride) : "",
+        statementStatus: ["estimated", "posted", "adjusted", "deferred", "confirmed"].includes(row.statementStatus) ? row.statementStatus : row.statementMonthOverride ? "adjusted" : row.postedDate ? "posted" : "estimated",
         isForeignTransactionFee: Boolean(row.isForeignTransactionFee),
         derivedFromEntryId: String(row.derivedFromEntryId || ""),
         feeRate: row.isForeignTransactionFee ? Number(row.feeRate) || 0.015 : Number(row.feeRate) || 0
@@ -3492,6 +3596,13 @@
       const visible = currentType === "expense" && account?.type === "信用卡";
       purchaseRegionField.hidden = !visible;
       if (!visible) purchaseRegionSelect.value = "domestic";
+      const statementVisible = account?.type === "信用卡";
+      postedDateField.hidden = !statementVisible;
+      statementMonthOverrideField.hidden = !statementVisible;
+      if (!statementVisible) {
+        postedDateInput.value = "";
+        statementMonthOverrideInput.value = "";
+      }
     }
     function refreshLists() {
       const merchantCounts = new Map();
@@ -3663,14 +3774,18 @@
           <label>項目<input name="item" value="${escapeHtml(row.item || "")}"></label>
           <label>帳戶<select name="account">${editOptions(ledger.accounts.map(account => account.name), row.account)}</select></label>
           <label data-edit-purchase-region>刷卡消費地區<select name="purchaseRegion"><option value="domestic"${row.purchaseRegion !== "foreign" ? " selected" : ""}>國內消費</option><option value="foreign"${row.purchaseRegion === "foreign" ? " selected" : ""}>國外消費</option></select></label>
+          <label data-edit-statement-field>信用卡實際入帳日<input name="postedDate" type="date" value="${escapeHtml(row.postedDate || "")}"><small class="hint">以銀行 App 顯示的入帳日為準</small></label>
+          <label data-edit-statement-field>確認帳期<input name="statementMonthOverride" type="month" value="${escapeHtml(row.statementMonthOverride || "")}"><small class="hint">留空時由消費日或入帳日自動推算</small></label>
           <label>商家 / 對象<input name="merchant" value="${escapeHtml(row.merchant || "")}"></label>
           <label>備註<input name="note" value="${escapeHtml(row.note || "")}"></label>`;
         const editTypeSelect = editFields.querySelector('[name="type"]');
         const editAccountSelect = editFields.querySelector('[name="account"]');
         const editPurchaseRegionField = editFields.querySelector("[data-edit-purchase-region]");
+        const editStatementFields = [...editFields.querySelectorAll("[data-edit-statement-field]")];
         const updateEditPurchaseRegion = () => {
           const account = ledger.accounts.find(item => item.name === editAccountSelect.value);
           editPurchaseRegionField.hidden = editTypeSelect.value !== "expense" || account?.type !== "信用卡";
+          editStatementFields.forEach(field => { field.hidden = account?.type !== "信用卡"; });
         };
         editTypeSelect.addEventListener("change", updateEditPurchaseRegion);
         editAccountSelect.addEventListener("change", updateEditPurchaseRegion);
@@ -3735,7 +3850,11 @@
         if (!row) return;
         const account = ledger.accounts.find(item => item.name === values.account);
         const type = values.type === "income" ? "income" : "expense";
-        Object.assign(row, { date: values.date || today(), type, amount: Number(values.amount) || 0, category: String(values.category || "").trim(), item: String(values.item || "").trim(), account: values.account || "", merchant: String(values.merchant || "").trim(), note: String(values.note || "").trim(), purchaseRegion: type === "expense" && account?.type === "信用卡" && values.purchaseRegion === "foreign" ? "foreign" : type === "expense" && account?.type === "信用卡" ? "domestic" : "", billMonth: account?.type === "信用卡" ? creditStatementMonth(account, values.date || today()) : "" });
+        const isCreditCard = account?.type === "信用卡";
+        const postedDate = isCreditCard ? values.postedDate || "" : "";
+        const statementMonthOverride = isCreditCard ? values.statementMonthOverride || "" : "";
+        const statementStatus = !isCreditCard ? "estimated" : statementMonthOverride ? (row.statementStatus === "confirmed" && row.statementMonthOverride === statementMonthOverride ? "confirmed" : "adjusted") : postedDate ? "posted" : "estimated";
+        Object.assign(row, { date: values.date || today(), type, amount: Number(values.amount) || 0, category: String(values.category || "").trim(), item: String(values.item || "").trim(), account: values.account || "", merchant: String(values.merchant || "").trim(), note: String(values.note || "").trim(), purchaseRegion: type === "expense" && isCreditCard && values.purchaseRegion === "foreign" ? "foreign" : type === "expense" && isCreditCard ? "domestic" : "", billMonth: isCreditCard ? creditStatementMonth(account, values.date || today()) : "", postedDate, statementMonthOverride, statementStatus });
         syncForeignTransactionFee(row);
       } else if (editState.kind === "account") {
         const row = ledger.accounts.find(item => item.id === editState.id);
@@ -3849,6 +3968,29 @@
       const day = Number(String(date || today()).slice(8, 10)) || 1;
       return account?.statementDay && day > account.statementDay ? shiftMonth(baseMonth, 1) : baseMonth;
     }
+    function effectiveStatementMonth(row, account) {
+      if (!row) return "";
+      if (row.virtualInstallment) return row.billMonth || monthOf(row.date);
+      if (row.statementMonthOverride) return row.statementMonthOverride;
+      return creditStatementMonth(account, row.postedDate || row.date);
+    }
+    function statementStatusInfo(row) {
+      if (row?.virtualInstallment) return { label: "分期排程", cls: "confirmed", title: "依分期排程歸入帳期" };
+      if (row?.statementStatus === "confirmed") return { label: "已確認", cls: "confirmed", title: "已在銀行帳單逐筆確認" };
+      if (row?.statementStatus === "deferred") return { label: "延後請款", cls: "deferred", title: "已人工移至較晚帳期" };
+      if (row?.statementMonthOverride) return { label: "人工歸期", cls: "adjusted", title: "已人工指定信用卡帳期" };
+      if (row?.postedDate) return { label: "入帳日推算", cls: "posted", title: `依 ${row.postedDate} 實際入帳日推算` };
+      return { label: "預估帳期", cls: "estimated", title: "尚未取得實際入帳日，暫依消費日推算" };
+    }
+    function setEntryStatementMonth(entryId, targetMonth, status = "adjusted") {
+      const entry = ledger.entries.find(row => row.id === entryId && !row.virtualInstallment);
+      if (!entry || !/^\d{4}-\d{2}$/.test(String(targetMonth || ""))) return false;
+      entry.statementMonthOverride = targetMonth;
+      entry.statementStatus = status;
+      syncForeignTransactionFee(entry);
+      statementDraftMatched.delete(`entry:${entryId}`);
+      return true;
+    }
     function renderCreditCycleSummary() {
       const target = document.getElementById("creditCycleSummary");
       const cards = ledger.accounts.filter(account => account.type === "信用卡");
@@ -3856,8 +3998,8 @@
       const next = shiftMonth(current, 1);
       target.innerHTML = cards.length ? cards.map(card => {
         const rows = allEntryRows().filter(row => row.type === "expense" && row.account === card.name);
-        const currentAmount = sum(rows.filter(row => creditStatementMonth(card, row.date) === current), row => row.amount);
-        const nextAmount = sum(rows.filter(row => creditStatementMonth(card, row.date) === next), row => row.amount);
+        const currentAmount = sum(rows.filter(row => effectiveStatementMonth(row, card) === current), row => row.amount);
+        const nextAmount = sum(rows.filter(row => effectiveStatementMonth(row, card) === next), row => row.amount);
         const cycleText = card.statementDay ? `結帳日 ${card.statementDay} 日` : "尚未設定結帳日";
         return `<div class="account-tile"><div class="account-meta"><strong>${escapeHtml(card.name)}</strong><small>${cycleText}｜${current} 預估 ${money(currentAmount)}｜${next} 預估 ${money(nextAmount)}</small></div><span class="account-balance">${money(currentAmount)} ${escapeHtml(card.currency)}</span></div>`;
       }).join("") : `<div class="empty">先建立信用卡並設定結帳日，即可顯示帳期預估。</div>`;
@@ -3948,13 +4090,29 @@
       if (!card || !billMonth) return [];
       return allEntryRows()
         .filter(row => row.account === cardName)
-        .filter(row => (row.virtualInstallment ? row.billMonth : creditStatementMonth(card, row.date)) === billMonth)
+        .filter(row => effectiveStatementMonth(row, card) === billMonth)
         .map(row => ({
           ...row,
+          effectiveBillMonth: effectiveStatementMonth(row, card),
           statementKey: creditStatementEntryKey(row),
           statementAmount: (row.type === "income" ? -1 : 1) * (Number(row.amount) || 0)
         }))
         .sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.createdAt || "").localeCompare(String(b.createdAt || "")));
+    }
+    function creditStatementCandidates(cardName, billMonth) {
+      const card = ledger.accounts.find(account => account.type === "信用卡" && account.name === cardName);
+      if (!card || !billMonth) return [];
+      const nearbyMonths = new Set([shiftMonth(billMonth, -1), shiftMonth(billMonth, 1)]);
+      return ledger.entries
+        .filter(row => row.account === cardName && !row.isForeignTransactionFee)
+        .map(row => ({
+          ...row,
+          effectiveBillMonth: effectiveStatementMonth(row, card),
+          statementAmount: (row.type === "income" ? -1 : 1) * (Number(row.amount) || 0)
+        }))
+        .filter(row => row.statementStatus !== "confirmed" && row.effectiveBillMonth !== billMonth && (nearbyMonths.has(row.effectiveBillMonth) || row.statementStatus === "deferred"))
+        .sort((a, b) => Math.abs(monthDistance(billMonth, a.effectiveBillMonth)) - Math.abs(monthDistance(billMonth, b.effectiveBillMonth)) || String(b.date || "").localeCompare(String(a.date || "")))
+        .slice(0, 30);
     }
     function creditStatementRange(card, billMonth) {
       if (!card || !billMonth) return "";
@@ -4015,6 +4173,7 @@
       const summaryTarget = document.getElementById("creditReconcileSummary");
       const statusTarget = document.getElementById("creditReconcileStatus");
       const tableTarget = document.getElementById("creditReconcileTable");
+      const candidateTarget = document.getElementById("creditStatementCandidates");
       const rangeTarget = document.getElementById("creditReconcileRange");
       const cardName = reconcileCreditCardSelect.value;
       const billMonth = reconcileBillMonthInput.value || monthOf();
@@ -4023,6 +4182,7 @@
         summaryTarget.innerHTML = card("尚未建立信用卡", "－", "請先到信用卡設定新增卡片", "accent");
         statusTarget.innerHTML = `<div class="statement-status"><div><strong>無法開始對帳</strong><small>建立信用卡後，這裡會依帳期列出明細。</small></div><span class="statement-status-badge">待設定</span></div>`;
         tableTarget.innerHTML = `<div class="empty">尚無信用卡可供核對</div>`;
+        candidateTarget.innerHTML = `<div class="empty">建立信用卡後會顯示跨期候選明細</div>`;
         rangeTarget.textContent = "";
         renderCreditReconcileHistory();
         if (window.lucide) window.lucide.createIcons();
@@ -4030,6 +4190,7 @@
       }
       loadCreditStatementDraft();
       const rows = creditStatementRows(cardName, billMonth);
+      const candidates = creditStatementCandidates(cardName, billMonth);
       const appAmount = sum(rows, row => row.statementAmount);
       const hasActual = reconcileStatementAmountInput.value !== "";
       const statementAmount = hasActual ? Number(reconcileStatementAmountInput.value) || 0 : 0;
@@ -4046,16 +4207,28 @@
       statusTarget.innerHTML = `<div class="statement-status"><div><strong>${escapeHtml(cardName)}｜${escapeHtml(billMonth)} 對帳狀態</strong><small>${escapeHtml(status.note)}</small></div><span class="statement-status-badge ${status.cls}">${status.label}</span></div>`;
       rangeTarget.textContent = `帳期 ${creditStatementRange(cardRow, billMonth)}`;
       tableTarget.innerHTML = rows.length ? `<div class="table-wrap"><table id="statementMatchTable">
-        <thead><tr><th>核對</th><th>日期</th><th>商家 / 項目</th><th>分類</th><th>帳單增減</th><th>來源</th></tr></thead>
-        <tbody>${rows.map(row => `<tr>
-          <td class="statement-check-cell"><input class="statement-check" type="checkbox" title="已在信用卡帳單找到" aria-label="${escapeHtml(row.date)} ${escapeHtml(row.merchant || row.item || row.category)} 已核對" data-statement-match="${escapeHtml(row.statementKey)}" ${statementDraftMatched.has(row.statementKey) ? "checked" : ""}></td>
-          <td>${escapeHtml(row.date || "")}</td>
-          <td>${escapeHtml(row.merchant || row.item || "未填商家")} ${row.item && row.item !== row.merchant ? `<small class="hint">${escapeHtml(row.item)}</small>` : ""}</td>
-          <td>${escapeHtml(row.category || "未分類")}</td>
-          <td class="${row.statementAmount >= 0 ? "amount-expense" : "amount-income"}">${row.statementAmount >= 0 ? "+" : "-"}${money(Math.abs(row.statementAmount))}</td>
-          <td><span class="statement-source ${row.virtualInstallment ? "installment" : ""}">${row.virtualInstallment ? "分期" : row.isForeignTransactionFee ? "國外手續費" : row.type === "income" ? "退款 / 回饋" : "日常記帳"}</span></td>
-        </tr>`).join("")}</tbody>
-      </table></div>` : `<div class="empty">這張卡在 ${escapeHtml(billMonth)} 帳期沒有 App 明細；請確認信用卡、結帳日與記帳帳戶。</div>`;
+        <thead><tr><th>核對</th><th>消費 / 入帳日</th><th>商家 / 項目</th><th>分類</th><th>帳單增減</th><th>來源</th><th>帳期處理</th></tr></thead>
+        <tbody>${rows.map(row => {
+          const statusInfo = statementStatusInfo(row);
+          return `<tr>
+            <td class="statement-check-cell"><input class="statement-check" type="checkbox" title="已在信用卡帳單找到" aria-label="${escapeHtml(row.date)} ${escapeHtml(row.merchant || row.item || row.category)} 已核對" data-statement-match="${escapeHtml(row.statementKey)}" ${statementDraftMatched.has(row.statementKey) ? "checked" : ""}></td>
+            <td>${escapeHtml(row.date || "")}${row.postedDate ? `<small class="hint">入帳 ${escapeHtml(row.postedDate)}</small>` : ""}<span class="statement-month-badge ${statusInfo.cls}" title="${escapeHtml(statusInfo.title)}">${escapeHtml(statusInfo.label)}</span></td>
+            <td>${escapeHtml(row.merchant || row.item || "未填商家")} ${row.item && row.item !== row.merchant ? `<small class="hint">${escapeHtml(row.item)}</small>` : ""}</td>
+            <td>${escapeHtml(row.category || "未分類")}</td>
+            <td class="${row.statementAmount >= 0 ? "amount-expense" : "amount-income"}">${row.statementAmount >= 0 ? "+" : "-"}${money(Math.abs(row.statementAmount))}</td>
+            <td><span class="statement-source ${row.virtualInstallment ? "installment" : ""}">${row.virtualInstallment ? "分期" : row.isForeignTransactionFee ? "國外手續費" : row.type === "income" ? "退款 / 回饋" : "日常記帳"}</span></td>
+            <td>${row.virtualInstallment || row.isForeignTransactionFee ? `<small class="hint">${row.isForeignTransactionFee ? "隨原交易帳期" : "依分期排程"}</small>` : `<div class="statement-period-actions"><button class="btn small" type="button" data-statement-move="${escapeHtml(row.id)}" data-statement-target="${escapeHtml(shiftMonth(billMonth, 1))}" data-statement-status="deferred">移至下期</button></div>`}</td>
+          </tr>`;
+        }).join("")}</tbody>
+      </table></div>` : `<div class="empty">這張卡在 ${escapeHtml(billMonth)} 帳期沒有 App 明細；可從下方跨期候選明細歸入本期。</div>`;
+      candidateTarget.innerHTML = candidates.length ? candidates.map(row => {
+        const statusInfo = statementStatusInfo(row);
+        return `<div class="statement-candidate">
+          <div><strong>${escapeHtml(row.merchant || row.item || row.category || "未填商家")}</strong><small>消費 ${escapeHtml(row.date || "")}${row.postedDate ? `｜入帳 ${escapeHtml(row.postedDate)}` : ""}｜目前 ${escapeHtml(row.effectiveBillMonth)} <span class="statement-month-badge ${statusInfo.cls}" title="${escapeHtml(statusInfo.title)}">${escapeHtml(statusInfo.label)}</span></small></div>
+          <span class="statement-candidate-amount ${row.statementAmount >= 0 ? "amount-expense" : "amount-income"}">${row.statementAmount >= 0 ? "+" : "-"}${money(Math.abs(row.statementAmount))}</span>
+          <div class="statement-period-actions"><button class="btn small blue" type="button" data-statement-move="${escapeHtml(row.id)}" data-statement-target="${escapeHtml(billMonth)}" data-statement-status="adjusted">歸入本期</button></div>
+        </div>`;
+      }).join("") : `<div class="empty">相鄰帳期目前沒有可移入的刷卡明細</div>`;
       renderCreditReconcileHistory();
       if (window.lucide) window.lucide.createIcons();
     }
@@ -4074,7 +4247,7 @@
       const cardAmountTwd = (amount, cardName) => twdEquivalent(amount, cardFor(cardName)?.currency || "TWD");
       const creditRows = allEntryRows().filter(row => row.type === "expense" && cardFor(row.account));
       const currentSpending = sum(creditRows.filter(row => String(row.date || "").startsWith(month)), row => cardAmountTwd(row.amount, row.account));
-      const nextStatementSpending = sum(creditRows.filter(row => creditStatementMonth(cardFor(row.account), row.date) === nextMonth), row => cardAmountTwd(row.amount, row.account));
+      const nextStatementSpending = sum(creditRows.filter(row => effectiveStatementMonth(row, cardFor(row.account)) === nextMonth), row => cardAmountTwd(row.amount, row.account));
 
       const installmentByBill = installmentEntries().reduce((rows, entry) => {
         const key = `${entry.account}__${entry.billMonth}`;
@@ -4444,6 +4617,8 @@
       document.getElementById("merchant").value = row.merchant || "";
       document.getElementById("note").value = row.note && !String(row.note).includes("固定收支自動產生") ? row.note : "";
       purchaseRegionSelect.value = row.purchaseRegion === "foreign" ? "foreign" : "domestic";
+      postedDateInput.value = row.postedDate || "";
+      statementMonthOverrideInput.value = row.statementMonthOverride || "";
       updatePurchaseRegionVisibility();
       if (scroll) document.getElementById("entryForm").scrollIntoView({ behavior: "smooth", block: "start" });
       document.getElementById("amount").focus({ preventScroll: true });
@@ -4788,6 +4963,9 @@
         receiptDataUrl,
         purchaseRegion: currentType === "expense" && selectedAccount?.type === "信用卡" && purchaseRegionSelect.value === "foreign" ? "foreign" : currentType === "expense" && selectedAccount?.type === "信用卡" ? "domestic" : "",
         billMonth: selectedAccount?.type === "信用卡" ? creditStatementMonth(selectedAccount, entryDate) : "",
+        postedDate: selectedAccount?.type === "信用卡" ? postedDateInput.value : "",
+        statementMonthOverride: selectedAccount?.type === "信用卡" ? statementMonthOverrideInput.value : "",
+        statementStatus: selectedAccount?.type !== "信用卡" ? "estimated" : statementMonthOverrideInput.value ? "adjusted" : postedDateInput.value ? "posted" : "estimated",
         createdAt: new Date().toISOString()
       };
       ledger.entries.push(entry);
@@ -4872,6 +5050,19 @@
       if (viewButton) {
         switchView(viewButton.dataset.view);
         document.getElementById("mobileMoreSheet")?.close();
+        return;
+      }
+      const statementMove = event.target.closest("[data-statement-move]");
+      if (statementMove) {
+        const targetMonth = statementMove.dataset.statementTarget;
+        const moved = setEntryStatementMonth(statementMove.dataset.statementMove, targetMonth, statementMove.dataset.statementStatus || "adjusted");
+        if (!moved) {
+          toast("無法調整這筆信用卡明細的帳期");
+          return;
+        }
+        saveLedger();
+        render();
+        toast(statementMove.dataset.statementStatus === "deferred" ? `已移至 ${targetMonth} 帳期` : `已歸入 ${targetMonth} 帳期`);
         return;
       }
       const statementMatch = event.target.closest("[data-statement-match]");
@@ -5408,6 +5599,15 @@
       const statementAmount = Number(reconcileStatementAmountInput.value) || 0;
       const diff = statementAmount - appAmount;
       const matchedAmount = sum(rows.filter(row => matchedKeys.includes(row.statementKey)), row => row.statementAmount);
+      matchedKeys.forEach(key => {
+        if (!key.startsWith("entry:")) return;
+        const entryId = key.slice("entry:".length);
+        const entry = ledger.entries.find(row => row.id === entryId);
+        if (!entry || entry.isForeignTransactionFee) return;
+        entry.statementMonthOverride = billMonth;
+        entry.statementStatus = "confirmed";
+        syncForeignTransactionFee(entry);
+      });
       ledger.creditStatementChecks ||= [];
       const existing = creditStatementRecord(card, billMonth);
       const now = new Date().toISOString();
@@ -5638,8 +5838,8 @@
     });
     document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", () => {
-      const header = ["日期", "類型", "分類", "項目", "金額", "帳戶", "刷卡消費地區", "商家/對象", "備註", "衍生來源支出ID"];
-      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.item || "", row.amount, row.account, row.isForeignTransactionFee ? "國外手續費" : row.purchaseRegion === "foreign" ? "國外消費" : row.purchaseRegion === "domestic" ? "國內消費" : "", row.merchant, row.note, row.derivedFromEntryId || ""].map(csvEscape).join(","))];
+      const header = ["日期", "類型", "分類", "項目", "金額", "帳戶", "刷卡消費地區", "實際入帳日", "確認帳期", "帳期狀態", "商家/對象", "備註", "衍生來源支出ID"];
+      const lines = [header.map(csvEscape).join(","), ...filteredEntries().map(row => [row.date, row.type === "income" ? "收入" : "支出", row.category, row.item || "", row.amount, row.account, row.isForeignTransactionFee ? "國外手續費" : row.purchaseRegion === "foreign" ? "國外消費" : row.purchaseRegion === "domestic" ? "國內消費" : "", row.postedDate || "", row.statementMonthOverride || "", row.statementStatus || "estimated", row.merchant, row.note, row.derivedFromEntryId || ""].map(csvEscape).join(","))];
       download("tsubin-accounting-data.csv", "\ufeff" + lines.join("\n"), "text/csv;charset=utf-8");
     });
     document.getElementById("importButton").addEventListener("click", () => document.getElementById("importFile").click());
