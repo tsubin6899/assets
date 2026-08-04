@@ -1720,6 +1720,39 @@
       padding: 5px 8px;
       white-space: nowrap;
     }
+    .statement-completion {
+      position: sticky;
+      bottom: 12px;
+      z-index: 4;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 14px;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: rgba(255,255,255,.96);
+      box-shadow: 0 10px 28px rgba(31,38,51,.13);
+      backdrop-filter: blur(12px);
+    }
+    .statement-completion.ready {
+      border-color: rgba(53,146,116,.35);
+      background: rgba(238,249,244,.97);
+    }
+    .statement-completion strong,
+    .statement-completion small {
+      display: block;
+    }
+    .statement-completion small {
+      margin-top: 4px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .statement-completion .btn {
+      flex: 0 0 auto;
+      min-height: 42px;
+    }
     .statement-candidates {
       display: grid;
       gap: 9px;
@@ -1815,6 +1848,11 @@
     body.dark-theme .statement-candidate {
       background: #1d2c34;
     }
+    body.dark-theme .statement-completion,
+    body.dark-theme .statement-completion.ready {
+      border-color: var(--line);
+      background: rgba(29,44,52,.96);
+    }
     @media (max-width: 960px) {
       .credit-reconcile-layout {
         grid-template-columns: 1fr;
@@ -1884,6 +1922,14 @@
       }
       .statement-candidate .statement-period-actions {
         grid-column: 1 / -1;
+      }
+      .statement-completion {
+        bottom: 82px;
+        align-items: stretch;
+        flex-direction: column;
+      }
+      .statement-completion .btn {
+        width: 100%;
       }
     }
 
@@ -2333,7 +2379,7 @@
               <div class="credit-reconcile-actions">
                 <button class="btn small light" type="button" data-use-credit-bill>帶入已建帳單</button>
                 <button class="btn small blue" type="button" data-refresh-credit-check>重新計算</button>
-                <button class="btn green primary-action" type="submit">儲存本月核對結果</button>
+                <button class="btn green primary-action" type="submit">儲存目前核對進度</button>
               </div>
             </form>
             <div class="transfer-tip">差額＝銀行帳單金額－App 帳期明細。正數通常代表 App 少記，負數可能是重複記帳、退款或帳單折抵尚未登錄。</div>
@@ -2353,6 +2399,7 @@
               </div>
             </div>
             <div id="creditReconcileTable"></div>
+            <div id="creditReconcileCompletion"></div>
           </article>
           <article class="panel">
             <div class="panel-pad">
@@ -4173,6 +4220,7 @@
       const summaryTarget = document.getElementById("creditReconcileSummary");
       const statusTarget = document.getElementById("creditReconcileStatus");
       const tableTarget = document.getElementById("creditReconcileTable");
+      const completionTarget = document.getElementById("creditReconcileCompletion");
       const candidateTarget = document.getElementById("creditStatementCandidates");
       const rangeTarget = document.getElementById("creditReconcileRange");
       const cardName = reconcileCreditCardSelect.value;
@@ -4182,6 +4230,7 @@
         summaryTarget.innerHTML = card("尚未建立信用卡", "－", "請先到信用卡設定新增卡片", "accent");
         statusTarget.innerHTML = `<div class="statement-status"><div><strong>無法開始對帳</strong><small>建立信用卡後，這裡會依帳期列出明細。</small></div><span class="statement-status-badge">待設定</span></div>`;
         tableTarget.innerHTML = `<div class="empty">尚無信用卡可供核對</div>`;
+        completionTarget.innerHTML = "";
         candidateTarget.innerHTML = `<div class="empty">建立信用卡後會顯示跨期候選明細</div>`;
         rangeTarget.textContent = "";
         renderCreditReconcileHistory();
@@ -4221,6 +4270,43 @@
           </tr>`;
         }).join("")}</tbody>
       </table></div>` : `<div class="empty">這張卡在 ${escapeHtml(billMonth)} 帳期沒有 App 明細；可從下方跨期候選明細歸入本期。</div>`;
+      const allMatched = rows.length ? matchedRows.length === rows.length : true;
+      const readyToComplete = hasActual && Math.abs(diff) < 1 && allMatched;
+      const savedRecord = creditStatementRecord(cardName, billMonth);
+      const savedKeys = new Set(savedRecord?.matchedKeys || []);
+      const alreadyCompleted = readyToComplete
+        && savedRecord
+        && Math.abs((Number(savedRecord.statementAmount) || 0) - statementAmount) < 1
+        && Math.abs((Number(savedRecord.appAmount) || 0) - appAmount) < 1
+        && rows.every(row => savedKeys.has(row.statementKey));
+      let completionTitle = "下一步：輸入銀行帳單金額";
+      let completionNote = "輸入後逐筆勾選銀行帳單中找到的交易。";
+      let completionLabel = "請先輸入帳單金額";
+      let completionDisabled = true;
+      if (alreadyCompleted) {
+        completionTitle = "這一期已完成對帳";
+        completionNote = `銀行帳單與 App 明細相符，共確認 ${rows.length} 筆。`;
+        completionLabel = "已完成對帳";
+      } else if (readyToComplete) {
+        completionTitle = "已全部勾選，請完成最後確認";
+        completionNote = `共 ${rows.length} 筆，帳單與 App 金額相符；按下按鈕後會鎖定這些明細的帳期並留下紀錄。`;
+        completionLabel = "確認並完成對帳";
+        completionDisabled = false;
+      } else if (hasActual && !allMatched) {
+        completionTitle = `下一步：確認剩餘 ${rows.length - matchedRows.length} 筆明細`;
+        completionNote = `目前已勾選 ${matchedRows.length} / ${rows.length} 筆；可先儲存進度，稍後繼續。`;
+        completionLabel = "儲存目前核對進度";
+        completionDisabled = false;
+      } else if (hasActual) {
+        completionTitle = "明細已勾完，但金額仍有差額";
+        completionNote = `差額 ${diff >= 0 ? "+" : ""}${money(diff)}；請檢查漏記、退款或折抵，也可以先儲存進度。`;
+        completionLabel = "儲存目前核對進度";
+        completionDisabled = false;
+      }
+      completionTarget.innerHTML = `<div class="statement-completion ${readyToComplete ? "ready" : ""}">
+        <div><strong>${escapeHtml(completionTitle)}</strong><small>${escapeHtml(completionNote)}</small></div>
+        <button class="btn green" type="submit" form="creditReconcileForm" ${completionDisabled ? "disabled" : ""}>${escapeHtml(completionLabel)}</button>
+      </div>`;
       candidateTarget.innerHTML = candidates.length ? candidates.map(row => {
         const statusInfo = statementStatusInfo(row);
         return `<div class="statement-candidate">
@@ -5631,7 +5717,7 @@
       statementDraftMatched = new Set(matchedKeys);
       saveLedger();
       render();
-      toast(Math.abs(diff) < 1 && matchedKeys.length === rows.length ? "信用卡帳單已核對完成" : "已儲存本月對帳結果");
+      toast(Math.abs(diff) < 1 && matchedKeys.length === rows.length ? "信用卡帳單已核對完成" : "已儲存目前核對進度");
     });
     function updateRecurringEndDate() {
       const hasEndDate = recurringEndModeSelect.value === "end-date";
