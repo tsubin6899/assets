@@ -1284,6 +1284,37 @@
       stroke: currentColor;
       opacity: 1;
     }
+    #transferTable .transfer-delete-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-width: 72px;
+      min-height: 36px;
+      padding: 0 11px;
+      border: 1px solid #9f342e;
+      border-radius: 8px;
+      color: #fff;
+      background: linear-gradient(135deg, #d85f52, #ad3932);
+      box-shadow: 0 5px 12px rgba(174,57,50,.22);
+      filter: none;
+    }
+    #transferTable .transfer-delete-button:hover {
+      color: #fff;
+      border-color: #8d2c27;
+      background: linear-gradient(135deg, #c94e43, #96312b);
+      box-shadow: 0 7px 15px rgba(174,57,50,.3);
+    }
+    #transferTable .transfer-delete-button:focus-visible {
+      outline: 3px solid rgba(216,95,82,.28);
+      outline-offset: 2px;
+    }
+    #transferTable .transfer-delete-button svg {
+      width: 15px;
+      height: 15px;
+      color: currentColor;
+      stroke: currentColor;
+    }
     th { background: linear-gradient(180deg, #edf4f2, #e5efec); color: #38545b; }
     @media (min-width: 981px) {
       .section-title { display: flex; align-items: center; gap: 9px; }
@@ -4577,7 +4608,7 @@
             <td>${escapeHtml(row.toAccount)}<br><small>+${money(row.toAmount)} ${escapeHtml(toAccount?.currency || "")}</small></td>
             <td>${row.feeAmount ? `${money(row.feeAmount)}｜${escapeHtml(feeAccount)}` : "-"}</td>
             <td>${escapeHtml(row.note || "")}</td>
-            <td><button class="btn small dark" type="button" data-delete-transfer="${row.id}">刪除</button></td>
+            <td><button class="btn small danger transfer-delete-button" type="button" title="刪除這筆轉帳" aria-label="刪除這筆轉帳" data-delete-transfer="${escapeHtml(row.id)}"><i data-lucide="trash-2" aria-hidden="true"></i><span>刪除</span></button></td>
           </tr>`;
         }).join("")}</tbody>
       </table></div>`;
@@ -4932,7 +4963,7 @@
       renderFinanceCommandCenter();
       renderBackupList();
       renderEnhancedReports();
-      document.querySelectorAll("button[data-delete], button[data-delete-transfer], button[data-remove-bill], button[data-remove-installment], button[data-remove-account], button[data-remove-reconcile], button[data-remove-credit-check], button[data-remove-recurring], button[data-remove-budget]").forEach(button => {
+      document.querySelectorAll("button[data-delete], button[data-remove-bill], button[data-remove-installment], button[data-remove-account], button[data-remove-reconcile], button[data-remove-credit-check], button[data-remove-recurring], button[data-remove-budget]").forEach(button => {
         button.classList.add("icon-action", "delete");
         button.title ||= "刪除";
         button.setAttribute("aria-label", button.title);
