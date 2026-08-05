@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-08-05T05:44:51+00:00",
+  "generatedAt": "2026-08-05T08:03:31+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -12,8 +12,7 @@
     {
       "name": "投信投顧公會每日淨值",
       "url": "https://www.sitca.org.tw/MemberK0000/F/03/nav.csv",
-      "status": "unavailable",
-      "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
+      "status": "available"
     },
     {
       "name": "CMoney 美股ETF QQQ",
@@ -36,8 +35,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-08-04",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:2330": {
       "assetType": "stock",
@@ -59,8 +58,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-08-04",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:009816": {
       "assetType": "etf",
@@ -71,8 +70,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-08-04",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:00991A": {
       "assetType": "etf",
@@ -83,8 +82,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-08-04",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:00988A": {
       "assetType": "etf",
@@ -95,8 +94,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-08-03",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:2317": {
       "assetType": "stock",
@@ -509,7 +508,7 @@
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-08-05",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-08-05T05:44:46+00:00",
+      "fetchedAt": "2026-08-05T08:03:24+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -523,7 +522,7 @@
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-08-05",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-08-05T05:44:44+00:00",
+      "fetchedAt": "2026-08-05T08:03:21+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -543,10 +542,5 @@
       "dataStatus": "manual-needed"
     }
   },
-  "errors": [
-    {
-      "source": "投信投顧公會每日淨值",
-      "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
-    }
-  ]
+  "errors": []
 }
