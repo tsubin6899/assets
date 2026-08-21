@@ -3987,7 +3987,10 @@
       const annualIncome = sum(annualEntries.filter(row => row.type === "income"), row => Number(row.amount) || 0);
       const annualExpense = sum(annualEntries.filter(row => row.type !== "income"), row => Number(row.amount) || 0);
       const savingsRate = annualIncome ? (annualIncome - annualExpense) / annualIncome * 100 : 0;
-      const positions = [...summary.positions].sort((a, b) => (b.shares || 0) - (a.shares || 0)).slice(0, 6);
+      const positions = [...summary.positions]
+        .filter(row => Number(row.shares) > 1e-8)
+        .sort((a, b) => (b.shares || 0) - (a.shares || 0))
+        .slice(0, 6);
       const realizedRows = [...summary.positions]
         .filter(row => Number(row.realized))
         .sort((a, b) => Math.abs(b.realized) - Math.abs(a.realized))
@@ -4006,7 +4009,7 @@
         </div>
         <div class="chart-grid">
           ${renderBarChart("年度損益與收入", annualSummaryRows(), "TWD")}
-          <article class="chart-card"><h3>目前主要持股摘要</h3><div class="table-wrap"><table><thead><tr><th>市場</th><th>代碼</th><th>名稱</th><th>剩餘股數</th><th>已實現損益</th></tr></thead><tbody>${positions.map(row => `<tr><td>${row.market}</td><td>${row.code}</td><td>${row.name}</td><td>${money(row.shares, "")}</td><td class="${row.realized >= 0 ? "ok" : "gain"}">${money(row.realized, row.currency)}</td></tr>`).join("")}</tbody></table></div></article>
+          <article class="chart-card"><h3>目前主要持股摘要</h3>${positions.length ? `<div class="table-wrap"><table><thead><tr><th>市場</th><th>代碼</th><th>名稱</th><th>剩餘股數</th><th>已實現損益</th></tr></thead><tbody>${positions.map(row => `<tr><td>${row.market}</td><td>${row.code}</td><td>${row.name}</td><td>${money(row.shares, "")}</td><td class="${row.realized >= 0 ? "ok" : "gain"}">${money(row.realized, row.currency)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="chart-empty">目前沒有持股部位</div>`}</article>
           <article class="chart-card"><h3>已實現損益來源</h3>${realizedRows.length ? `<div class="bar-list">${realizedRows.map((row, i) => `<div class="legend-row"><span class="dot" style="--c:${chartColors[i % chartColors.length]}"></span><strong>${[row.code, row.name].filter(Boolean).join(" ") || "-"}</strong><span>${money(row.realized, row.currency)}</span></div>`).join("")}</div>` : `<div class="chart-empty">今年尚無已實現損益資料</div>`}</article>
           <article class="chart-card"><h3>備份與同步紀錄</h3>${renderBackupMeta()}</article>
         </div></div>`;

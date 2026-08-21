@@ -1199,9 +1199,25 @@
     }
     #analyticsView.active {
       display: grid;
+      grid-template-columns: minmax(0, 1fr);
       gap: 16px;
+      min-width: 0;
     }
-    #analyticsView.active > * { margin: 0; }
+    #analyticsView.active > * {
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      margin: 0;
+    }
+    #analyticsView .toolbar,
+    #analyticsView .filters,
+    #analyticsView .cards,
+    #analyticsView .chart-grid,
+    #analyticsView .panel,
+    #analyticsView .panel-pad {
+      min-width: 0;
+      max-width: 100%;
+    }
     #analyticsView.active .cards, #analyticsView.active .chart-grid { margin-bottom: 0; }
     @media (max-width: 860px) {
       #analyticsView.active { gap: 12px; }
