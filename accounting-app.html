@@ -653,6 +653,27 @@
       align-items: center;
     }
     .filters input, .filters select { width: auto; min-width: 150px; }
+    #analyticsView .toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: stretch;
+    }
+    #analyticsView .filters {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      width: 100%;
+    }
+    #analyticsView .filters input,
+    #analyticsView .filters select {
+      width: 100%;
+      min-width: 0;
+    }
+    #analyticsView .single-chart-grid { grid-template-columns: minmax(0, 1fr); }
+    #analyticsView #enhancedReports .chart-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+    @media (min-width: 861px) and (max-width: 1100px) {
+      #analyticsView .filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      #analyticsView .filters #searchInput { grid-column: span 2; }
+    }
     #accountLedgerView.active {
       display: grid;
       gap: 16px;
@@ -2698,7 +2719,7 @@
       </article>
       <article class="panel"><div class="panel-pad"><h3>月結提醒</h3><div id="monthCloseout" class="notice-list"></div></div></article>
       <article class="panel"><div class="panel-pad"><h3>財務行動中心</h3><p class="hint">集中完成月結、查看未來現金流、結轉預算與還原誤刪資料。</p><div id="financeCommandCenter" class="manager-grid"></div></div></article>
-      <div class="chart-grid"><article class="chart-card"><h3>本月預算總覽</h3><div id="budgetOverview" class="bar-list"></div></article></div>
+      <div class="chart-grid single-chart-grid"><article class="chart-card"><h3>本月預算總覽</h3><div id="budgetOverview" class="bar-list"></div></article></div>
       <article class="panel">
         <div class="panel-pad">
           <h3>分類預算與警示</h3>
