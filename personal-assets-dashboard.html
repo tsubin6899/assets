@@ -3929,12 +3929,14 @@
       const monthly = dividendMonthlyRows();
       const last12 = sum(monthly, row => row.value);
       const sourceCount = new Set(rows.map(row => String(row.source || "").trim()).filter(Boolean)).size;
+      const unlinkedCount = rows.filter(row => !row.cashAccount && Number(row.amount) > 0).length;
       return `${section("dividend", "股息 / 配息紀錄", "集中管理各標的配息、股息與利息收入，金額會依匯率折算台幣。", `<button class="btn green small" data-add="dividends">+ 新增配息</button>`)}
         <div class="cards">
           ${card("今年配息收入", money(thisYear), "TWD", "dark")}
           ${card("累計配息收入", money(total), "TWD")}
           ${card("近 12 月配息", money(last12), "TWD")}
           ${card("收入來源數", money(sourceCount, ""), "個標的 / 來源", "accent")}
+          ${card("未連結入款帳戶", money(unlinkedCount, ""), unlinkedCount ? "不會計入帳戶餘額" : "全部已連結", unlinkedCount ? "accent" : "")}
         </div>
         <div class="chart-grid">
           ${renderBarChart("月配息趨勢", monthly, "TWD")}
@@ -4681,6 +4683,7 @@
       const sortedRecords = data.purchaseRecords
         .map((row, index) => ({ row, index }))
         .sort((a, b) => String(b.row.date || "").localeCompare(String(a.row.date || "")) || b.index - a.index);
+      const unlinkedCount = sortedRecords.filter(({ row }) => !row.cashAccount && purchaseCost(row) > 0).length;
       return `${section("purchase", "購買股票紀錄", "可記錄買入與賣出，並依平均成本估算已實現損益；選擇交割帳戶後，買入款會扣除、賣出淨額會加回該帳戶。", `<button class="btn green small" data-add="purchaseRecords">+ 新增交易紀錄</button>`)}
         <article class="quick-trade-panel">
           <div class="quick-trade-head">
@@ -4702,9 +4705,10 @@
           ${card("累計賣出金額", money(summary.totals.sellTwd), "TWD｜已扣費用稅費")}
           ${card("已實現損益", money(summary.totals.realizedTwd), "TWD", "accent")}
           ${card("已實現報酬率", `${rate.toFixed(2)}%`, "以賣出成本計")}
+          ${card("未連結交割帳戶", money(unlinkedCount, ""), unlinkedCount ? "不會影響任何帳戶餘額" : "全部已連結", unlinkedCount ? "accent" : "")}
         </div>
         ${renderPurchaseAnalysisCharts(summary)}
-        <details class="dashboard-disclosure" data-disclosure-key="purchaseEditor" ${uiMeta.disclosures?.purchaseEditor ? "open" : ""}>
+        <details class="dashboard-disclosure" data-disclosure-key="purchaseEditor" ${uiMeta.disclosures?.purchaseEditor || unlinkedCount ? "open" : ""}>
           <summary>交易明細編輯（${sortedRecords.length} 筆）</summary>
           <article class="panel"><div class="panel-pad"><p class="hint">新紀錄會預設連結證券分帳戶；既有歷史紀錄維持「不計入帳戶」，避免和帳戶起始餘額重複。若有漏掉的近期紀錄，請只替那幾筆選擇交割帳戶。</p></div><div class="table-wrap"><table class="purchase-record-table dashboard-mobile-table">
           <thead><tr><th>交易日期</th><th>類型</th><th>市場</th><th>幣別</th><th>股票代碼</th><th>股票名稱</th><th>股數</th><th>成交價</th><th>手續費</th><th>稅費</th><th>預定金額</th><th>交割帳戶</th><th>現金流</th><th>已實現損益</th><th>操作</th></tr></thead>

@@ -4044,6 +4044,15 @@
       );
       return trades + dividends;
     }
+    function unlinkedInvestmentRecordCount() {
+      const dashboard = investmentDashboardData();
+      const trades = (dashboard.purchaseRecords || []).filter(row => {
+        const amount = investmentTradeAmount(row);
+        return !row.cashAccount && amount > 0;
+      }).length;
+      const dividends = (dashboard.dividends || []).filter(row => !row.cashAccount && Number(row.amount) > 0).length;
+      return trades + dividends;
+    }
     function accountBalance(account) {
       const entryTotal = allEntryRows().reduce((total, row) => {
         if (row.account !== account.name) return total;
@@ -4064,12 +4073,14 @@
     }
     function renderAccounts() {
       const regularAccounts = ledger.accounts.filter(account => account.type !== "信用卡");
+      const unlinkedInvestmentCount = unlinkedInvestmentRecordCount();
       document.getElementById("accountList").innerHTML = regularAccounts.map(account => {
         const balance = accountBalance(account);
         const investmentImpact = investmentAccountAdjustment(account);
         const currency = normalizeCurrency(account.currency);
         const twdText = currency === "TWD" ? "" : `<small class="account-twd-equivalent">約 ${money(twdEquivalent(balance, currency))} TWD</small>`;
         const investmentText = investmentImpact ? `｜投資現金流 ${investmentImpact >= 0 ? "+" : ""}${money(investmentImpact)}` : "";
+        const unlinkedText = unlinkedInvestmentCount && String(account.name || "").includes("證券分帳戶") ? `｜未連結投資紀錄 ${unlinkedInvestmentCount} 筆（尚未計入）` : "";
         const typeClass = ({
           "現金": "account-type-cash",
           "外幣現金": "account-type-foreign-cash",
@@ -4078,7 +4089,7 @@
           "行動支付": "account-type-mobile"
         })[account.type] || "";
         return `<div class="account-tile ${typeClass}">
-          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}｜起始 ${money(account.openingBalance)}${investmentText}</small></div>
+          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}｜起始 ${money(account.openingBalance)}${investmentText}${unlinkedText}</small></div>
           <span class="account-balance">${money(balance)} ${escapeHtml(currency)}${twdText}</span>
           <div class="account-actions"><button class="icon-action edit" type="button" title="編輯帳戶" aria-label="編輯帳戶" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除帳戶" aria-label="刪除帳戶" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
         </div>`;
