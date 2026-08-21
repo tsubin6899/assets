@@ -647,6 +647,31 @@
       color: var(--muted);
     }
     #accountLedgerView .account-ledger-balance { font-weight: 700; }
+    #accountLedgerView .account-ledger-months {
+      display: grid;
+      gap: 14px;
+    }
+    #accountLedgerView .account-ledger-month {
+      overflow: hidden;
+      border: 1px solid #d8e0df;
+      border-radius: 10px;
+      background: #fffefb;
+    }
+    #accountLedgerView .account-ledger-month-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 14px;
+      border-bottom: 1px solid #d8e0df;
+      background: #f3f7f6;
+    }
+    #accountLedgerView .account-ledger-month-head strong { font-size: 15px; }
+    #accountLedgerView .account-ledger-month-head small {
+      color: var(--muted);
+      text-align: right;
+    }
+    #accountLedgerView .account-ledger-month .table-wrap { border: 0; border-radius: 0; }
     .chart-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2361,6 +2386,7 @@
         </div>
         <div class="filters">
           <select id="accountLedgerAccount" aria-label="選擇帳戶"></select>
+          <input id="accountLedgerMonth" type="month" aria-label="月份" title="月份；留空顯示全部月份">
           <input id="accountLedgerFrom" type="date" aria-label="開始日期" title="開始日期">
           <input id="accountLedgerTo" type="date" aria-label="結束日期" title="結束日期">
           <input id="accountLedgerActual" type="number" step="any" inputmode="decimal" placeholder="輸入銀行實際餘額">
@@ -4099,22 +4125,8 @@
       return trades + dividends;
     }
     function accountBalance(account) {
-      const entryTotal = allEntryRows().reduce((total, row) => {
-        if (row.account !== account.name) return total;
-        const amount = Number(row.amount) || 0;
-        return total + (row.type === "income" ? amount : -amount);
-      }, (Number(account.openingBalance) || 0) + investmentAccountAdjustment(account));
-      return (ledger.transfers || []).reduce((total, row) => {
-        const fromAmount = Number(row.fromAmount) || 0;
-        const toAmount = Number(row.toAmount) || 0;
-        const feeAmount = Number(row.feeAmount) || 0;
-        const feeAccount = row.feeAccount || row.fromAccount;
-        let next = total;
-        if (row.fromAccount === account.name) next -= fromAmount;
-        if (row.toAccount === account.name) next += toAmount;
-        if (feeAmount && feeAccount === account.name) next -= feeAmount;
-        return next;
-      }, entryTotal);
+      const movements = accountMovementRows(account);
+      return movements.at(-1)?.runningBalance ?? (Number(account?.openingBalance) || 0);
     }
     function accountMovementRows(account) {
       if (!account) return [];
@@ -4207,9 +4219,14 @@
       }
       const from = document.getElementById("accountLedgerFrom").value;
       const to = document.getElementById("accountLedgerTo").value;
+      const month = document.getElementById("accountLedgerMonth").value;
       const keyword = document.getElementById("accountLedgerSearch").value.trim().toLowerCase();
       const movements = accountMovementRows(account);
-      const filtered = movements.filter(row => !from || row.date >= from).filter(row => !to || row.date <= to).filter(row => !keyword || [row.source, row.description, row.detail].some(value => String(value || "").toLowerCase().includes(keyword)));
+      const filtered = movements
+        .filter(row => !month || String(row.date || "").startsWith(month))
+        .filter(row => !from || row.date >= from)
+        .filter(row => !to || row.date <= to)
+        .filter(row => !keyword || [row.source, row.description, row.detail].some(value => String(value || "").toLowerCase().includes(keyword)));
       const inflow = sum(filtered.filter(row => row.amount > 0), row => row.amount);
       const outflow = sum(filtered.filter(row => row.amount < 0), row => Math.abs(row.amount));
       const bookBalance = accountBalance(account);
@@ -4228,23 +4245,34 @@
         card(account.type === "信用卡" ? "銀行欠款－App 差額" : "實際－帳面差額", hasActual ? `${diff >= 0 ? "+" : "-"}${money(Math.abs(diff))}` : "-", hasActual ? currency : account.type === "信用卡" ? "請輸入銀行欠款" : "請輸入實際餘額", hasActual && Math.abs(diff) >= 1 ? "accent" : "")
       ].join("");
       const unlinked = unlinkedInvestmentRecordCount();
-      const finalRunning = movements.at(-1)?.runningBalance ?? (Number(account.openingBalance) || 0);
-      const internalDiff = bookBalance - finalRunning;
-      statusTarget.innerHTML = `<h3>${escapeHtml(account.name)}｜逐筆核對</h3><p class="hint">共 ${filtered.length} 筆符合篩選；增加金額會顯示綠色，扣除金額會顯示紅色。${account.type === "信用卡" ? " 信用卡消費會讓結餘變成負數，繳款後會回升。" : ""}</p>
+      statusTarget.innerHTML = `<h3>${escapeHtml(account.name)}｜逐筆核對</h3><p class="hint">共 ${filtered.length} 筆符合篩選；已按月份分組，最新交易排列在最上方。${account.type === "信用卡" ? " 信用卡消費會讓結餘變成負數，繳款後會回升。" : ""}</p>
         ${unlinked ? `<div class="transfer-tip">另有 ${unlinked} 筆投資紀錄尚未指定交割／入款帳戶，因此不會出現在任何帳戶明細。<a class="btn small blue" href="personal-assets-dashboard.html#purchase">前往投資紀錄</a></div>` : ""}
-        ${Math.abs(internalDiff) >= .01 ? `<div class="transfer-tip">系統餘額與逐筆加總相差 ${money(internalDiff)} ${escapeHtml(currency)}，請回報這個差額。</div>` : ""}`;
+        <div class="transfer-tip">帳戶設定與本頁的目前帳面金額，現在都以這份逐筆明細的最後結餘為準。</div>`;
       if (!filtered.length) {
         tableTarget.innerHTML = `<div class="empty">這個篩選範圍目前沒有帳戶交易</div>`;
         return;
       }
-      tableTarget.innerHTML = `<div class="table-wrap"><table><thead><tr><th>日期</th><th>來源</th><th>交易內容</th><th>增加</th><th>扣除</th><th>逐筆結餘</th></tr></thead><tbody>${filtered.map(row => `<tr>
+      const newestFirst = [...filtered].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.createdAt).localeCompare(String(a.createdAt)) || b.order - a.order || String(b.id).localeCompare(String(a.id)));
+      const monthGroups = new Map();
+      newestFirst.forEach(row => {
+        const key = /^\d{4}-\d{2}/.test(row.date) ? row.date.slice(0, 7) : "未設定日期";
+        if (!monthGroups.has(key)) monthGroups.set(key, []);
+        monthGroups.get(key).push(row);
+      });
+      const rowMarkup = row => `<tr>
         <td>${escapeHtml(row.date || "-")}</td>
         <td>${escapeHtml(row.source)}</td>
         <td class="account-ledger-description"><strong>${escapeHtml(row.description || "-")}</strong>${row.detail ? `<small>${escapeHtml(row.detail)}</small>` : ""}</td>
         <td class="amount-income">${row.amount > 0 ? `+${money(row.amount)}` : "-"}</td>
         <td class="amount-expense">${row.amount < 0 ? `-${money(Math.abs(row.amount))}` : "-"}</td>
         <td class="account-ledger-balance">${row.runningBalance >= 0 ? "+" : "-"}${money(Math.abs(row.runningBalance))} ${escapeHtml(currency)}</td>
-      </tr>`).join("")}</tbody></table></div>`;
+      </tr>`;
+      tableTarget.innerHTML = `<div class="account-ledger-months">${[...monthGroups].map(([key, rows]) => {
+        const groupInflow = sum(rows.filter(row => row.amount > 0), row => row.amount);
+        const groupOutflow = sum(rows.filter(row => row.amount < 0), row => Math.abs(row.amount));
+        const label = /^\d{4}-\d{2}$/.test(key) ? `${key.slice(0, 4)} 年 ${Number(key.slice(5, 7))} 月` : key;
+        return `<section class="account-ledger-month"><div class="account-ledger-month-head"><strong>${escapeHtml(label)}</strong><small>${rows.length} 筆｜流入 +${money(groupInflow)}｜流出 -${money(groupOutflow)}</small></div><div class="table-wrap"><table><thead><tr><th>日期</th><th>來源</th><th>交易內容</th><th>增加</th><th>扣除</th><th>逐筆結餘</th></tr></thead><tbody>${rows.map(rowMarkup).join("")}</tbody></table></div></section>`;
+      }).join("")}</div>`;
     }
     function renderAccounts() {
       const regularAccounts = ledger.accounts.filter(account => account.type !== "信用卡");
@@ -6206,14 +6234,14 @@
       el.addEventListener("input", render);
       el.addEventListener("change", render);
     });
-    ["accountLedgerAccount", "accountLedgerFrom", "accountLedgerTo"].forEach(id => {
+    ["accountLedgerAccount", "accountLedgerMonth", "accountLedgerFrom", "accountLedgerTo"].forEach(id => {
       document.getElementById(id).addEventListener("change", renderAccountLedger);
     });
     ["accountLedgerActual", "accountLedgerSearch"].forEach(id => {
       document.getElementById(id).addEventListener("input", renderAccountLedger);
     });
     document.getElementById("accountLedgerClear").addEventListener("click", () => {
-      ["accountLedgerFrom", "accountLedgerTo", "accountLedgerActual", "accountLedgerSearch"].forEach(id => { document.getElementById(id).value = ""; });
+      ["accountLedgerMonth", "accountLedgerFrom", "accountLedgerTo", "accountLedgerActual", "accountLedgerSearch"].forEach(id => { document.getElementById(id).value = ""; });
       renderAccountLedger();
     });
     document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
