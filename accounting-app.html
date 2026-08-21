@@ -201,18 +201,30 @@
     }
     .cloud-email {
       width: 170px;
+      height: 36px;
       min-height: 36px;
-      border-color: rgba(255,255,255,.2);
-      color: #fffdf8;
-      background: rgba(255,255,255,.08);
+      padding: 7px 9px;
+      border-color: rgba(255,255,255,.25);
+      color: #fffdf7;
+      background: rgba(255,255,255,.1);
     }
-    .cloud-email::placeholder { color: rgba(255,253,248,.62); }
-    .cloud-status {
-      display: inline-grid;
-      place-items: center;
+    .cloud-email::placeholder { color: rgba(255,255,255,.58); }
+    .cloud-sync .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 36px;
       min-height: 36px;
-      color: rgba(255,253,248,.72);
-      font-size: 12px;
+      padding: 0 11px;
+      font-size: 13px;
+      line-height: 1;
+    }
+    .cloud-status {
+      display: block;
+      min-width: 78px;
+      min-height: 0;
+      color: rgba(255,255,255,.68);
+      font-size: 11px;
       white-space: nowrap;
     }
     .layout {
