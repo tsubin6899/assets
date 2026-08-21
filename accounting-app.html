@@ -631,6 +631,22 @@
       align-items: center;
     }
     .filters input, .filters select { width: auto; min-width: 150px; }
+    #accountLedgerView.active {
+      display: grid;
+      gap: 16px;
+    }
+    #accountLedgerView.active > * { margin: 0; }
+    #accountLedgerView .account-ledger-description {
+      min-width: 240px;
+      white-space: normal;
+      line-height: 1.45;
+    }
+    #accountLedgerView .account-ledger-description small {
+      display: block;
+      margin-top: 3px;
+      color: var(--muted);
+    }
+    #accountLedgerView .account-ledger-balance { font-weight: 700; }
     .chart-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1076,6 +1092,9 @@
       .filters input, .filters select { width: 100%; min-width: 0; }
       #analyticsView .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #analyticsView .filters #searchInput { grid-column: 1 / -1; }
+      #accountLedgerView .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #accountLedgerView .filters #accountLedgerAccount,
+      #accountLedgerView .filters #accountLedgerSearch { grid-column: 1 / -1; }
       .toolbar { align-items: stretch; }
       .filters { width: 100%; }
       .mobile-actions {
@@ -2334,6 +2353,28 @@
       </article>
     </section>
 
+    <section class="view" id="accountLedgerView">
+      <div class="toolbar">
+        <div>
+          <h2>帳戶明細</h2>
+          <p class="hint">集中查看單一帳戶的收入、支出、轉帳、手續費、股票交割與股息，並逐筆回推帳面結餘。</p>
+        </div>
+        <div class="filters">
+          <select id="accountLedgerAccount" aria-label="選擇帳戶"></select>
+          <input id="accountLedgerFrom" type="date" aria-label="開始日期" title="開始日期">
+          <input id="accountLedgerTo" type="date" aria-label="結束日期" title="結束日期">
+          <input id="accountLedgerActual" type="number" step="any" inputmode="decimal" placeholder="輸入銀行實際餘額">
+          <input id="accountLedgerSearch" type="search" placeholder="搜尋分類、商家、備註或交易來源">
+          <button class="btn light" id="accountLedgerClear" type="button">清除篩選</button>
+        </div>
+      </div>
+      <div class="cards" id="accountLedgerSummary"></div>
+      <article class="panel">
+        <div class="panel-pad" id="accountLedgerStatus"></div>
+        <div class="panel-pad" id="accountLedgerTable"></div>
+      </article>
+    </section>
+
     <section class="view" id="creditView">
       <article class="panel">
         <div class="panel-pad">
@@ -2641,6 +2682,7 @@
     <div class="mobile-more-head"><h3 id="mobileMoreTitle">更多功能</h3><button class="icon-action" type="button" title="關閉" aria-label="關閉" data-close-mobile-more><i data-lucide="x"></i></button></div>
     <div class="mobile-more-grid">
       <button type="button" data-view="accountView"><i data-lucide="wallet-cards"></i>帳戶設定</button>
+      <button type="button" data-view="accountLedgerView"><i data-lucide="list-tree"></i>帳戶明細</button>
       <button type="button" data-view="transferView"><i data-lucide="arrow-left-right"></i>帳戶轉帳</button>
       <button type="button" data-view="creditView"><i data-lucide="credit-card"></i>信用卡設定</button>
       <button type="button" data-view="creditReconcileView"><i data-lucide="list-checks"></i>信用卡對帳</button>
@@ -2680,6 +2722,7 @@
     const accountingTabs = [
       ["entryView", "收入支出"],
       ["accountView", "帳戶設定"],
+      ["accountLedgerView", "帳戶明細"],
       ["creditView", "信用卡設定"],
       ["creditReconcileView", "信用卡對帳"],
       ["transferView", "帳戶轉帳"],
@@ -2690,6 +2733,7 @@
     const tabIcons = {
       entryView: "receipt-text",
       accountView: "wallet-cards",
+      accountLedgerView: "list-tree",
       creditView: "credit-card",
       creditReconcileView: "list-checks",
       transferView: "arrow-left-right",
@@ -2700,6 +2744,7 @@
     const tabGlyphs = {
       entryView: "收",
       accountView: "戶",
+      accountLedgerView: "明",
       creditView: "卡",
       creditReconcileView: "核",
       transferView: "轉",
@@ -4025,22 +4070,22 @@
       const fees = (Number(row?.fee) || 0) + (Number(row?.tax) || 0);
       return investmentTradeType(row) === "sell" ? Math.max(0, gross - fees) : gross + fees;
     }
+    function investmentAmountInAccountCurrency(value, sourceCurrency, accountCurrency, dashboard = investmentDashboardData()) {
+      const rates = { TWD: 1, ...(dashboard.fxRates || {}) };
+      const twd = (Number(value) || 0) * (Number(rates[normalizeCurrency(sourceCurrency)]) || 1);
+      return twd / (Number(rates[normalizeCurrency(accountCurrency)]) || 1);
+    }
     function investmentAccountAdjustment(account) {
       const dashboard = investmentDashboardData();
-      const rates = { TWD: 1, ...(dashboard.fxRates || {}) };
       const accountName = String(account?.name || "");
       const accountCurrency = normalizeCurrency(account?.currency || "TWD");
-      const convert = (value, currency) => {
-        const twd = (Number(value) || 0) * (Number(rates[normalizeCurrency(currency)]) || 1);
-        return twd / (Number(rates[accountCurrency]) || 1);
-      };
       const asOf = today();
       const trades = sum((dashboard.purchaseRecords || []).filter(row => row.cashAccount === accountName && String(row.date || "") <= asOf), row => {
-        const amount = convert(investmentTradeAmount(row), investmentTradeCurrency(row));
+        const amount = investmentAmountInAccountCurrency(investmentTradeAmount(row), investmentTradeCurrency(row), accountCurrency, dashboard);
         return investmentTradeType(row) === "sell" ? amount : -amount;
       });
       const dividends = sum((dashboard.dividends || []).filter(row => row.cashAccount === accountName && String(row.date || "") <= asOf), row =>
-        convert(row.amount, row.currency || "TWD")
+        investmentAmountInAccountCurrency(row.amount, row.currency || "TWD", accountCurrency, dashboard)
       );
       return trades + dividends;
     }
@@ -4071,6 +4116,136 @@
         return next;
       }, entryTotal);
     }
+    function accountMovementRows(account) {
+      if (!account) return [];
+      const rows = [];
+      const accountName = account.name;
+      const accountCurrency = normalizeCurrency(account.currency || "TWD");
+      allEntryRows().forEach((row, index) => {
+        if (row.account !== accountName) return;
+        const amount = Number(row.amount) || 0;
+        const source = row.virtualInstallment ? "信用卡分期" : row.isForeignTransactionFee ? "國外手續費" : row.type === "income" ? "收入" : "支出";
+        const creditDetails = account.type === "信用卡" ? [
+          row.postedDate ? `入帳日 ${row.postedDate}` : "",
+          `帳期 ${effectiveStatementMonth(row, account) || row.billMonth || monthOf(row.date)}`,
+          row.statementStatus === "confirmed" ? "已核對" : ""
+        ].filter(Boolean) : [];
+        rows.push({
+          id: `entry-${row.id || index}`,
+          date: String(row.date || ""),
+          createdAt: String(row.createdAt || ""),
+          order: 10,
+          source,
+          description: [row.category, row.item].filter(Boolean).join(" / ") || "未分類",
+          detail: [row.merchant, ...creditDetails, row.note].filter(Boolean).join("｜"),
+          amount: row.type === "income" ? amount : -amount
+        });
+      });
+      (ledger.transfers || []).forEach((row, index) => {
+        const common = { date: String(row.date || ""), createdAt: String(row.createdAt || ""), order: 20 };
+        if (row.fromAccount === accountName) rows.push({ ...common, id: `transfer-out-${row.id || index}`, source: "帳戶轉出", description: `轉至 ${row.toAccount}`, detail: row.note || "", amount: -(Number(row.fromAmount) || 0) });
+        if (row.toAccount === accountName) rows.push({ ...common, id: `transfer-in-${row.id || index}`, source: account.type === "信用卡" ? "信用卡繳款" : "帳戶轉入", description: `來自 ${row.fromAccount}`, detail: row.note || "", amount: Number(row.toAmount) || 0 });
+        const feeAccount = row.feeAccount || row.fromAccount;
+        if (feeAccount === accountName && Number(row.feeAmount)) rows.push({ ...common, id: `transfer-fee-${row.id || index}`, order: 21, source: "轉帳手續費", description: `${row.fromAccount} → ${row.toAccount}`, detail: row.note || "", amount: -(Number(row.feeAmount) || 0) });
+      });
+      const dashboard = investmentDashboardData();
+      (dashboard.purchaseRecords || []).forEach((row, index) => {
+        if (row.cashAccount !== accountName || String(row.date || "") > today()) return;
+        const type = investmentTradeType(row);
+        const amount = investmentAmountInAccountCurrency(investmentTradeAmount(row), investmentTradeCurrency(row), accountCurrency, dashboard);
+        if (!amount) return;
+        rows.push({
+          id: `investment-${index}`,
+          date: String(row.date || ""),
+          createdAt: "",
+          order: 30,
+          source: type === "sell" ? "股票賣出" : "股票買進",
+          description: [row.code, row.name].filter(Boolean).join(" ") || "股票交易",
+          detail: [`${Number(row.shares) || 0} 股 × ${Number(row.price) || 0}`, row.note].filter(Boolean).join("｜"),
+          amount: type === "sell" ? amount : -amount
+        });
+      });
+      (dashboard.dividends || []).forEach((row, index) => {
+        if (row.cashAccount !== accountName || String(row.date || "") > today()) return;
+        const amount = investmentAmountInAccountCurrency(row.amount, row.currency || "TWD", accountCurrency, dashboard);
+        if (!amount) return;
+        rows.push({
+          id: `dividend-${index}`,
+          date: String(row.date || ""),
+          createdAt: "",
+          order: 31,
+          source: "股息 / 利息",
+          description: row.source || "投資收入",
+          detail: row.note || "",
+          amount
+        });
+      });
+      rows.sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.createdAt).localeCompare(String(b.createdAt)) || a.order - b.order || String(a.id).localeCompare(String(b.id)));
+      let running = Number(account.openingBalance) || 0;
+      rows.forEach(row => {
+        running += Number(row.amount) || 0;
+        row.runningBalance = running;
+      });
+      return rows;
+    }
+    function renderAccountLedger() {
+      const select = document.getElementById("accountLedgerAccount");
+      const summaryTarget = document.getElementById("accountLedgerSummary");
+      const statusTarget = document.getElementById("accountLedgerStatus");
+      const tableTarget = document.getElementById("accountLedgerTable");
+      if (!select || !summaryTarget || !statusTarget || !tableTarget) return;
+      const previous = select.value;
+      select.innerHTML = ledger.accounts.map(account => `<option value="${escapeHtml(account.name)}">${escapeHtml(account.name)}｜${escapeHtml(account.type)}｜${escapeHtml(normalizeCurrency(account.currency))}</option>`).join("");
+      const preferred = [previous, lastUsedAccount, ledger.accounts[0]?.name].find(name => name && ledger.accounts.some(account => account.name === name));
+      if (preferred) select.value = preferred;
+      const account = ledger.accounts.find(row => row.name === select.value);
+      if (!account) {
+        summaryTarget.innerHTML = "";
+        statusTarget.innerHTML = `<div class="empty">請先建立帳戶</div>`;
+        tableTarget.innerHTML = "";
+        return;
+      }
+      const from = document.getElementById("accountLedgerFrom").value;
+      const to = document.getElementById("accountLedgerTo").value;
+      const keyword = document.getElementById("accountLedgerSearch").value.trim().toLowerCase();
+      const movements = accountMovementRows(account);
+      const filtered = movements.filter(row => !from || row.date >= from).filter(row => !to || row.date <= to).filter(row => !keyword || [row.source, row.description, row.detail].some(value => String(value || "").toLowerCase().includes(keyword)));
+      const inflow = sum(filtered.filter(row => row.amount > 0), row => row.amount);
+      const outflow = sum(filtered.filter(row => row.amount < 0), row => Math.abs(row.amount));
+      const bookBalance = accountBalance(account);
+      const actualInput = document.getElementById("accountLedgerActual");
+      actualInput.placeholder = account.type === "信用卡" ? "輸入銀行顯示的信用卡欠款" : "輸入銀行實際餘額";
+      const hasActual = actualInput.value.trim() !== "";
+      const actual = Number(actualInput.value) || 0;
+      const comparableBookBalance = account.type === "信用卡" ? Math.abs(bookBalance) : bookBalance;
+      const diff = actual - comparableBookBalance;
+      const currency = normalizeCurrency(account.currency || "TWD");
+      summaryTarget.innerHTML = [
+        card(account.type === "信用卡" ? "起始欠款" : "起始餘額", money(account.type === "信用卡" ? Math.abs(Number(account.openingBalance) || 0) : account.openingBalance), currency, "dark"),
+        card("篩選期間流入", `+${money(inflow)}`, currency),
+        card("篩選期間流出", `-${money(outflow)}`, currency),
+        card(account.type === "信用卡" ? "目前帳面欠款" : "目前帳面餘額", account.type === "信用卡" ? money(Math.abs(bookBalance)) : `${bookBalance >= 0 ? "+" : "-"}${money(Math.abs(bookBalance))}`, currency, "accent"),
+        card(account.type === "信用卡" ? "銀行欠款－App 差額" : "實際－帳面差額", hasActual ? `${diff >= 0 ? "+" : "-"}${money(Math.abs(diff))}` : "-", hasActual ? currency : account.type === "信用卡" ? "請輸入銀行欠款" : "請輸入實際餘額", hasActual && Math.abs(diff) >= 1 ? "accent" : "")
+      ].join("");
+      const unlinked = unlinkedInvestmentRecordCount();
+      const finalRunning = movements.at(-1)?.runningBalance ?? (Number(account.openingBalance) || 0);
+      const internalDiff = bookBalance - finalRunning;
+      statusTarget.innerHTML = `<h3>${escapeHtml(account.name)}｜逐筆核對</h3><p class="hint">共 ${filtered.length} 筆符合篩選；增加金額會顯示綠色，扣除金額會顯示紅色。${account.type === "信用卡" ? " 信用卡消費會讓結餘變成負數，繳款後會回升。" : ""}</p>
+        ${unlinked ? `<div class="transfer-tip">另有 ${unlinked} 筆投資紀錄尚未指定交割／入款帳戶，因此不會出現在任何帳戶明細。<a class="btn small blue" href="personal-assets-dashboard.html#purchase">前往投資紀錄</a></div>` : ""}
+        ${Math.abs(internalDiff) >= .01 ? `<div class="transfer-tip">系統餘額與逐筆加總相差 ${money(internalDiff)} ${escapeHtml(currency)}，請回報這個差額。</div>` : ""}`;
+      if (!filtered.length) {
+        tableTarget.innerHTML = `<div class="empty">這個篩選範圍目前沒有帳戶交易</div>`;
+        return;
+      }
+      tableTarget.innerHTML = `<div class="table-wrap"><table><thead><tr><th>日期</th><th>來源</th><th>交易內容</th><th>增加</th><th>扣除</th><th>逐筆結餘</th></tr></thead><tbody>${filtered.map(row => `<tr>
+        <td>${escapeHtml(row.date || "-")}</td>
+        <td>${escapeHtml(row.source)}</td>
+        <td class="account-ledger-description"><strong>${escapeHtml(row.description || "-")}</strong>${row.detail ? `<small>${escapeHtml(row.detail)}</small>` : ""}</td>
+        <td class="amount-income">${row.amount > 0 ? `+${money(row.amount)}` : "-"}</td>
+        <td class="amount-expense">${row.amount < 0 ? `-${money(Math.abs(row.amount))}` : "-"}</td>
+        <td class="account-ledger-balance">${row.runningBalance >= 0 ? "+" : "-"}${money(Math.abs(row.runningBalance))} ${escapeHtml(currency)}</td>
+      </tr>`).join("")}</tbody></table></div>`;
+    }
     function renderAccounts() {
       const regularAccounts = ledger.accounts.filter(account => account.type !== "信用卡");
       const unlinkedInvestmentCount = unlinkedInvestmentRecordCount();
@@ -4091,7 +4266,7 @@
         return `<div class="account-tile ${typeClass}">
           <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}｜起始 ${money(account.openingBalance)}${investmentText}${unlinkedText}</small></div>
           <span class="account-balance">${money(balance)} ${escapeHtml(currency)}${twdText}</span>
-          <div class="account-actions"><button class="icon-action edit" type="button" title="編輯帳戶" aria-label="編輯帳戶" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除帳戶" aria-label="刪除帳戶" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
+          <div class="account-actions"><button class="icon-action" type="button" title="查看帳戶明細" aria-label="查看帳戶明細" data-open-account-ledger="${escapeHtml(account.name)}"><i data-lucide="list-tree"></i></button><button class="icon-action edit" type="button" title="編輯帳戶" aria-label="編輯帳戶" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除帳戶" aria-label="刪除帳戶" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
         </div>`;
       }).join("") || `<div class="empty">尚未建立一般帳戶</div>`;
       renderCreditCards();
@@ -4103,7 +4278,7 @@
         return `<div class="account-tile">
           <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.currency)}｜目前已刷 / 起始 ${money(account.openingBalance)}｜結帳日 ${account.statementDay || "-"}｜繳款日 ${account.paymentDay || "-"}</small></div>
           <span class="account-balance">${money(Math.abs(balance))} ${escapeHtml(account.currency)}</span>
-          <div class="account-actions"><button class="icon-action edit" type="button" title="編輯信用卡" aria-label="編輯信用卡" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除信用卡" aria-label="刪除信用卡" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
+          <div class="account-actions"><button class="icon-action" type="button" title="查看信用卡明細" aria-label="查看信用卡明細" data-open-account-ledger="${escapeHtml(account.name)}"><i data-lucide="list-tree"></i></button><button class="icon-action edit" type="button" title="編輯信用卡" aria-label="編輯信用卡" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除信用卡" aria-label="刪除信用卡" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
         </div>`;
       }).join("") || `<div class="empty">尚未建立信用卡</div>`;
       renderCreditCycleSummary();
@@ -5014,6 +5189,7 @@
       const rows = filteredEntries();
       renderCards(rows);
       renderAccountCreditSummary();
+      renderAccountLedger();
       renderBars("categoryBars", groupRows(rows.filter(row => row.type === "expense"), "category"), "var(--blue)");
       renderBars("itemBars", groupRows(rows.filter(row => row.type === "expense"), "item"), "var(--amber)");
       renderSelectedDayDetails();
@@ -5191,6 +5367,14 @@
           document.getElementById("amount")?.focus({ preventScroll: true });
           document.getElementById("entryForm")?.scrollIntoView({ behavior: "smooth", block: "start" });
         });
+        return;
+      }
+      const openAccountLedger = event.target.closest("[data-open-account-ledger]");
+      if (openAccountLedger) {
+        const select = document.getElementById("accountLedgerAccount");
+        if (select) select.value = openAccountLedger.dataset.openAccountLedger;
+        renderAccountLedger();
+        switchView("accountLedgerView");
         return;
       }
       const smartCategory = event.target.closest("[data-smart-category]");
@@ -6022,6 +6206,16 @@
       el.addEventListener("input", render);
       el.addEventListener("change", render);
     });
+    ["accountLedgerAccount", "accountLedgerFrom", "accountLedgerTo"].forEach(id => {
+      document.getElementById(id).addEventListener("change", renderAccountLedger);
+    });
+    ["accountLedgerActual", "accountLedgerSearch"].forEach(id => {
+      document.getElementById(id).addEventListener("input", renderAccountLedger);
+    });
+    document.getElementById("accountLedgerClear").addEventListener("click", () => {
+      ["accountLedgerFrom", "accountLedgerTo", "accountLedgerActual", "accountLedgerSearch"].forEach(id => { document.getElementById(id).value = ""; });
+      renderAccountLedger();
+    });
     document.getElementById("exportJson").addEventListener("click", () => download("tsubin-accounting-data.json", JSON.stringify(ledger, null, 2), "application/json"));
     document.getElementById("exportCsv").addEventListener("click", () => {
       const header = ["日期", "類型", "分類", "項目", "金額", "帳戶", "刷卡消費地區", "實際入帳日", "確認帳期", "帳期狀態", "商家/對象", "備註", "衍生來源支出ID"];
@@ -6123,6 +6317,7 @@
     themeMode = initialUiPreferences.themeMode === "dark" ? "dark" : "light";
     lastUsedAccount = String(initialUiPreferences.lastUsedAccount || "");
     if (location.hash === "#analytics" || location.hash === "#history") currentView = "analyticsView";
+    else if (location.hash === "#account-ledger" || location.hash === "#account-detail") currentView = "accountLedgerView";
     else currentView = "entryView";
     applyPrivacyMode();
     applyThemeMode();
