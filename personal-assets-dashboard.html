@@ -1576,11 +1576,17 @@
       .brand-row .sub { display: none; }
       .app-header .actions { display: block; }
       .app-header .file-actions { display: none; }
-      .app-header .cloud-sync { width: 100%; min-height: 38px; padding: 4px; }
-      .app-header .cloud-sync #cloudLoad,
+      .app-header .cloud-sync {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto auto;
+        gap: 6px;
+        width: 100%;
+        min-height: 38px;
+        padding: 4px;
+      }
       .app-header .cloud-sync #cloudLogout,
       .app-header .cloud-sync .cloud-status { display: none; }
-      .app-header .cloud-sync input { min-width: 150px; height: 32px; }
+      .app-header .cloud-sync input { width: 100%; min-width: 0; height: 32px; min-height: 32px; }
       .app-header .cloud-sync .btn { height: 32px; min-height: 32px; padding: 0 9px; font-size: 11px; }
       .app-header .tabs {
         display: none;
@@ -2347,8 +2353,8 @@
           <div class="cloud-sync" aria-label="雲端同步">
             <input id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
             <button class="btn small blue" id="cloudLogin" type="button">登入同步</button>
-            <button class="btn small green" id="cloudSave" type="button">儲存雲端</button>
-            <button class="btn small purple" id="cloudLoad" type="button">載入雲端</button>
+            <button class="btn small green" id="cloudSave" type="button" aria-label="儲存雲端" title="儲存雲端">儲存</button>
+            <button class="btn small purple" id="cloudLoad" type="button" aria-label="載入雲端" title="載入雲端">載入</button>
             <button class="btn small dark" id="cloudLogout" type="button">登出</button>
             <span id="cloudStatus" class="cloud-status">雲端未設定</span>
           </div>

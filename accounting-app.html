@@ -999,7 +999,7 @@
         overflow: visible;
       }
       .top-actions > .file-actions { display: none; }
-      .cloud-sync #cloudLoad, .cloud-sync #cloudLogout, .cloud-sync .cloud-status { display: none; }
+      .cloud-sync #cloudLogout, .cloud-sync .cloud-status { display: none; }
       .file-actions > .btn { min-width: 0; }
       .top-actions::-webkit-scrollbar { display: none; }
       .top-actions .btn {
@@ -2152,14 +2152,40 @@
       .product-more { display: grid; flex: 0 0 auto; }
       .brand-row h1 { margin-top: 4px; font-size: 19px; }
       .kicker { display: none; }
-      .top-actions { margin-top: 2px; }
+      .top-actions {
+        display: block;
+        width: 100%;
+        margin-top: 2px;
+        overflow: visible;
+        padding-bottom: 0;
+      }
+      .top-actions > .cloud-sync {
+        width: 100%;
+        max-width: 100%;
+        flex: none;
+      }
       .cloud-sync {
         width: 100%;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto auto auto;
+        gap: 6px;
+        min-height: 38px;
+        padding: 4px;
       }
-      .cloud-sync #cloudSave { display: none; }
-      .cloud-email { width: 100%; min-width: 0; }
+      .cloud-sync .btn {
+        height: 32px;
+        min-height: 32px;
+        padding: 0 9px;
+        font-size: 11px;
+      }
+      .cloud-email {
+        width: 100%;
+        min-width: 0;
+        height: 32px;
+        min-height: 32px;
+        padding: 6px 8px;
+        font-size: 12px;
+      }
       #entryForm { grid-template-columns: 1fr; }
       .amount-capture-row { grid-template-columns: minmax(0, 1fr) 74px; }
       .amount-field input { min-height: 68px; font-size: 36px; }
@@ -2222,8 +2248,8 @@
           <div class="cloud-sync" aria-label="雲端同步">
             <input class="cloud-email" id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
             <button class="btn blue" id="cloudLogin" type="button">登入同步</button>
-            <button class="btn green" id="cloudSave" type="button">儲存雲端</button>
-            <button class="btn purple" id="cloudLoad" type="button">載入雲端</button>
+            <button class="btn green" id="cloudSave" type="button" aria-label="儲存雲端" title="儲存雲端">儲存</button>
+            <button class="btn purple" id="cloudLoad" type="button" aria-label="載入雲端" title="載入雲端">載入</button>
             <button class="btn dark" id="cloudLogout" type="button">登出</button>
             <span class="cloud-status" id="cloudStatus">雲端未設定</span>
           </div>
