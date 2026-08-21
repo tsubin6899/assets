@@ -4485,6 +4485,24 @@
       const fees = (Number(row.fee) || 0) + (Number(row.tax) || 0);
       return tradeType(row) === "sell" ? Math.max(0, gross - fees) : gross + fees;
     }
+    function displayedTradeAmount(row) {
+      const hasExecution = (Number(row.shares) || 0) > 0 && (Number(row.price) || 0) > 0;
+      return hasExecution ? purchaseCost(row) : Number(row.plannedAmount) || 0;
+    }
+    function updateTradeAmountPreview(index) {
+      const row = (data.purchaseRecords || [])[Number(index)];
+      if (!row) return;
+      const currency = tradeCurrency(row);
+      const amount = displayedTradeAmount(row);
+      const cashFlow = tradeType(row) === "sell" ? purchaseCost(row) : -purchaseCost(row);
+      const amountCell = document.querySelector(`[data-trade-amount="${Number(index)}"]`);
+      const cashFlowCell = document.querySelector(`[data-trade-cash-flow="${Number(index)}"]`);
+      if (amountCell) amountCell.textContent = amount ? money(amount, currency) : "-";
+      if (cashFlowCell) {
+        cashFlowCell.textContent = `${cashFlow >= 0 ? "+" : "-"}${money(Math.abs(cashFlow), currency)}`;
+        cashFlowCell.classList.toggle("ok", cashFlow >= 0);
+      }
+    }
     function purchaseCostTwd(row) {
       return purchaseCost(row) * fxRate(tradeCurrency(row));
     }
@@ -4716,7 +4734,7 @@
             const type = tradeType(r);
             const realized = summary.realizedByIndex.get(i);
             const cashFlow = type === "sell" ? purchaseCost(r) : -purchaseCost(r);
-            return `<tr><td data-label="交易日期">${dateInput(r.date, `purchaseRecords.${i}.date`)}</td><td data-label="類型">${selectInput(type, `purchaseRecords.${i}.type`, [["buy", "買入"], ["sell", "賣出"]])}</td><td data-label="市場">${selectInput(r.market || "TW", `purchaseRecords.${i}.market`, [["TW", "台股"], ["US", "美股"]])}</td><td data-label="幣別">${textInput(tradeCurrency(r), `purchaseRecords.${i}.currency`)}</td><td data-label="股票代碼">${textInput(r.code, `purchaseRecords.${i}.code`)}</td><td data-label="股票名稱">${textInput(r.name, `purchaseRecords.${i}.name`)}</td><td data-label="股數">${textInput(r.shares, `purchaseRecords.${i}.shares`, "number")}</td><td data-label="成交價">${textInput(r.price, `purchaseRecords.${i}.price`, "number")}</td><td data-label="手續費">${textInput(r.fee || 0, `purchaseRecords.${i}.fee`, "number")}</td><td data-label="稅費">${textInput(r.tax || 0, `purchaseRecords.${i}.tax`, "number")}</td><td data-label="預定金額">${r.plannedAmount ? money(r.plannedAmount, tradeCurrency(r)) : "-"}</td><td data-label="交割帳戶">${investmentCashAccountSelect(r.cashAccount, `purchaseRecords.${i}.cashAccount`)}</td><td data-label="現金流" class="${cashFlow >= 0 ? "ok" : ""}">${cashFlow >= 0 ? "+" : "-"}${money(Math.abs(cashFlow), tradeCurrency(r))}</td><td data-label="已實現損益" class="${realized === null ? "" : realized >= 0 ? "ok" : "gain"}">${realized === null ? "-" : money(realized, tradeCurrency(r))}</td><td data-label="操作"><button class="icon-btn" data-del="purchaseRecords.${i}">刪</button></td></tr>`;
+            return `<tr><td data-label="交易日期">${dateInput(r.date, `purchaseRecords.${i}.date`)}</td><td data-label="類型">${selectInput(type, `purchaseRecords.${i}.type`, [["buy", "買入"], ["sell", "賣出"]])}</td><td data-label="市場">${selectInput(r.market || "TW", `purchaseRecords.${i}.market`, [["TW", "台股"], ["US", "美股"]])}</td><td data-label="幣別">${textInput(tradeCurrency(r), `purchaseRecords.${i}.currency`)}</td><td data-label="股票代碼">${textInput(r.code, `purchaseRecords.${i}.code`)}</td><td data-label="股票名稱">${textInput(r.name, `purchaseRecords.${i}.name`)}</td><td data-label="股數">${textInput(r.shares, `purchaseRecords.${i}.shares`, "number")}</td><td data-label="成交價">${textInput(r.price, `purchaseRecords.${i}.price`, "number")}</td><td data-label="手續費">${textInput(r.fee || 0, `purchaseRecords.${i}.fee`, "number")}</td><td data-label="稅費">${textInput(r.tax || 0, `purchaseRecords.${i}.tax`, "number")}</td><td data-label="預定金額" data-trade-amount="${i}">${displayedTradeAmount(r) ? money(displayedTradeAmount(r), tradeCurrency(r)) : "-"}</td><td data-label="交割帳戶">${investmentCashAccountSelect(r.cashAccount, `purchaseRecords.${i}.cashAccount`)}</td><td data-label="現金流" data-trade-cash-flow="${i}" class="${cashFlow >= 0 ? "ok" : ""}">${cashFlow >= 0 ? "+" : "-"}${money(Math.abs(cashFlow), tradeCurrency(r))}</td><td data-label="已實現損益" class="${realized === null ? "" : realized >= 0 ? "ok" : "gain"}">${realized === null ? "-" : money(realized, tradeCurrency(r))}</td><td data-label="操作"><button class="icon-btn" data-del="purchaseRecords.${i}">刪</button></td></tr>`;
           }).join("")}</tbody>
         </table></div></article>
         </details>
@@ -4985,6 +5003,8 @@
           const value = el.type === "number" ? Number(el.value) : el.value;
           setPath(el.dataset.path, value);
           saveState();
+          const tradeMatch = el.dataset.path.match(/^purchaseRecords\.(\d+)\.(shares|price|fee|tax|plannedAmount|currency)$/);
+          if (tradeMatch) updateTradeAmountPreview(tradeMatch[1]);
         });
         el.addEventListener("change", () => {
           let value = el.type === "checkbox" ? el.checked : el.value;
