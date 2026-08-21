@@ -3920,6 +3920,20 @@
       ledger.recurringRules.forEach(row => { if (row.account === from) row.account = to; });
       ledger.reconciliations.forEach(row => { if (row.account === from) row.account = to; });
       (ledger.creditStatementChecks || []).forEach(row => { if (row.card === from) row.card = to; });
+      try {
+        const dashboard = JSON.parse(localStorage.getItem(dashboardStorageKey) || "{}");
+        let changed = false;
+        [dashboard.purchaseRecords, dashboard.dividends].forEach(rows => (Array.isArray(rows) ? rows : []).forEach(row => {
+          if (row.cashAccount === from) {
+            row.cashAccount = to;
+            changed = true;
+          }
+        }));
+        if (changed) {
+          localStorage.setItem(dashboardStorageKey, JSON.stringify(dashboard));
+          investmentCashFlowCache = { raw: null, data: {} };
+        }
+      } catch {}
     }
     function saveEdit(values) {
       if (!editState) return;
@@ -3988,12 +4002,54 @@
       });
       return [...grouped.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
     }
+    let investmentCashFlowCache = { raw: null, data: {} };
+    function investmentDashboardData() {
+      const raw = localStorage.getItem(dashboardStorageKey) || "";
+      if (raw === investmentCashFlowCache.raw) return investmentCashFlowCache.data;
+      try {
+        investmentCashFlowCache = { raw, data: JSON.parse(raw || "{}") };
+      } catch {
+        investmentCashFlowCache = { raw, data: {} };
+      }
+      return investmentCashFlowCache.data;
+    }
+    function investmentTradeType(row) {
+      const value = String(row?.type || row?.action || "buy").toLowerCase();
+      return value === "sell" || value.includes("賣") ? "sell" : "buy";
+    }
+    function investmentTradeCurrency(row) {
+      return normalizeCurrency(row?.currency || (row?.market === "US" ? "USD" : "TWD"));
+    }
+    function investmentTradeAmount(row) {
+      const gross = (Number(row?.shares) || 0) * (Number(row?.price) || 0);
+      const fees = (Number(row?.fee) || 0) + (Number(row?.tax) || 0);
+      return investmentTradeType(row) === "sell" ? Math.max(0, gross - fees) : gross + fees;
+    }
+    function investmentAccountAdjustment(account) {
+      const dashboard = investmentDashboardData();
+      const rates = { TWD: 1, ...(dashboard.fxRates || {}) };
+      const accountName = String(account?.name || "");
+      const accountCurrency = normalizeCurrency(account?.currency || "TWD");
+      const convert = (value, currency) => {
+        const twd = (Number(value) || 0) * (Number(rates[normalizeCurrency(currency)]) || 1);
+        return twd / (Number(rates[accountCurrency]) || 1);
+      };
+      const asOf = today();
+      const trades = sum((dashboard.purchaseRecords || []).filter(row => row.cashAccount === accountName && String(row.date || "") <= asOf), row => {
+        const amount = convert(investmentTradeAmount(row), investmentTradeCurrency(row));
+        return investmentTradeType(row) === "sell" ? amount : -amount;
+      });
+      const dividends = sum((dashboard.dividends || []).filter(row => row.cashAccount === accountName && String(row.date || "") <= asOf), row =>
+        convert(row.amount, row.currency || "TWD")
+      );
+      return trades + dividends;
+    }
     function accountBalance(account) {
       const entryTotal = allEntryRows().reduce((total, row) => {
         if (row.account !== account.name) return total;
         const amount = Number(row.amount) || 0;
         return total + (row.type === "income" ? amount : -amount);
-      }, Number(account.openingBalance) || 0);
+      }, (Number(account.openingBalance) || 0) + investmentAccountAdjustment(account));
       return (ledger.transfers || []).reduce((total, row) => {
         const fromAmount = Number(row.fromAmount) || 0;
         const toAmount = Number(row.toAmount) || 0;
@@ -4010,8 +4066,10 @@
       const regularAccounts = ledger.accounts.filter(account => account.type !== "信用卡");
       document.getElementById("accountList").innerHTML = regularAccounts.map(account => {
         const balance = accountBalance(account);
+        const investmentImpact = investmentAccountAdjustment(account);
         const currency = normalizeCurrency(account.currency);
         const twdText = currency === "TWD" ? "" : `<small class="account-twd-equivalent">約 ${money(twdEquivalent(balance, currency))} TWD</small>`;
+        const investmentText = investmentImpact ? `｜投資現金流 ${investmentImpact >= 0 ? "+" : ""}${money(investmentImpact)}` : "";
         const typeClass = ({
           "現金": "account-type-cash",
           "外幣現金": "account-type-foreign-cash",
@@ -4020,7 +4078,7 @@
           "行動支付": "account-type-mobile"
         })[account.type] || "";
         return `<div class="account-tile ${typeClass}">
-          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}｜起始 ${money(account.openingBalance)}</small></div>
+          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.type)}｜${escapeHtml(account.currency)}｜起始 ${money(account.openingBalance)}${investmentText}</small></div>
           <span class="account-balance">${money(balance)} ${escapeHtml(currency)}${twdText}</span>
           <div class="account-actions"><button class="icon-action edit" type="button" title="編輯帳戶" aria-label="編輯帳戶" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除帳戶" aria-label="刪除帳戶" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
         </div>`;
@@ -6088,6 +6146,11 @@
       } else {
         backgroundedAt = Date.now();
       }
+    });
+    window.addEventListener("storage", event => {
+      if (event.key !== dashboardStorageKey) return;
+      investmentCashFlowCache = { raw: null, data: {} };
+      render();
     });
     window.addEventListener("online", () => {
       autoSyncedUserId = "";
