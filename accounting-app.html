@@ -3163,6 +3163,9 @@
           budgets,
           reconciliations,
           creditStatementChecks,
+          recycleBin: Array.isArray(saved.recycleBin) ? saved.recycleBin : [],
+          monthCloseouts: Array.isArray(saved.monthCloseouts) ? saved.monthCloseouts : [],
+          budgetRollovers: saved.budgetRollovers && typeof saved.budgetRollovers === "object" ? saved.budgetRollovers : {},
           categories: normalizeCategories(saved.categories, entries),
           items: normalizeItems(saved.items, entries),
           accounts: normalizeAccounts(saved.accounts, entries),
@@ -3179,6 +3182,9 @@
           budgets: [],
           reconciliations: [],
           creditStatementChecks: [],
+          recycleBin: [],
+          monthCloseouts: [],
+          budgetRollovers: {},
           categories: structuredClone(defaultCategories),
           items: structuredClone(defaultItems),
           accounts: structuredClone(defaultAccounts),
@@ -3195,10 +3201,31 @@
       ledger.budgetRollovers = ledger.budgetRollovers && typeof ledger.budgetRollovers === "object" ? ledger.budgetRollovers : {};
       ledger.creditStatementChecks = normalizeCreditStatementChecks(ledger.creditStatementChecks);
     }
-    function moveToRecycle(type, row) {
+    function moveToRecycle(type, row, extra = {}) {
       ensureEnhancements();
-      ledger.recycleBin.unshift({ id: uid(), type, row: cloneLedgerSnapshot(row), deletedAt: new Date().toISOString() });
+      ledger.recycleBin.unshift({ id: uid(), type, row: cloneLedgerSnapshot(row), deletedAt: new Date().toISOString(), ...cloneLedgerSnapshot(extra) });
       ledger.recycleBin = ledger.recycleBin.slice(0, 40);
+    }
+    function retractOrphanedCreditBillPayments() {
+      ensureEnhancements();
+      const activeTransferIds = new Set((ledger.creditBills || []).map(row => row.transferId).filter(Boolean));
+      const orphaned = (ledger.transfers || []).filter(row => {
+        if (activeTransferIds.has(row.id)) return false;
+        const toCreditCard = ledger.accounts.some(account => account.type === "信用卡" && account.name === row.toAccount);
+        const legacyAutoPayment = toCreditCard && /^\d{4}-\d{2}\s+.+\s+信用卡帳單繳款\s*$/.test(String(row.note || ""));
+        return Boolean(row.creditBillId) || legacyAutoPayment;
+      });
+      if (!orphaned.length) return { count: 0, amount: 0 };
+      const orphanedIds = new Set(orphaned.map(row => row.id));
+      orphaned.forEach(transfer => {
+        const recycledBill = ledger.recycleBin.find(item => item.type === "bill" && (
+          item.row?.transferId === transfer.id ||
+          (transfer.creditBillId && item.row?.id === transfer.creditBillId)
+        ));
+        if (recycledBill && !recycledBill.linkedTransfer) recycledBill.linkedTransfer = cloneLedgerSnapshot(transfer);
+      });
+      ledger.transfers = (ledger.transfers || []).filter(row => !orphanedIds.has(row.id));
+      return { count: orphaned.length, amount: sum(orphaned, row => row.fromAmount) };
     }
     function normalizeCategories(saved, entries = []) {
       const savedCategories = saved && typeof saved === "object" ? saved : {};
@@ -3252,6 +3279,7 @@
         toAmount: Number(row.toAmount) || 0,
         feeAmount: Number(row.feeAmount) || 0,
         feeAccount: String(row.feeAccount || "").trim(),
+        creditBillId: String(row.creditBillId || "").trim(),
         note: String(row.note || "").trim(),
         createdAt: row.createdAt || new Date().toISOString()
       })).filter(row => row.fromAccount && row.toAccount && row.fromAmount > 0 && row.toAmount > 0);
@@ -3708,6 +3736,9 @@
         budgets: normalizeBudgets(payload.budgets),
         reconciliations: normalizeReconciliations(payload.reconciliations),
         creditStatementChecks: normalizeCreditStatementChecks(payload.creditStatementChecks),
+        recycleBin: Array.isArray(payload.recycleBin) ? payload.recycleBin : [],
+        monthCloseouts: Array.isArray(payload.monthCloseouts) ? payload.monthCloseouts : [],
+        budgetRollovers: payload.budgetRollovers && typeof payload.budgetRollovers === "object" ? payload.budgetRollovers : {},
         categories: normalizeCategories(payload.categories, entries),
         items: normalizeItems(payload.items, entries),
         accounts: normalizeAccounts(payload.accounts, entries),
@@ -5552,6 +5583,9 @@
         if (!item) return;
         const map = { entry: "entries", account: "accounts", bill: "creditBills", recurring: "recurringRules", budget: "budgets" };
         if (map[item.type]) ledger[map[item.type]].push(item.row);
+        if (item.type === "bill" && item.linkedTransfer && !(ledger.transfers || []).some(row => row.id === item.linkedTransfer.id)) {
+          ledger.transfers.push(normalizeTransfers([item.linkedTransfer])[0]);
+        }
         if (item.type === "entry" && !item.row.isForeignTransactionFee) syncForeignTransactionFee(item.row);
         ledger.recycleBin = ledger.recycleBin.filter(row => row.id !== item.id);
         saveLedger(); editDialog.close(); render(); toast("已從回收桶還原"); return;
@@ -5607,12 +5641,14 @@
       const removeBill = event.target.closest("[data-remove-bill]");
       if (removeBill) {
         const bill = (ledger.creditBills || []).find(row => row.id === removeBill.dataset.removeBill);
-        if (bill?.paid && !confirm("這筆帳單已繳款，刪除帳單不會刪除已產生的轉帳紀錄。確定刪除？")) return;
-        if (bill) moveToRecycle("bill", bill);
+        if (bill?.paid && !confirm("這筆帳單已繳款。刪除後會一併撤銷繳款轉帳，並將金額加回原付款帳戶。確定刪除？")) return;
+        const linkedTransfer = bill?.transferId ? (ledger.transfers || []).find(row => row.id === bill.transferId) : null;
+        if (bill) moveToRecycle("bill", bill, linkedTransfer ? { linkedTransfer } : {});
+        if (linkedTransfer) ledger.transfers = (ledger.transfers || []).filter(row => row.id !== linkedTransfer.id);
         ledger.creditBills = (ledger.creditBills || []).filter(row => row.id !== removeBill.dataset.removeBill);
         saveLedger();
         render();
-        toast("已刪除帳單");
+        toast(linkedTransfer ? `已刪除帳單，並退回 ${money(linkedTransfer.fromAmount)} 至 ${linkedTransfer.fromAccount}` : "已刪除帳單");
         return;
       }
       const removeInstallment = event.target.closest("[data-remove-installment]");
@@ -6145,6 +6181,7 @@
         toAmount: amount,
         feeAmount: 0,
         feeAccount: bill.payAccount,
+        creditBillId: bill.id,
         note: `${bill.billMonth} ${bill.card} 信用卡帳單繳款`,
         createdAt: new Date().toISOString()
       });
@@ -6350,10 +6387,15 @@
     applyPrivacyMode();
     applyThemeMode();
     loadSharedFxRates();
+    const orphanedPaymentRepair = retractOrphanedCreditBillPayments();
+    if (orphanedPaymentRepair.count) saveLedger();
     reconcileForeignTransactionFees();
     setType("expense");
     if (lastUsedAccount) renderEntryAccountOptions(lastUsedAccount);
     render();
+    if (orphanedPaymentRepair.count) {
+      setTimeout(() => toast(`已撤銷 ${orphanedPaymentRepair.count} 筆已刪帳單的繳款扣款，共退回 ${money(orphanedPaymentRepair.amount)}`), 250);
+    }
     if (location.hash === "#quick-entry") {
       requestAnimationFrame(() => {
         document.getElementById("amount")?.focus({ preventScroll: true });
