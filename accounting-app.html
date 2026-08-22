@@ -472,6 +472,37 @@
     .account-meta {
       min-width: 0;
     }
+    .credit-card-breakdown {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 9px;
+    }
+    .credit-card-breakdown > span {
+      min-width: 0;
+      padding: 8px 9px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+    }
+    .credit-card-breakdown small,
+    .credit-current-balance small {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.4;
+    }
+    .credit-card-breakdown strong {
+      margin-top: 3px;
+      font-size: 14px;
+      font-variant-numeric: tabular-nums;
+    }
+    .credit-current-balance strong {
+      margin-top: 3px;
+      font-size: 16px;
+      font-variant-numeric: tabular-nums;
+    }
     .account-actions {
       display: flex;
       align-items: center;
@@ -4418,10 +4449,15 @@
     function renderCreditCards() {
       const creditCards = ledger.accounts.filter(account => account.type === "信用卡");
       document.getElementById("creditList").innerHTML = creditCards.map(account => {
-        const balance = accountBalance(account);
+        const spending = creditCardSpendingBreakdown(account);
         return `<div class="account-tile">
-          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.currency)}｜目前已刷 / 起始 ${money(account.openingBalance)}｜結帳日 ${account.statementDay || "-"}｜繳款日 ${account.paymentDay || "-"}</small></div>
-          <span class="account-balance">${money(Math.abs(balance))} ${escapeHtml(account.currency)}</span>
+          <div class="account-meta"><strong>${escapeHtml(account.name)}</strong><small>${escapeHtml(account.currency)}｜目前已刷 / 起始 ${money(account.openingBalance)}｜結帳日 ${account.statementDay || "-"}｜繳款日 ${account.paymentDay || "-"}</small>
+            <div class="credit-card-breakdown">
+              <span data-credit-metric="billed"><small>已列對帳單金額</small><strong>${money(spending.billed)} ${escapeHtml(account.currency)}</strong></span>
+              <span data-credit-metric="unbilled"><small>信用卡未出帳單消費金額</small><strong>${money(spending.unbilled)} ${escapeHtml(account.currency)}</strong></span>
+            </div>
+          </div>
+          <div class="account-balance credit-current-balance" data-credit-metric="current"><small>信用卡目前消費金額</small><strong>${money(spending.current)} ${escapeHtml(account.currency)}</strong></div>
           <div class="account-actions"><button class="icon-action" type="button" title="查看信用卡明細" aria-label="查看信用卡明細" data-open-account-ledger="${escapeHtml(account.name)}"><i data-lucide="list-tree"></i></button><button class="icon-action edit" type="button" title="編輯信用卡" aria-label="編輯信用卡" data-edit-account="${escapeHtml(account.id)}"><i data-lucide="pen-line"></i></button><button class="icon-action delete" type="button" title="刪除信用卡" aria-label="刪除信用卡" data-remove-account="${escapeHtml(account.name)}"><i data-lucide="trash-2"></i></button></div>
         </div>`;
       }).join("") || `<div class="empty">尚未建立信用卡</div>`;
@@ -4615,12 +4651,28 @@
       if (Math.abs(diff) < 1) return { label: "金額相符", cls: "matched", note: "總金額相符，但仍有 App 明細尚未勾選確認。" };
       return { label: "仍有差額", cls: "difference", note: diff > 0 ? "銀行帳單較高，請檢查是否有漏記消費、年費或手續費。" : "App 明細較高，請檢查重複記帳、退款或帳單折抵。" };
     }
+    function isCreditStatementCheckComplete(row) {
+      const matchedCount = Array.isArray(row?.matchedKeys) ? row.matchedKeys.length : 0;
+      return Math.abs(Number(row?.diff) || 0) < 1 && (!Number(row?.rowCount) || matchedCount >= Number(row.rowCount));
+    }
+    function creditCardSpendingBreakdown(account) {
+      const current = Math.max(0, -accountBalance(account));
+      const paidMonths = new Set((ledger.creditBills || [])
+        .filter(row => row.card === account.name && row.paid)
+        .map(row => row.billMonth));
+      const completedStatementAmount = sum(
+        (ledger.creditStatementChecks || []).filter(row => row.card === account.name && isCreditStatementCheckComplete(row) && !paidMonths.has(row.billMonth)),
+        row => Math.max(0, Number(row.matchedAmount) || Number(row.statementAmount) || 0)
+      );
+      const billed = Math.min(current, completedStatementAmount);
+      return { current, billed, unbilled: Math.max(0, current - billed) };
+    }
     function renderCreditReconcileHistory() {
       const target = document.getElementById("creditReconcileHistory");
       const rows = [...(ledger.creditStatementChecks || [])]
         .sort((a, b) => String(b.billMonth).localeCompare(String(a.billMonth)) || String(b.updatedAt).localeCompare(String(a.updatedAt)));
       target.innerHTML = rows.length ? rows.map(row => {
-        const complete = Math.abs(Number(row.diff) || 0) < 1 && (!row.rowCount || row.matchedKeys.length >= row.rowCount);
+        const complete = isCreditStatementCheckComplete(row);
         return `<div class="statement-history-card">
           <div>
             <strong>${escapeHtml(row.card)}｜${escapeHtml(row.billMonth)}</strong>
