@@ -2756,7 +2756,10 @@
       updateCloudControls();
     }
     async function loginCloudSync() {
-      if (!supabaseClient) return;
+      if (!supabaseClient) {
+        toast("雲端連線尚未完成，請重新整理後稍候再試");
+        return;
+      }
       const email = document.getElementById("cloudEmail").value.trim();
       if (!email) {
         toast("請先輸入 Email");
