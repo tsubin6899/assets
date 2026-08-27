@@ -2700,8 +2700,8 @@
         if (!response.ok) return fallback;
         const config = await response.json();
         return {
-          supabaseUrl: config.supabaseUrl || fallback.supabaseUrl,
-          supabaseAnonKey: config.supabaseAnonKey || fallback.supabaseAnonKey
+          supabaseUrl: fallback.supabaseUrl || config.supabaseUrl,
+          supabaseAnonKey: fallback.supabaseAnonKey || config.supabaseAnonKey
         };
       } catch {
         return fallback;

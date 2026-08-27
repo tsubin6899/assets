@@ -2853,6 +2853,7 @@
 
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="market-data-config.js"></script>
   <script>
     const accountingKey = "personal-accounting-tsubin-v1";
     const accountingUiKey = "personal-accounting-ui-tsubin-v1";
@@ -3594,8 +3595,8 @@
         if (!response.ok) return fallback;
         const config = await response.json();
         return {
-          supabaseUrl: config.supabaseUrl || fallback.supabaseUrl,
-          supabaseAnonKey: config.supabaseAnonKey || fallback.supabaseAnonKey
+          supabaseUrl: fallback.supabaseUrl || config.supabaseUrl,
+          supabaseAnonKey: fallback.supabaseAnonKey || config.supabaseAnonKey
         };
       } catch {
         return fallback;
