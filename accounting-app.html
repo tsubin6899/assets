@@ -6458,24 +6458,27 @@
       const file = event.target.files?.[0];
       if (!file) return;
       const payload = JSON.parse(await file.text());
-      if (!Array.isArray(payload.entries)) {
+      const source = payload.accountingLedger && typeof payload.accountingLedger === "object"
+        ? payload.accountingLedger
+        : payload;
+      if (!Array.isArray(source.entries)) {
         toast("匯入格式不正確");
         return;
       }
       ledger = {
-        entries: normalizeEntries(payload.entries),
-        transfers: normalizeTransfers(payload.transfers),
-        creditBills: normalizeCreditBills(payload.creditBills),
-        creditInstallments: normalizeCreditInstallments(payload.creditInstallments),
-        templates: normalizeTemplates(payload.templates),
-        recurringRules: normalizeRecurringRules(payload.recurringRules),
-        budgets: normalizeBudgets(payload.budgets),
-        reconciliations: normalizeReconciliations(payload.reconciliations),
-        creditStatementChecks: normalizeCreditStatementChecks(payload.creditStatementChecks),
-        categories: normalizeCategories(payload.categories, payload.entries),
-        items: normalizeItems(payload.items, payload.entries),
-        accounts: normalizeAccounts(payload.accounts, payload.entries),
-        methods: normalizeList(payload.methods, [])
+        entries: normalizeEntries(source.entries),
+        transfers: normalizeTransfers(source.transfers),
+        creditBills: normalizeCreditBills(source.creditBills),
+        creditInstallments: normalizeCreditInstallments(source.creditInstallments),
+        templates: normalizeTemplates(source.templates),
+        recurringRules: normalizeRecurringRules(source.recurringRules),
+        budgets: normalizeBudgets(source.budgets),
+        reconciliations: normalizeReconciliations(source.reconciliations),
+        creditStatementChecks: normalizeCreditStatementChecks(source.creditStatementChecks),
+        categories: normalizeCategories(source.categories, source.entries),
+        items: normalizeItems(source.items, source.entries),
+        accounts: normalizeAccounts(source.accounts, source.entries),
+        methods: normalizeList(source.methods, [])
       };
       reconcileForeignTransactionFees();
       saveLedger();
