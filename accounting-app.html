@@ -3603,7 +3603,9 @@
       }
     }
     function cloudRedirectUrl() {
-      if (!location.protocol.startsWith("http")) return location.href.split("#")[0];
+      if (!location.protocol.startsWith("http") || /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+        return "https://assets-olive-ten.vercel.app/accounting-app.html";
+      }
       return `${location.origin}${location.pathname}`;
     }
     function cleanCloudAuthUrl() {
