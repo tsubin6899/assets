@@ -2529,11 +2529,8 @@
       <button type="button" data-tab="metal"><i data-lucide="gem"></i>貴金屬</button>
       <button type="button" data-tab="fund"><i data-lucide="pie-chart"></i>基金</button>
       <button type="button" data-tab="dca"><i data-lucide="calendar-clock"></i>定期投入</button>
-      <button type="button" data-tab="watchlist"><i data-lucide="binoculars"></i>股票觀察名單</button>
       <button type="button" data-tab="dividend"><i data-lucide="circle-dollar-sign"></i>股息配息</button>
       <button type="button" data-tab="bookkeeping"><i data-lucide="notebook-tabs"></i>記帳總覽</button>
-      <button type="button" data-tab="expense"><i data-lucide="clipboard-list"></i>支出規畫</button>
-      <button type="button" data-tab="allocation"><i data-lucide="split"></i>額外資金</button>
       <button type="button" data-tab="annual"><i data-lucide="calendar-days"></i>年度報表</button>
       <button type="button" data-tab="chart"><i data-lucide="chart-no-axes-combined"></i>資訊圖表</button>
       <a href="accounting-app.html"><i data-lucide="receipt-text"></i>日常記帳 App</a>
@@ -2607,9 +2604,9 @@
     const cloudTable = "asset_dashboard_profiles";
     const tabs = [
       ["overview", "總覽儀表板"], ["tw", "台股部位"], ["us", "美股部位"], ["cash", "現金帳戶"],
-      ["metal", "貴金屬"], ["fund", "基金"], ["dca", "定期投入"], ["watchlist", "股票觀察名單"],
+      ["metal", "貴金屬"], ["fund", "基金"], ["dca", "定期投入"],
       ["purchase", "購買股票紀錄"], ["dividend", "股息 / 配息紀錄"], ["bookkeeping", "記帳總覽"],
-      ["expense", "支出規畫"], ["allocation", "額外資金分配"], ["annual", "年度報表"],
+      ["annual", "年度報表"],
       ["chart", "資訊圖表庫"]
     ];
     const tabIcons = {
@@ -5567,7 +5564,7 @@
     autoApplyLatestPrices();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=80").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=81").catch(() => {});
       });
     }
   </script>
