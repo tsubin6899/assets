@@ -2818,6 +2818,7 @@
       else if (loggedIn && hasPendingCloudChanges()) setCloudStatus("等待自動同步");
       else if (loggedIn) setCloudStatus("已登入・自動同步");
       else setCloudStatus("未登入");
+      if (window.parent !== window) window.parent.postMessage({ type: "finance-center-status", loggedIn }, "*");
     }
     async function loadPublicConfig() {
       const fallback = {
@@ -5566,7 +5567,7 @@
     autoApplyLatestPrices();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=77").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=78").catch(() => {});
       });
     }
   </script>
