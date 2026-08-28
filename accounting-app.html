@@ -2929,7 +2929,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
-  <script src="finance-core.js?v=1"></script>
+  <script src="finance-core.js?v=2"></script>
   <script>
     if (new URLSearchParams(location.search).get("embedded") === "1") document.body.classList.add("finance-center-embedded");
     const accountingKey = "personal-accounting-tsubin-v1";
@@ -6687,7 +6687,7 @@
     window.addEventListener("resize", updateMobileHeaderOffset);
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=86").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=87").catch(() => {});
       });
     }
   </script>

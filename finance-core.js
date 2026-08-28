@@ -544,6 +544,97 @@
     return persist(ledger, assets, "刪除分類預算");
   }
 
+  function addInstallment(values) {
+    const { ledger, assets } = load();
+    const row = { id: uid("installment"), card: values.card || "", purchaseDate: values.purchaseDate || localDate(), merchant: values.merchant || "", category: values.category || "其他支出", item: values.item || "", totalAmount: Math.max(0, number(values.totalAmount)), months: Math.max(2, number(values.months) || 2), startMonth: String(values.startMonth || monthOf()).slice(0, 7), note: values.note || "", createdAt: nowIso() };
+    if (!row.card || !row.totalAmount) throw new Error("請完整填寫分期資料");
+    ledger.creditInstallments.push(row);
+    return persist(ledger, assets, "新增信用卡分期");
+  }
+
+  function updateInstallment(id, values) {
+    const { ledger, assets } = load();
+    const row = ledger.creditInstallments.find(item => item.id === id);
+    if (!row) throw new Error("找不到這筆分期");
+    Object.assign(row, { card: values.card || "", purchaseDate: values.purchaseDate || localDate(), merchant: values.merchant || "", category: values.category || "其他支出", item: values.item || "", totalAmount: Math.max(0, number(values.totalAmount)), months: Math.max(2, number(values.months) || 2), startMonth: String(values.startMonth || monthOf()).slice(0, 7), note: values.note || "", updatedAt: nowIso() });
+    return persist(ledger, assets, "修改信用卡分期");
+  }
+
+  function removeInstallment(id) {
+    const { ledger, assets } = load();
+    const index = ledger.creditInstallments.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆分期");
+    recycle(ledger, "installment", ledger.creditInstallments[index]); ledger.creditInstallments.splice(index, 1);
+    return persist(ledger, assets, "刪除信用卡分期");
+  }
+
+  function addReconciliation(values) {
+    const { ledger, assets } = load();
+    const account = accountBalances(ledger, assets, values.date || localDate()).find(row => row.name === values.account);
+    if (!account) throw new Error("找不到盤點帳戶");
+    const actual = number(values.actualBalance), book = number(account.balance), diff = actual - book, date = values.date || localDate();
+    let entryId = "";
+    if (diff) {
+      entryId = uid("entry"); ledger.entries.push({ id: entryId, type: diff > 0 ? "income" : "expense", date, amount: Math.abs(diff), category: "現金盤點調整", item: diff > 0 ? "現金多出" : "現金短少", account: account.name, merchant: "帳戶盤點", note: `盤點調整：帳面 ${book}，實際 ${actual}`, createdAt: nowIso() });
+    }
+    ledger.reconciliations.push({ id: uid("reconcile"), date, account: account.name, bookBalance: book, actualBalance: actual, diff, entryId, createdAt: nowIso() });
+    return persist(ledger, assets, "建立帳戶盤點");
+  }
+
+  function removeReconciliation(id) {
+    const { ledger, assets } = load();
+    const index = ledger.reconciliations.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆盤點");
+    const row = ledger.reconciliations[index]; if (row.entryId) ledger.entries = ledger.entries.filter(item => item.id !== row.entryId);
+    recycle(ledger, "reconciliation", row); ledger.reconciliations.splice(index, 1);
+    return persist(ledger, assets, "刪除帳戶盤點");
+  }
+
+  function closeMonth(month = monthOf()) {
+    const { ledger, assets } = load();
+    const snapshot = clone(ledger); snapshot.monthCloseouts = [];
+    ledger.monthCloseouts = ledger.monthCloseouts.filter(row => row.month !== month);
+    ledger.monthCloseouts.unshift({ month, closedAt: nowIso(), ledger: snapshot });
+    return persist(ledger, assets, `完成 ${month} 月結`);
+  }
+
+  function reopenMonth(month = monthOf()) {
+    const { ledger, assets } = load(); ledger.monthCloseouts = ledger.monthCloseouts.filter(row => row.month !== month);
+    return persist(ledger, assets, `重新開啟 ${month} 月結`);
+  }
+
+  function saveCreditStatementCheck(values) {
+    const { ledger, assets } = load();
+    const billMonth = String(values.billMonth || monthOf()).slice(0, 7), card = values.card || "";
+    const entries = ledger.entries.filter(row => row.account === card && String(row.billMonth || row.statementMonthOverride || row.date || "").startsWith(billMonth));
+    const appAmount = entries.reduce((sum, row) => sum + (row.type === "expense" ? number(row.amount) : -number(row.amount)), 0);
+    const statementAmount = number(values.statementAmount), existing = ledger.creditStatementChecks.find(row => row.card === card && row.billMonth === billMonth);
+    const data = { id: existing?.id || uid("statement"), card, billMonth, statementAmount, appAmount, diff: statementAmount - appAmount, matchedKeys: [], rowCount: entries.length, matchedAmount: appAmount, note: values.note || "", checkedAt: nowIso(), updatedAt: nowIso() };
+    if (existing) Object.assign(existing, data); else ledger.creditStatementChecks.push(data);
+    return persist(ledger, assets, "儲存信用卡對帳");
+  }
+
+  function removeCreditStatementCheck(id) {
+    const { ledger, assets } = load(); ledger.creditStatementChecks = ledger.creditStatementChecks.filter(row => row.id !== id);
+    return persist(ledger, assets, "刪除信用卡對帳");
+  }
+
+  function updatePurchase(id, values) {
+    const { ledger, assets } = load(); const row = assets.purchaseRecords.find(item => item.id === id); if (!row) throw new Error("找不到這筆投資交易");
+    Object.assign(row, { date: values.date || localDate(), type: values.type === "sell" ? "sell" : "buy", market: values.market === "US" ? "US" : "TW", code: String(values.code || "").trim().toUpperCase(), name: values.name || "", shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)), tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || (values.market === "US" ? "USD" : "TWD")), cashAccount: values.cashAccount || "", note: values.note || "", updatedAt: nowIso() });
+    return persist(ledger, assets, "修改投資交易");
+  }
+
+  function removePurchase(id) { const { ledger, assets } = load(); const index=assets.purchaseRecords.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆投資交易"); assets.purchaseRecords.splice(index,1); return persist(ledger,assets,"刪除投資交易"); }
+  function updateDividend(id, values) { const { ledger, assets }=load(); const row=assets.dividends.find(item=>item.id===id); if(!row)throw new Error("找不到這筆股息"); Object.assign(row,{date:values.date||localDate(),source:values.source||"",currency:normalizeCurrency(values.currency||"TWD"),amount:Math.max(0,number(values.amount)),cashAccount:values.cashAccount||"",note:values.note||"",updatedAt:nowIso()}); return persist(ledger,assets,"修改股息收入"); }
+  function removeDividend(id) { const {ledger,assets}=load(); const index=assets.dividends.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆股息"); assets.dividends.splice(index,1); return persist(ledger,assets,"刪除股息收入"); }
+
+  function holdingCollection(assets, assetClass) { return ({tw:assets.tw,us:assets.us,funds:assets.funds,usdFunds:assets.usdFunds,gold:assets.gold,silver:assets.silver})[assetClass] || assets.tw; }
+  function addHolding(values) { const {ledger,assets}=load(); const rows=holdingCollection(assets,values.assetClass); rows.push({id:uid("holding"),code:String(values.code||"").trim().toUpperCase(),name:values.name||"",shares:Math.max(0,number(values.shares)),units:Math.max(0,number(values.shares)),price:Math.max(0,number(values.price)),currency:normalizeCurrency(values.currency||((values.assetClass==="us"||values.assetClass==="usdFunds")?"USD":"TWD")),createdAt:nowIso()}); return persist(ledger,assets,"新增投資持倉"); }
+  function updateHolding(assetClass,id,values) { const {ledger,assets}=load(); const source=holdingCollection(assets,assetClass),index=source.findIndex(item=>item.id===id),row=source[index]; if(!row)throw new Error("找不到這筆持倉"); Object.assign(row,{code:String(values.code||"").trim().toUpperCase(),name:values.name||"",shares:Math.max(0,number(values.shares)),units:Math.max(0,number(values.shares)),price:Math.max(0,number(values.price)),currency:normalizeCurrency(values.currency||row.currency||"TWD"),updatedAt:nowIso()}); if(values.assetClass&&values.assetClass!==assetClass){source.splice(index,1);holdingCollection(assets,values.assetClass).push(row);} return persist(ledger,assets,"修改投資持倉"); }
+  function removeHolding(assetClass,id) { const {ledger,assets}=load(); const rows=holdingCollection(assets,assetClass),index=rows.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆持倉"); rows.splice(index,1); return persist(ledger,assets,"刪除投資持倉"); }
+  function addAssetSnapshot(values={}) { const {ledger,assets}=load(); const summary=assetSummary(ledger,assets); const date=values.date||localDate(); assets.assetSnapshots=assets.assetSnapshots.filter(row=>row.date!==date); assets.assetSnapshots.push({id:uid("snapshot"),date,total:summary.totalAssets,liabilities:summary.liabilities,net:summary.netWorth,createdAt:nowIso()}); return persist(ledger,assets,"建立資產快照"); }
+
   function listBackups() { return readJson(KEYS.backups, []).map(({ data, ...meta }) => meta); }
   function restoreBackup(id) {
     const backup = readJson(KEYS.backups, []).find(row => row.id === id);
@@ -587,6 +678,9 @@
     addEntry, updateEntry, removeEntry, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
     addRecurring, updateRecurring, removeRecurring, upsertBudget, removeBudget,
+    addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth,
+    saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
+    addHolding, updateHolding, removeHolding, addAssetSnapshot,
     createBackup, listBackups, restoreBackup, importBundle,
     exportBundle, localDate, monthOf, fxRate
   };

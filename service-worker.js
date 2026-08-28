@@ -1,11 +1,9 @@
-const CACHE_NAME = "tsubin-finance-center-v86";
+const CACHE_NAME = "tsubin-finance-center-v87";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./finance-center.html",
   "./combined-dashboard.html",
-  "./personal-assets-dashboard.html",
-  "./accounting-app.html",
   "./accounting-manifest.webmanifest",
   "./market-data-config.js",
   "./finance-core.js",

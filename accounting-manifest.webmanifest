@@ -1,9 +1,9 @@
 {
-  "name": "日常記帳 App｜阿斌 Tsubin",
-  "short_name": "日常記帳",
-  "description": "快速管理收入、支出、帳戶、信用卡、預算、固定收支與對帳。",
+  "name": "個人財務中心｜阿斌 Tsubin",
+  "short_name": "個人財務中心",
+  "description": "集中管理記帳、帳戶、信用卡、投資、預算與財務報表。",
   "lang": "zh-Hant-TW",
-  "start_url": "./accounting-app.html",
+  "start_url": "./finance-center.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
