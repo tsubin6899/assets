@@ -2,299 +2,357 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>個人財務中心｜阿斌 Tsubin</title>
-  <meta name="theme-color" content="#18243a">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>個人財務中心｜TSUBIN</title>
+  <meta name="description" content="整合日常記帳、帳戶負債、投資資產、現金流與財務分析的個人財務中心。">
+  <meta name="theme-color" content="#17284b">
   <meta name="application-name" content="個人財務中心">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <style>
-    :root { color-scheme: light; --ink:#18243a; --muted:#69778c; --blue:#4d82ff; --green:#20b486; --header:#17284b; --header-2:#235dc8; --header-3:#138d8a; }
-    * { box-sizing: border-box; }
-    html, body { height:100%; min-height:100%; margin:0; overflow:hidden; }
-    body { color:var(--ink); font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; background:#f1f5f9; }
-    button, input, summary { font:inherit; }
-    .center-shell { display:flex; flex-direction:column; height:100dvh; min-height:0; overflow:hidden; }
-    .center-header { position:relative; z-index:100; flex:0 0 auto; width:100%; color:#fff; background:linear-gradient(112deg,var(--header) 0%,var(--header-2) 55%,var(--header-3) 100%); box-shadow:0 5px 18px rgba(19,38,73,.18); }
-    .brand-row { display:flex; align-items:center; justify-content:space-between; gap:24px; width:min(1500px,calc(100% - 48px)); min-height:100px; margin:0 auto; padding:0 24px; }
-    .brand-copy { min-width:0; }
-    .kicker, .sub { display:none; }
-    h1 { margin:0; font-size:clamp(30px,2.5vw,38px); line-height:1; letter-spacing:.01em; white-space:nowrap; }
-    .brand-suffix { color:rgba(255,255,255,.66); font-size:.72em; font-weight:650; letter-spacing:.08em; }
-    .top-controls { display:flex; align-items:center; justify-content:flex-end; gap:8px; min-width:0; }
-    .auth-strip { display:flex; align-items:center; gap:6px; }
-    .top-controls input { width:156px; height:34px; padding:0 10px; border:1px solid rgba(255,255,255,.24); border-radius:8px; color:#fff; background:rgba(255,255,255,.10); outline:none; }
-    .top-controls input:focus { border-color:rgba(255,255,255,.64); background:rgba(255,255,255,.16); }
-    .top-controls input::placeholder { color:rgba(255,255,255,.62); }
-    .top-controls button, .utility-menu summary { min-height:34px; padding:7px 11px; border:1px solid rgba(255,255,255,.15); border-radius:8px; color:#fff; background:rgba(255,255,255,.09); font-size:12px; font-weight:750; cursor:pointer; white-space:nowrap; }
-    .top-controls button:hover, .utility-menu summary:hover { background:rgba(255,255,255,.18); }
-    .top-controls button[data-center-action="login"] { background:#3f78ed; }
-    .top-controls button[data-center-action="save"] { background:#169b73; }
-    .top-controls button[data-center-action="load"] { background:#7758ca; }
-    .sync-note { display:inline-flex; align-items:center; min-height:30px; padding:5px 9px; border:1px solid rgba(255,255,255,.18); border-radius:999px; color:rgba(255,255,255,.82); background:rgba(10,29,50,.18); font-size:11px; white-space:nowrap; }
-    .sync-note[data-state="logged-in"] { color:#c6ffea; border-color:rgba(80,224,171,.35); background:rgba(15,98,74,.35); }
-    .utility-menu { position:relative; }
-    .utility-menu summary { display:flex; align-items:center; list-style:none; }
-    .utility-menu summary::-webkit-details-marker { display:none; }
-    .utility-strip { position:absolute; top:42px; right:0; z-index:20; display:grid; gap:7px; min-width:170px; padding:10px; border:1px solid rgba(255,255,255,.16); border-radius:12px; background:#172a4d; box-shadow:0 14px 34px rgba(5,18,38,.28); }
-    .utility-strip button { width:100%; text-align:left; }
-    .tool-state { padding:5px 3px 0; color:rgba(255,255,255,.62); font-size:11px; white-space:nowrap; }
-    .center-nav { display:grid; grid-template-rows:auto auto; width:100%; padding:4px max(20px,calc((100vw - 1500px)/2)); border-top:1px solid rgba(255,255,255,.12); background:linear-gradient(180deg,rgba(8,27,59,.22),rgba(8,27,59,.12)); }
-    .nav-row { display:flex; align-items:center; gap:4px; min-width:0; min-height:46px; padding:4px 0; overflow-x:auto; scrollbar-width:thin; }
-    .nav-group { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex:0 0 112px; min-height:34px; margin-right:8px; padding:6px 12px; border:1px solid rgba(255,255,255,.20); border-radius:10px; color:#fff; font-size:12px; font-weight:850; letter-spacing:.04em; white-space:nowrap; box-shadow:0 5px 14px rgba(5,18,38,.16); }
-    .nav-group::before { content:""; width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:rgba(255,255,255,.88); box-shadow:0 0 0 3px rgba(255,255,255,.16); }
-    .nav-row-accounting .nav-group { background:linear-gradient(135deg,#f0a34a,#e87961); }
-    .nav-row-assets .nav-group { background:linear-gradient(135deg,#20b486,#1f9da5); }
-    .center-nav button { flex:0 0 auto; min-height:36px; padding:0 13px; border:1px solid rgba(255,255,255,.08); border-radius:10px; color:rgba(255,255,255,.76); background:rgba(255,255,255,.035); font-weight:700; cursor:pointer; white-space:nowrap; transition:color .18s ease,background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease; }
-    .center-nav button:hover { color:#fff; border-color:rgba(255,255,255,.20); background:rgba(255,255,255,.11); transform:translateY(-1px); }
-    .center-nav button.active { color:#17284b; border-color:rgba(255,255,255,.72); background:#fff; box-shadow:0 6px 16px rgba(5,18,38,.20); }
-    .nav-row-accounting button.active { box-shadow:inset 0 -3px 0 #e87961,0 6px 16px rgba(5,18,38,.20); }
-    .nav-row-assets button.active { box-shadow:inset 0 -3px 0 #20b486,0 6px 16px rgba(5,18,38,.20); }
-    .workspace { flex:1 1 auto; min-height:0; overflow:hidden; }
-    .workspace, .frame-wrap { width:100%; margin:0; }
-    .frame-wrap { height:100%; min-height:0; background:#f1f5f9; }
-    iframe { display:block; width:100%; height:100%; min-height:0; border:0; background:#f1f5f9; }
-    .mobile-page-nav { display:none; }
-    .shortcut { display:none; }
-    @media (max-width:980px) {
-      .brand-row { width:100%; min-height:84px; padding:10px 16px; gap:10px; }
-      h1 { font-size:22px; }
-      .top-controls { max-width:70vw; overflow-x:auto; }
-      .top-controls input { width:132px; min-width:132px; }
-      .top-controls button[data-center-action="save"], .top-controls button[data-center-action="load"], .top-controls button[data-center-action="logout"] { display:none; }
-      .center-nav { padding-inline:10px; }
-      .nav-group { flex-basis:104px; }
-      .frame-wrap, iframe { height:100%; min-height:0; }
+    :root {
+      color-scheme:light;
+      --ink:#17223a; --muted:#6a778c; --line:#dce5ed; --surface:#fff; --canvas:#eef4f7;
+      --navy:#17284b; --blue:#3979ed; --teal:#169b91; --green:#1eaa7d; --amber:#e5a13d; --coral:#e57361;
+      --purple:#8066ce; --danger:#d65d57; --shadow:0 14px 36px rgba(25,50,80,.10);
+      --radius:18px;
     }
-    @media (max-width:560px) {
-      .brand-row { min-height:70px; padding:8px 12px; }
-      h1 { font-size:19px; }
-      .brand-suffix { display:none; }
-      .top-controls input { display:none; }
-      .sync-note { padding-inline:7px; }
-      .center-nav { display:none; }
-      .frame-wrap, iframe { height:100%; }
-      .mobile-page-nav {
-        position:fixed;
-        right:8px;
-        bottom:max(8px,env(safe-area-inset-bottom));
-        left:8px;
-        z-index:220;
-        display:block;
-        height:78px;
-        padding:7px;
-        border:1px solid rgba(255,255,255,.74);
-        border-radius:22px;
-        background:rgba(255,253,247,.94);
-        box-shadow:0 16px 36px rgba(16,34,61,.26);
-        backdrop-filter:blur(16px);
-        overflow:hidden;
-      }
-      .mobile-page-track {
-        display:flex;
-        align-items:stretch;
-        gap:4px;
-        width:100%;
-        height:100%;
-        padding:0 2px;
-        overflow-x:auto;
-        overflow-y:hidden;
-        overscroll-behavior-x:contain;
-        scroll-snap-type:x mandatory;
-        scrollbar-width:none;
-        -webkit-overflow-scrolling:touch;
-      }
-      .mobile-page-track::-webkit-scrollbar { display:none; }
-      .mobile-page-nav button {
-        display:flex;
-        flex:0 0 70px;
-        scroll-snap-align:center;
-        flex-direction:column;
-        align-items:center;
-        justify-content:center;
-        gap:3px;
-        height:62px;
-        padding:5px 4px;
-        border:0;
-        border-radius:16px;
-        color:#4b5870;
-        background:transparent;
-        font-size:11px;
-        font-weight:800;
-        line-height:1.1;
-        white-space:nowrap;
-      }
-      .mobile-page-nav button::before {
-        content:attr(data-mobile-icon);
-        display:grid;
-        place-items:center;
-        min-height:25px;
-        color:#26354f;
-        font-size:22px;
-        font-weight:500;
-        line-height:1;
-      }
-      .mobile-page-nav button:hover { background:#eef3f4; }
-      .mobile-page-nav button.active {
-        color:#fff;
-        background:linear-gradient(145deg,#17284b,#243962);
-        box-shadow:0 8px 18px rgba(23,40,75,.26);
-      }
-      .mobile-page-nav button.active::before { color:#fff; }
-      .mobile-page-nav button[data-center-page^="assets:"].active {
-        background:linear-gradient(145deg,#167f79,#1f9da5);
-      }
+    *{box-sizing:border-box}
+    html{min-height:100%;background:var(--canvas)}
+    body{min-height:100%;margin:0;color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:radial-gradient(circle at 92% 4%,rgba(62,199,176,.16),transparent 25rem),linear-gradient(135deg,#edf4fb,#f5f7f4 55%,#edf9f5)}
+    body.privacy .money-value{filter:blur(9px);user-select:none}
+    button,input,select,textarea{font:inherit}
+    button,a{touch-action:manipulation}
+    a{color:inherit;text-decoration:none}
+    h1,h2,h3,p{margin:0}
+    button{cursor:pointer}
+    .app-header{position:sticky;top:0;z-index:100;color:#fff;background:linear-gradient(112deg,#142546,#285dca 55%,#138d8a);box-shadow:0 8px 26px rgba(17,38,72,.18)}
+    .brand-row{display:flex;align-items:center;justify-content:space-between;gap:24px;width:min(1500px,calc(100% - 40px));min-height:100px;margin:auto}
+    .brand{display:flex;align-items:center;gap:14px;min-width:0}
+    .brand-mark{display:grid;place-items:center;width:46px;height:46px;flex:0 0 46px;border:1px solid rgba(255,255,255,.22);border-radius:15px;background:rgba(255,255,255,.12);box-shadow:inset 0 1px rgba(255,255,255,.15)}
+    .brand-mark svg{width:25px;height:25px}
+    .brand h1{font-size:clamp(28px,2.35vw,37px);line-height:1;white-space:nowrap}
+    .brand h1 span{color:rgba(255,255,255,.62);font-size:.66em;letter-spacing:.08em}
+    .brand p{margin-top:8px;color:rgba(255,255,255,.66);font-size:12px}
+    .header-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;min-width:0}
+    .cloud-email{width:170px;height:38px;padding:0 12px;border:1px solid rgba(255,255,255,.24);border-radius:10px;color:#fff;background:rgba(255,255,255,.10);outline:none}
+    .cloud-email::placeholder{color:rgba(255,255,255,.62)}
+    .header-btn,.status-pill{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;padding:7px 11px;border:1px solid rgba(255,255,255,.16);border-radius:10px;color:#fff;background:rgba(255,255,255,.10);font-size:12px;font-weight:800;white-space:nowrap}
+    .header-btn:hover{background:rgba(255,255,255,.19)}
+    .header-btn.login{background:#3d79ed}.header-btn.save{background:#159a71}.header-btn.load{background:#7659c9}
+    .status-pill{border-radius:999px;color:rgba(255,255,255,.86);background:rgba(11,27,52,.24)}
+    .status-pill[data-state="online"]{color:#c8ffe9;background:rgba(9,102,74,.38)}
+    .primary-nav{display:flex;align-items:center;gap:6px;width:100%;padding:7px max(20px,calc((100vw - 1500px)/2));border-top:1px solid rgba(255,255,255,.12);background:rgba(8,27,59,.18);overflow-x:auto;scrollbar-width:none}
+    .primary-nav::-webkit-scrollbar,.secondary-track::-webkit-scrollbar{display:none}
+    .primary-nav button{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:0 0 auto;min-width:132px;min-height:43px;padding:0 17px;border:1px solid rgba(255,255,255,.10);border-radius:12px;color:rgba(255,255,255,.76);background:rgba(255,255,255,.035);font-weight:850;white-space:nowrap}
+    .primary-nav button:hover{color:#fff;background:rgba(255,255,255,.11)}
+    .primary-nav button.active{color:#17284b;border-color:#fff;background:#fff;box-shadow:0 8px 20px rgba(8,24,52,.22)}
+    .primary-nav svg{width:18px;height:18px}
+    .secondary-nav{position:sticky;top:157px;z-index:80;border-bottom:1px solid rgba(210,222,232,.9);background:rgba(248,251,252,.90);backdrop-filter:blur(14px)}
+    .secondary-track{display:flex;align-items:center;gap:7px;width:min(1500px,calc(100% - 40px));min-height:54px;margin:auto;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity}
+    .secondary-track button,.secondary-track a{flex:0 0 auto;scroll-snap-align:center;min-height:34px;padding:7px 13px;border:1px solid transparent;border-radius:10px;color:#59687d;background:transparent;font-size:13px;font-weight:750;white-space:nowrap}
+    .secondary-track button:hover,.secondary-track button.active{color:#285dca;border-color:#cfe0f7;background:#eaf2ff}
+    .secondary-track a{margin-left:auto;color:#53627b;border-color:#d8e1ea;background:#fff}
+    .page{width:min(1500px,calc(100% - 40px));margin:0 auto;padding:24px 0 112px}
+    .page-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:18px}
+    .page-heading h2{font-size:27px;letter-spacing:-.02em}
+    .page-heading p{margin-top:7px;color:var(--muted);font-size:13px}
+    .eyebrow{display:block;margin-bottom:5px;color:var(--blue);font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .grid{display:grid;gap:16px}
+    .home-grid{grid-template-columns:minmax(0,1.65fr) minmax(320px,.85fr)}
+    .two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .four-col{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .panel,.metric-card,.alert-card,.account-card{border:1px solid rgba(213,225,234,.92);border-radius:var(--radius);background:rgba(255,255,255,.92);box-shadow:var(--shadow)}
+    .panel{padding:20px}
+    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px}
+    .panel-head h3{font-size:18px}
+    .panel-head p{margin-top:4px;color:var(--muted);font-size:12px}
+    .hero-card{position:relative;overflow:hidden;min-height:295px;padding:25px;border:0;border-radius:22px;color:#fff;background:linear-gradient(128deg,#18344a,#174152 55%,#155965);box-shadow:0 20px 46px rgba(20,58,72,.20)}
+    .hero-card::after{content:"";position:absolute;right:-55px;top:-85px;width:245px;height:245px;border-radius:50%;background:rgba(111,213,188,.12)}
+    .hero-top{position:relative;z-index:1;display:flex;justify-content:space-between;gap:20px}
+    .hero-label{color:#b7d7d2;font-size:12px;font-weight:800}
+    .net-worth{margin-top:9px;font-size:clamp(38px,4vw,58px);line-height:1;font-weight:500;letter-spacing:-.03em}
+    .delta{display:inline-flex;align-items:center;gap:5px;margin-top:11px;color:#8de3c7;font-size:13px;font-weight:850}
+    .hero-actions{position:relative;z-index:1;display:flex;gap:9px;margin-top:22px}
+    .action-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;padding:9px 14px;border:1px solid #dce5ed;border-radius:11px;color:#24324a;background:#fff;font-weight:800}
+    .action-btn.secondary{color:#fff;border-color:rgba(255,255,255,.24);background:rgba(255,255,255,.08)}
+    .action-btn.blue{color:#fff;border-color:#3979ed;background:#3979ed}.action-btn.green{color:#fff;border-color:#1eaa7d;background:#1eaa7d}.action-btn.danger{color:#fff;border-color:#d65d57;background:#d65d57}
+    .hero-metrics{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:20px}
+    .hero-metrics div{padding:10px 12px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.06)}
+    .hero-metrics span{display:block;color:#a9c5c7;font-size:10px}.hero-metrics strong{display:block;margin-top:4px;font-size:14px}
+    .metric-card{position:relative;overflow:hidden;padding:17px 18px;border-top:4px solid var(--tone,var(--blue))}
+    .metric-card span{color:var(--muted);font-size:12px}.metric-card strong{display:block;margin-top:7px;font-size:26px;line-height:1.1}.metric-card small{display:block;margin-top:6px;color:#8590a0;font-size:11px}
+    .tone-green{--tone:var(--green)}.tone-coral{--tone:var(--coral)}.tone-purple{--tone:var(--purple)}.tone-amber{--tone:var(--amber)}.tone-teal{--tone:var(--teal)}
+    .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .form-grid .wide{grid-column:1/-1}
+    label{display:grid;gap:6px;color:#59667a;font-size:12px;font-weight:750}
+    input,select,textarea{width:100%;min-height:42px;padding:9px 11px;border:1px solid #d5dfe8;border-radius:10px;color:var(--ink);background:#fff;outline:none}
+    textarea{min-height:76px;resize:vertical}
+    input:focus,select:focus,textarea:focus{border-color:#6c9bf2;box-shadow:0 0 0 3px rgba(57,121,237,.12)}
+    .segmented{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:13px;padding:4px;border:1px solid #dbe4e8;border-radius:11px;background:#eef4f1}
+    .segmented label{display:block}
+    .segmented input{position:absolute;opacity:0;pointer-events:none}
+    .segmented span{display:block;padding:9px;border-radius:8px;text-align:center;color:#627083;font-weight:850;cursor:pointer}
+    .segmented input:checked+span{color:#fff;background:var(--coral);box-shadow:0 6px 14px rgba(229,115,97,.2)}
+    .segmented label:last-child input:checked+span{background:var(--green)}
+    .alert-list{display:grid;gap:9px}
+    .alert-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px;padding:12px 13px;border-radius:13px;box-shadow:none}
+    .alert-dot{width:10px;height:10px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(57,121,237,.12)}
+    .alert-card.warning .alert-dot{background:var(--amber);box-shadow:0 0 0 4px rgba(229,161,61,.14)}
+    .alert-card.danger .alert-dot{background:var(--danger);box-shadow:0 0 0 4px rgba(214,93,87,.14)}
+    .alert-card strong{display:block;font-size:13px}.alert-card small{display:block;margin-top:3px;color:var(--muted);font-size:11px}
+    .status-chip{padding:4px 7px;border-radius:999px;color:#52647a;background:#eef3f6;font-size:10px;font-weight:800}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px}
+    table{width:100%;border-collapse:collapse;background:#fff;font-size:13px}
+    th,td{padding:11px 12px;border-bottom:1px solid #e7edf2;text-align:left;white-space:nowrap}
+    th{color:#5c6c7e;background:#f4f7f8;font-size:11px}tr:last-child td{border-bottom:0}
+    .positive{color:#168c68}.negative{color:#d45e55}.muted{color:var(--muted)}
+    .account-card{padding:16px;border-top:4px solid var(--teal)}
+    .account-card.credit{border-top-color:var(--purple)}
+    .account-card .account-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .account-card h3{font-size:15px}.account-card p{margin-top:4px;color:var(--muted);font-size:11px}
+    .account-card .balance{display:block;margin-top:15px;font-size:25px;font-weight:750}
+    .allocation-list,.bar-list{display:grid;gap:12px}
+    .allocation-row{display:grid;grid-template-columns:74px 1fr 76px;align-items:center;gap:11px;font-size:12px}
+    .bar{height:9px;overflow:hidden;border-radius:999px;background:#e9eff3}.bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--blue),var(--teal))}
+    .holding-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .holding{padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .holding strong{font-size:14px}.holding span{display:block;margin-top:8px;font-size:20px;font-weight:750}.holding small{display:block;margin-top:4px;color:var(--muted)}
+    .trend{display:flex;align-items:flex-end;gap:7px;height:150px;padding-top:12px}
+    .trend-bar{position:relative;flex:1;min-width:10px;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#64b8a6,#3979ed);opacity:.85}
+    .trend-bar:hover{opacity:1}.trend-bar span{position:absolute;right:50%;bottom:-22px;transform:translateX(50%);color:#7b8797;font-size:9px;white-space:nowrap}
+    .empty{padding:25px;border:1px dashed #ccd8e1;border-radius:14px;color:var(--muted);text-align:center;background:rgba(255,255,255,.55)}
+    .backup-list{display:grid;gap:8px}.backup-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;background:#fff}.backup-row strong{font-size:12px}.backup-row small{display:block;margin-top:3px;color:var(--muted);font-size:10px}
+    .toast{position:fixed;right:18px;bottom:18px;z-index:300;max-width:min(390px,calc(100vw - 36px));padding:12px 16px;border-radius:12px;color:#fff;background:#17284b;box-shadow:0 15px 32px rgba(15,32,61,.25);font-size:13px;opacity:0;transform:translateY(16px);pointer-events:none;transition:.2s}
+    .toast.show{opacity:1;transform:none}
+    .mobile-nav{display:none}
+    .desktop-only{display:inline-flex}
+    @media(max-width:1100px){.brand p{display:none}.cloud-email{display:none}.home-grid{grid-template-columns:1fr}.holding-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.four-col{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:760px){
+      .app-header{position:sticky}.brand-row{width:100%;min-height:70px;padding:8px 12px}.brand-mark{width:38px;height:38px;flex-basis:38px;border-radius:12px}.brand-mark svg{width:21px}.brand h1{font-size:19px}.brand h1 span{display:none}
+      .header-actions .save,.header-actions .load,.header-actions .logout,.desktop-only{display:none}.header-btn{padding-inline:9px}.status-pill{font-size:10px;padding-inline:8px}
+      .primary-nav{display:none}.secondary-nav{top:70px}.secondary-track{width:100%;min-height:50px;padding:0 10px}.secondary-track a{display:none}
+      .page{width:100%;padding:17px 12px 104px}.page-heading{align-items:flex-start}.page-heading h2{font-size:23px}.page-heading .action-btn{display:none}
+      .two-col,.three-col,.four-col{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr}.panel{padding:15px}.hero-card{min-height:0;padding:20px 16px}.hero-top{display:block}.net-worth{font-size:42px}.hero-metrics{grid-template-columns:1fr}.metric-card strong{font-size:23px}.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.holding-grid{grid-template-columns:1fr 1fr}.allocation-row{grid-template-columns:58px 1fr 66px}.table-wrap{border:0}
+      table,thead,tbody,tr,th,td{display:block}thead{display:none}tr{margin-bottom:9px;padding:10px;border:1px solid var(--line);border-radius:12px;background:#fff}td{display:flex;justify-content:space-between;gap:12px;padding:6px 4px;border:0;white-space:normal;text-align:right}td::before{content:attr(data-label);color:var(--muted);font-size:11px;text-align:left}
+      .mobile-nav{position:fixed;right:8px;bottom:max(8px,env(safe-area-inset-bottom));left:8px;z-index:220;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;height:76px;padding:7px;border:1px solid rgba(255,255,255,.8);border-radius:22px;background:rgba(255,253,247,.95);box-shadow:0 16px 36px rgba(16,34,61,.26);backdrop-filter:blur(16px)}
+      .mobile-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:15px;color:#526076;background:transparent;font-size:10px;font-weight:800}.mobile-nav svg{width:21px;height:21px}.mobile-nav button.active{color:#fff;background:linear-gradient(145deg,#17284b,#2b4778);box-shadow:0 8px 17px rgba(23,40,75,.25)}
+      .toast{bottom:96px}
     }
+    @media(max-width:390px){.brand{gap:8px}.brand-mark{display:none}.header-actions{gap:4px}.header-btn.login{font-size:11px}.holding-grid{grid-template-columns:1fr}.hero-actions{display:grid;grid-template-columns:1fr 1fr}.action-btn{padding-inline:8px}}
   </style>
 </head>
 <body>
-  <main class="center-shell">
-    <header class="center-header">
-      <div class="brand-row">
-        <div class="brand-copy"><div><div class="kicker">Personal Finance Center</div><h1>個人財務中心 <span class="brand-suffix">┃ TSUBIN</span></h1><p class="sub">資產、記帳、帳戶、投資與報表集中在同一個入口。</p></div></div>
-        <div class="top-controls">
-          <div class="auth-strip">
-            <input id="centerCloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
-            <button type="button" data-center-action="login">登入同步</button>
-            <button type="button" data-center-action="save">儲存</button>
-            <button type="button" data-center-action="load">載入</button>
-            <button type="button" data-center-action="logout">登出</button>
-            <span class="sync-note" id="syncNote">● 未登入</span>
-          </div>
-          <details class="utility-menu">
-            <summary>工具</summary>
-            <div class="utility-strip">
-              <button type="button" data-center-action="updatePrices" data-assets-only>更新估值</button>
-              <button type="button" data-center-action="privacy">隱私模式</button>
-              <button type="button" data-center-action="theme">深色模式</button>
-              <button type="button" data-center-action="dataManagement" data-assets-only>資料管理</button>
-              <span class="tool-state" id="toolState">目前控制：記帳中心</span>
-            </div>
-          </details>
-        </div>
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="brand">
+        <span class="brand-mark"><i data-lucide="landmark"></i></span>
+        <div><h1>個人財務中心 <span>┃ TSUBIN</span></h1><p>記帳、帳戶、投資、負債與分析，共用同一份財務資料。</p></div>
       </div>
-      <nav class="center-nav" aria-label="財務中心導覽">
-        <div class="nav-row nav-row-accounting">
-          <span class="nav-group">日常記帳</span>
-          <button class="active" type="button" data-center-page="accounting:entryView">首頁</button>
-          <button type="button" data-center-page="accounting:analyticsView">明細</button>
-          <button type="button" data-center-page="accounting:accountView">帳戶</button>
-          <button type="button" data-center-page="accounting:accountLedgerView">帳戶明細</button>
-          <button type="button" data-center-page="accounting:transferView">轉帳</button>
-          <button type="button" data-center-page="accounting:creditView">信用卡</button>
-          <button type="button" data-center-page="accounting:creditReconcileView">對帳</button>
-          <button type="button" data-center-page="accounting:recurringView">固定收支</button>
-          <button type="button" data-center-page="accounting:categoryView">分類</button>
-        </div>
-        <div class="nav-row nav-row-assets">
-          <span class="nav-group">個人資產</span>
-          <button type="button" data-center-page="assets:overview">總覽</button>
-          <button type="button" data-center-page="assets:cash">現金</button>
-          <button type="button" data-center-page="assets:tw">台股</button>
-          <button type="button" data-center-page="assets:us">美股</button>
-          <button type="button" data-center-page="assets:metal">貴金屬</button>
-          <button type="button" data-center-page="assets:fund">基金</button>
-          <button type="button" data-center-page="assets:dca">定期投入</button>
-          <button type="button" data-center-page="assets:purchase">交易</button>
-          <button type="button" data-center-page="assets:dividend">股息</button>
-          <button type="button" data-center-page="assets:bookkeeping">記帳總覽</button>
-          <button type="button" data-center-page="assets:annual">年度報表</button>
-          <button type="button" data-center-page="assets:chart">圖表</button>
-        </div>
-      </nav>
-    </header>
-    <section class="workspace" aria-label="財務中心內容">
-      <div class="frame-wrap" id="mainFrameWrap"><iframe id="mainFrame" title="個人財務中心內容" src="accounting-app.html?embedded=1&amp;v=83#quick-entry"></iframe></div>
-      <p class="shortcut">記帳與個人資產使用同一個財務中心、同一個瀏覽器資料來源與雲端同步資料。</p>
-    </section>
-  </main>
-  <nav class="mobile-page-nav" aria-label="手機分頁選單">
-    <div class="mobile-page-track">
-      <button class="active" type="button" data-mobile-icon="⌂" data-center-page="accounting:entryView">首頁</button>
-      <button type="button" data-mobile-icon="☷" data-center-page="accounting:analyticsView">明細</button>
-      <button type="button" data-mobile-icon="▣" data-center-page="accounting:accountView">帳戶</button>
-      <button type="button" data-mobile-icon="≡" data-center-page="accounting:accountLedgerView">帳戶明細</button>
-      <button type="button" data-mobile-icon="⇄" data-center-page="accounting:transferView">轉帳</button>
-      <button type="button" data-mobile-icon="▤" data-center-page="accounting:creditView">信用卡</button>
-      <button type="button" data-mobile-icon="✓" data-center-page="accounting:creditReconcileView">對帳</button>
-      <button type="button" data-mobile-icon="↻" data-center-page="accounting:recurringView">固定收支</button>
-      <button type="button" data-mobile-icon="◆" data-center-page="accounting:categoryView">分類</button>
-      <button type="button" data-mobile-icon="▦" data-center-page="assets:overview">總覽</button>
-      <button type="button" data-mobile-icon="$" data-center-page="assets:cash">現金</button>
-      <button type="button" data-mobile-icon="↗" data-center-page="assets:tw">台股</button>
-      <button type="button" data-mobile-icon="⌁" data-center-page="assets:us">美股</button>
-      <button type="button" data-mobile-icon="◇" data-center-page="assets:metal">貴金屬</button>
-      <button type="button" data-mobile-icon="◔" data-center-page="assets:fund">基金</button>
-      <button type="button" data-mobile-icon="↻" data-center-page="assets:dca">定期投入</button>
-      <button type="button" data-mobile-icon="⇄" data-center-page="assets:purchase">交易</button>
-      <button type="button" data-mobile-icon="$" data-center-page="assets:dividend">股息</button>
-      <button type="button" data-mobile-icon="▤" data-center-page="assets:bookkeeping">記帳總覽</button>
-      <button type="button" data-mobile-icon="▦" data-center-page="assets:annual">年度報表</button>
-      <button type="button" data-mobile-icon="▥" data-center-page="assets:chart">圖表</button>
+      <div class="header-actions">
+        <input class="cloud-email" id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
+        <button class="header-btn login" id="cloudLogin" type="button">登入同步</button>
+        <button class="header-btn save" id="cloudSave" type="button" hidden>儲存</button>
+        <button class="header-btn load" id="cloudLoad" type="button" hidden>載入</button>
+        <button class="header-btn logout" id="cloudLogout" type="button" hidden>登出</button>
+        <span class="status-pill" id="cloudStatus" data-state="offline">● 本機</span>
+        <button class="header-btn" id="privacyToggle" type="button" title="隱藏金額"><i data-lucide="eye-off"></i><span class="desktop-only">隱私</span></button>
+      </div>
     </div>
+    <nav class="primary-nav" aria-label="主要功能">
+      <button type="button" data-domain="home"><i data-lucide="home"></i>首頁</button>
+      <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i>日常記帳</button>
+      <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i>帳戶與負債</button>
+      <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i>投資資產</button>
+      <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i>分析與報表</button>
+    </nav>
+  </header>
+  <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
+  <main class="page" id="app" tabindex="-1"></main>
+  <nav class="mobile-nav" aria-label="手機主要功能">
+    <button type="button" data-domain="home"><i data-lucide="home"></i><span>首頁</span></button>
+    <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i><span>記帳</span></button>
+    <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i><span>帳戶</span></button>
+    <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i><span>資產</span></button>
+    <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i><span>分析</span></button>
   </nav>
+  <input id="importFile" type="file" accept="application/json" hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="market-data-config.js"></script>
+  <script src="finance-core.js?v=1"></script>
   <script>
-    const mainFrame = document.getElementById("mainFrame");
-    const emailInput = document.getElementById("centerCloudEmail");
-    const toolState = document.getElementById("toolState");
-    let activePage = "accounting:entryView";
-    function sendToActive(message) { mainFrame.contentWindow?.postMessage(message, "*"); }
-    function resetWorkspacePosition() {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-      try { mainFrame.contentWindow?.scrollTo({ top: 0, left: 0, behavior: "auto" }); } catch {}
+    const app = document.getElementById("app");
+    const secondaryNav = document.getElementById("secondaryNav");
+    const routes = {
+      home: { label: "首頁", tabs: [["overview","今日總覽"],["actions","行動中心"]], legacy: "" },
+      daily: { label: "日常記帳", tabs: [["quick","快速記帳"],["records","收支明細"],["budgets","分類預算"]], legacy: "accounting-app.html" },
+      accounts: { label: "帳戶與負債", tabs: [["accounts","帳戶總覽"],["transfer","帳戶轉帳"],["credit","信用卡帳單"]], legacy: "accounting-app.html#accountView" },
+      investments: { label: "投資資產", tabs: [["portfolio","資產配置"],["holdings","持有部位"],["trades","交易紀錄"],["dividends","股息收入"]], legacy: "personal-assets-dashboard.html" },
+      analysis: { label: "分析與報表", tabs: [["trends","資產趨勢"],["spending","支出分析"],["events","財務事件"],["data","資料管理"]], legacy: "personal-assets-dashboard.html#annual" }
+    };
+    let state = { domain: "home", tab: "overview", privacy: false };
+    let current = FinanceCore.insights();
+    let toastTimer = 0;
+    let supabaseClient = null;
+    let cloudUser = null;
+    let cloudSaveTimer = 0;
+    let privacyTimer = 0;
+
+    function esc(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" })[char]); }
+    function money(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${Math.round(Number(value) || 0).toLocaleString("zh-TW")}`; }
+    function signed(value) { const n = Math.round(Number(value) || 0); return `${n >= 0 ? "+" : "−"}${Math.abs(n).toLocaleString("zh-TW")}`; }
+    function pct(value) { return `${Math.round((Number(value) || 0) * 10) / 10}%`; }
+    function dateTime(value) { try { return new Intl.DateTimeFormat("zh-TW", { dateStyle:"medium", timeStyle:"short" }).format(new Date(value)); } catch { return value || ""; } }
+    function showToast(message) { const node = document.getElementById("toast"); node.textContent = message; node.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => node.classList.remove("show"), 2300); }
+    function option(value, label, selected) { return `<option value="${esc(value)}" ${String(value) === String(selected) ? "selected" : ""}>${esc(label)}</option>`; }
+    function accountOptions(selected = "", regularOnly = false) { return current.ledger.accounts.filter(row => !regularOnly || row.type !== "信用卡").map(row => option(row.name, `${row.name}｜${row.currency || "TWD"}`, selected)).join(""); }
+    function refresh() { current = FinanceCore.insights(); render(); }
+    function setRoute(domain, tab = "") {
+      if (!routes[domain]) domain = "home";
+      const allowed = routes[domain].tabs.map(row => row[0]);
+      state.domain = domain; state.tab = allowed.includes(tab) ? tab : allowed[0];
+      history.replaceState(null, "", `#${state.domain}/${state.tab}`);
+      document.querySelectorAll("[data-domain]").forEach(node => node.classList.toggle("active", node.dataset.domain === domain));
+      renderSecondary(); render(); window.scrollTo({ top: 0, behavior: "auto" });
     }
-    function setEmbeddedShell() { sendToActive({ type: "finance-center-shell", compact: true }); }
-    function setActiveButton(page) {
-      document.querySelectorAll("[data-center-page]").forEach(item => item.classList.toggle("active", item.dataset.centerPage === page));
-      if (window.matchMedia("(max-width:560px)").matches) {
-        const track = document.querySelector(".mobile-page-track");
-        const activeMobileItem = track?.querySelector(`[data-center-page="${page}"]`);
-        if (track && activeMobileItem) requestAnimationFrame(() => track.scrollTo({ left: activeMobileItem.offsetLeft - (track.clientWidth - activeMobileItem.clientWidth) / 2, behavior: "smooth" }));
-      }
+    function readRoute() { const [domain, tab] = location.hash.replace(/^#/, "").split("/"); setRoute(domain || "home", tab || ""); }
+    function renderSecondary() {
+      const route = routes[state.domain];
+      secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id === state.tab ? "active" : ""}" data-tab="${id}">${label}</button>`).join("") + (route.legacy ? `<a href="${route.legacy}">進階管理 ↗</a>` : "");
     }
-    function selectPage(page, { replace = false } = {}) {
-      const [module, view] = page.split(":");
-      activePage = page;
-      setActiveButton(page);
-      document.querySelectorAll("[data-assets-only]").forEach(item => item.hidden = module !== "assets");
-      toolState.textContent = module === "assets" ? "目前控制：個人資產" : "目前控制：記帳中心";
-      const target = module === "assets" ? `personal-assets-dashboard.html?embedded=1&v=83#${view}` : `accounting-app.html?embedded=1&v=83#${view === "entryView" ? "quick-entry" : view === "analyticsView" ? "analytics" : ""}`;
-      if (mainFrame.dataset.module !== module) { mainFrame.dataset.module = module; mainFrame.src = target; }
-      else sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view });
-      setTimeout(resetWorkspacePosition, 0);
-      if (replace) history.replaceState(null, "", `#${page.replace(":", "-")}`);
+    function pageHeading(kicker, title, note, action = "") { return `<header class="page-heading"><div><span class="eyebrow">${esc(kicker)}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`; }
+    function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value">${value}</strong><small>${esc(note)}</small></article>`; }
+    function alertList(rows) {
+      return rows.length ? `<div class="alert-list">${rows.map(row => `<article class="alert-card ${esc(row.level)}"><i class="alert-dot"></i><div><strong>${esc(row.title)}</strong><small>${esc(row.detail)}</small></div><span class="status-chip">${row.level === "danger" ? "需處理" : row.level === "warning" ? "留意" : "建議"}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有需要處理的財務提醒。</div>`;
     }
-    mainFrame.addEventListener("load", () => {
-      setEmbeddedShell();
-      const [module, view] = activePage.split(":");
-      setTimeout(() => {
-        sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view });
-        resetWorkspacePosition();
-      }, 60);
+    function quickEntryForm(compact = false) {
+      const categories = uniqueCategories();
+      return `<form id="quickEntryForm" class="${compact ? "" : "panel"}">
+        <div class="segmented"><label><input type="radio" name="type" value="expense" checked><span>支出</span></label><label><input type="radio" name="type" value="income"><span>收入</span></label></div>
+        <div class="form-grid">
+          <label>金額<input name="amount" type="number" min="0" step="1" inputmode="decimal" required placeholder="0"></label>
+          <label>日期<input name="date" type="date" value="${FinanceCore.localDate()}" required></label>
+          <label>分類<select name="category">${categories.map(row => option(row,row)).join("")}</select></label>
+          <label>帳戶<select name="account">${accountOptions()}</select></label>
+          <label>項目<input name="item" placeholder="例如：午餐"></label>
+          <label>商家／來源<input name="merchant" placeholder="例如：早餐店"></label>
+          ${compact ? "" : `<label class="wide">備註<textarea name="note" placeholder="選填"></textarea></label>`}
+        </div>
+        <button class="action-btn blue" style="width:100%;margin-top:13px" type="submit"><i data-lucide="plus"></i>新增記帳</button>
+      </form>`;
+    }
+    function uniqueCategories() { return [...new Set([...(current.ledger.categories?.expense || []), ...(current.ledger.categories?.income || []), "未分類"])]; }
+    function snapshotBars() {
+      const rows = [...(current.assets.assetSnapshots || [])].sort((a,b) => String(a.date).localeCompare(String(b.date))).slice(-12);
+      if (!rows.length) return `<div class="empty">建立資產快照後，這裡會顯示最近 12 次淨資產變化。</div>`;
+      const values = rows.map(row => Number(row.net ?? row.total) || 0); const min = Math.min(...values); const max = Math.max(...values); const span = Math.max(1,max-min);
+      return `<div class="trend">${rows.map((row,index) => `<div class="trend-bar" style="height:${28 + (values[index]-min)/span*72}%" title="${esc(row.date)}｜${money(values[index])}"><span>${esc(String(row.date).slice(5))}</span></div>`).join("")}</div>`;
+    }
+    function renderHome() {
+      const a = current.assetsSummary, m = current.month, avg = current.averageMonthlyExpense;
+      const safety = avg > 0 ? a.cash / avg : null;
+      const snapshots = [...(current.assets.assetSnapshots || [])].sort((x,y) => String(x.date).localeCompare(String(y.date)));
+      const previousNet = Number(snapshots.at(-2)?.net ?? snapshots.at(-2)?.total ?? a.netWorth) || a.netWorth;
+      const delta = a.netWorth - previousNet;
+      const upcoming = [...(current.ledger.creditBills || []).filter(row => !row.paid), ...(current.ledger.recurringRules || []).map(row => ({ card:row.name,dueDate:`每${row.day || 1}日`,amount:row.amount }))].slice(0,5);
+      const heading = pageHeading("Personal Finance Center", "今日財務決策中心", "先看可用資金、現金流、淨資產與需要處理的事項。", `<button class="action-btn" data-create-backup><i data-lucide="shield-check"></i>建立還原點</button>`);
+      return `${heading}<div class="home-grid grid"><section class="grid">
+        <article class="hero-card"><div class="hero-top"><div><span class="hero-label">目前淨資產</span><div class="net-worth money-value">${money(a.netWorth)}</div><div class="delta">${delta >= 0 ? "↑" : "↓"} ${signed(delta)}｜與前次快照比較</div></div></div>
+          <div class="hero-actions"><button class="action-btn" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button><button class="action-btn secondary" data-go="investments/trades"><i data-lucide="arrow-left-right"></i>記錄交易</button></div>
+          <div class="hero-metrics"><div><span>現金安全</span><strong>${safety === null ? "待設定" : `${safety.toFixed(1)} 個月`}</strong></div><div><span>信用卡負債比</span><strong>${a.totalAssets ? pct(a.liabilities/a.totalAssets*100) : "0%"}</strong></div><div><span>待處理提醒</span><strong>${current.alerts.length} 筆</strong></div></div>
+        </article>
+        <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
+        <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${snapshotBars()}</section>
+        <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
+      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3>行動中心</h3><p>依資料自動整理</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>`;
+    }
+    function eventRows(events) {
+      return events.length ? `<div class="table-wrap"><table><thead><tr><th>日期</th><th>事件</th><th>分類</th><th>帳戶</th><th>金額</th></tr></thead><tbody>${events.map(row => `<tr><td data-label="日期">${esc(row.date)}</td><td data-label="事件">${esc(row.title)}</td><td data-label="分類">${esc(row.category)}</td><td data-label="帳戶">${esc(row.account || row.toAccount || "—")}</td><td data-label="金額" class="money-value ${row.direction>0?"positive":row.direction<0?"negative":"muted"}">${row.direction ? signed(row.twdAmount*row.direction) : money(row.twdAmount)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">目前沒有符合條件的財務事件。</div>`;
+    }
+    function renderDaily() {
+      const m = current.month;
+      const head = pageHeading("Daily Ledger", state.tab === "quick" ? "快速記帳" : state.tab === "records" ? "收支明細" : "分類預算", "一般收支只記錄一次，帳戶餘額與首頁會同步更新。", `<a class="action-btn" href="accounting-app.html">開啟完整記帳工具 ↗</a>`);
+      if (state.tab === "quick") return `${head}<div class="two-col grid"><section>${quickEntryForm(false)}</section><section class="grid"><div class="three-col grid">${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}</div><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>投資交易與轉帳會以不同事件類型呈現</p></div></div>${eventRows(current.events.filter(row=>["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
+      if (state.tab === "records") return `${head}<section class="panel"><div class="panel-head"><div><h3>${esc(m.month)} 收支事件</h3><p>轉帳不列入收入或支出</p></div></div>${eventRows(m.rows.filter(row=>["income","expense","dividend"].includes(row.kind)))}</section>`;
+      const budgets = current.ledger.budgets || [];
+      return `${head}<div class="four-col grid">${metric("已設定預算",money(m.budget),`${budgets.length} 個分類`,"tone-purple")}${metric("本月已使用",money(m.expense),"一般支出","tone-coral")}${metric("預算剩餘",m.budgetRemaining===null?"尚未設定":money(m.budgetRemaining),"負數代表超支",m.budgetRemaining!==null&&m.budgetRemaining<0?"tone-coral":"tone-green")}${metric("預算使用率",m.budget?pct(m.expense/m.budget*100):"—","建議低於 80%","tone-amber")}</div><section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>分類使用狀況</h3><p>依目前記帳自動計算</p></div></div><div class="bar-list">${budgets.length?budgets.map(row=>{const spent=Number(m.categorySpend[row.category])||0;const ratio=Number(row.amount)?spent/Number(row.amount)*100:0;return `<div class="allocation-row"><strong>${esc(row.category)}</strong><div class="bar"><i style="width:${Math.min(100,ratio)}%;background:${ratio>=100?"var(--danger)":ratio>=80?"var(--amber)":"linear-gradient(90deg,var(--blue),var(--teal))"}"></i></div><span class="money-value">${Math.round(spent).toLocaleString()} / ${Math.round(Number(row.amount)||0).toLocaleString()}</span></div>`}).join(""):`<div class="empty">請在完整記帳工具中設定分類預算。</div>`}</div></section>`;
+    }
+    function accountCards() { return current.assetsSummary.accounts.map(row => `<article class="account-card ${row.type==="信用卡"?"credit":""}"><div class="account-title"><div><h3>${esc(row.name)}</h3><p>${esc(row.type)}｜${esc(row.currency||"TWD")}</p></div><span class="status-chip">${row.type==="信用卡"?"負債":"資產"}</span></div><span class="balance money-value ${row.type==="信用卡"&&row.balance>0?"negative":""}">${money(row.balance,row.currency)}</span></article>`).join(""); }
+    function renderAccounts() {
+      const a=current.assetsSummary; const head=pageHeading("Accounts & Liabilities",state.tab==="accounts"?"帳戶總覽":state.tab==="transfer"?"帳戶轉帳":"信用卡帳單","收入、支出、轉帳與繳款都以正確方式反映餘額。",`<a class="action-btn" href="accounting-app.html#accountView">進階帳戶管理 ↗</a>`);
+      if(state.tab==="accounts") return `${head}<div class="four-col grid">${metric("可用資金",money(a.cash),"不含信用卡","tone-green")}${metric("信用卡負債",money(a.liabilities),"已扣除已登錄繳款","tone-purple")}${metric("帳戶數",String(current.ledger.accounts.length),"現金、銀行、卡片與支付","tone-teal")}${metric("淨資產",money(a.netWorth),"資產－負債","tone-blue")}</div><section style="margin-top:16px" class="grid"><div class="three-col grid">${accountCards()}</div><section class="panel"><div class="panel-head"><div><h3>新增帳戶</h3><p>建立後可立即用於記帳、轉帳與投資現金流</p></div></div><form id="accountForm" class="form-grid"><label>帳戶名稱<input name="name" required></label><label>類型<select name="type"><option>現金</option><option selected>銀行帳戶</option><option>外幣銀行帳戶</option><option>外幣現金</option><option>信用卡</option><option>行動支付</option><option>其他</option></select></label><label>幣別<input name="currency" value="TWD" required></label><label>期初餘額<input name="openingBalance" type="number" step="1" value="0"></label><button class="action-btn green wide" type="submit">新增帳戶</button></form></section></section>`;
+      if(state.tab==="transfer") return `${head}<div class="two-col grid"><form id="transferForm" class="panel"><div class="panel-head"><div><h3>新增轉帳</h3><p>轉帳只移動資金，不算收入或支出</p></div></div><div class="form-grid"><label>日期<input name="date" type="date" value="${FinanceCore.localDate()}"></label><label>金額<input name="amount" type="number" min="0" required></label><label>來源帳戶<select name="fromAccount">${accountOptions()}</select></label><label>目的帳戶<select name="toAccount">${accountOptions()}</select></label><label>手續費<input name="feeAmount" type="number" min="0" value="0"></label><label>備註<input name="note"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">儲存轉帳</button></form><section class="panel"><div class="panel-head"><div><h3>最近轉帳</h3><p>信用卡繳款會降低負債</p></div></div>${eventRows(current.events.filter(row=>row.kind==="transfer").slice(0,10))}</section></div>`;
+      const bills=(current.ledger.creditBills||[]).sort((x,y)=>String(y.dueDate).localeCompare(String(x.dueDate)));
+      return `${head}<div class="four-col grid">${metric("信用卡負債",money(a.liabilities),"包含未結清消費","tone-purple")}${metric("未繳帳單",String(bills.filter(r=>!r.paid).length),"請留意到期日","tone-coral")}${metric("本月卡片支出",money(current.month.rows.filter(r=>r.kind==="expense"&&current.ledger.accounts.find(a=>a.name===r.account)?.type==="信用卡").reduce((s,r)=>s+r.twdAmount,0)),"依記帳帳戶判斷","tone-amber")}${metric("已繳帳單",String(bills.filter(r=>r.paid).length),"轉帳已完成","tone-green")}</div><section class="panel" style="margin-top:16px">${bills.length?`<div class="table-wrap"><table><thead><tr><th>卡片</th><th>帳期</th><th>到期日</th><th>金額</th><th>狀態</th></tr></thead><tbody>${bills.map(row=>`<tr><td data-label="卡片">${esc(row.card)}</td><td data-label="帳期">${esc(row.billMonth)}</td><td data-label="到期日">${esc(row.dueDate)}</td><td data-label="金額" class="money-value">${money(row.amount)}</td><td data-label="狀態"><span class="status-chip">${row.paid?"已繳":"待繳"}</span></td></tr>`).join("")}</tbody></table></div>`:`<div class="empty">目前沒有信用卡帳單紀錄。</div>`}</section>`;
+    }
+    function allocationRows() { const labels={tw:"台股",us:"美股",funds:"基金",gold:"貴金屬",cash:"現金"}; const values=current.assetsSummary.allocation; const total=Object.values(values).reduce((a,b)=>a+b,0)||1; return Object.entries(values).map(([key,value])=>`<div class="allocation-row"><strong>${labels[key]}</strong><div class="bar"><i style="width:${Math.max(0,value/total*100)}%"></i></div><span class="money-value">${pct(value/total*100)}</span></div>`).join(""); }
+    function holdingRows() { const a=current.assets; return [...a.tw.map(row=>({...row,market:"台股",currency:"TWD"})),...a.us.map(row=>({...row,market:"美股",currency:row.currency||"USD"})),...a.funds.map(row=>({...row,market:"基金",currency:row.currency||"TWD"})),...a.usdFunds.map(row=>({...row,market:"基金",currency:row.currency||"USD"}))]; }
+    function renderInvestments() {
+      const a=current.assetsSummary; const head=pageHeading("Investment Portfolio",state.tab==="portfolio"?"資產配置":state.tab==="holdings"?"持有部位":state.tab==="trades"?"投資交易":"股息收入","投資買賣會連動指定現金帳戶，但不會誤算成一般收支。",`<a class="action-btn" href="personal-assets-dashboard.html">進階資產管理 ↗</a>`);
+      if(state.tab==="portfolio") return `${head}<div class="four-col grid">${metric("投資資產",money(a.investment),"目前持有部位市值","tone-blue")}${metric("現金資產",money(a.cash),"整合記帳帳戶","tone-green")}${metric("總資產",money(a.totalAssets),"尚未扣除負債","tone-teal")}${metric("負債",money(a.liabilities),"信用卡與待繳款","tone-purple")}</div><div class="two-col grid" style="margin-top:16px"><section class="panel"><div class="panel-head"><div><h3>目前配置</h3><p>依即時市值與帳戶餘額計算</p></div></div><div class="allocation-list">${allocationRows()}</div></section><section class="panel"><div class="panel-head"><div><h3>配置提醒</h3><p>集中度與安全水位</p></div></div>${alertList(current.alerts.filter(row=>/配置|集中|現金/.test(row.title)))}</section></div>`;
+      if(state.tab==="holdings") { const rows=holdingRows(); return `${head}<section class="panel"><div class="panel-head"><div><h3>股票與基金</h3><p>${rows.length} 個持有標的</p></div></div>${rows.length?`<div class="holding-grid">${rows.map(row=>`<article class="holding"><strong>${esc(row.code||row.name||"未命名")}</strong><small>${esc(row.name||row.market)}</small><span class="money-value">${money((Number(row.shares||row.units)||0)*(Number(row.price||row.nav)||0),row.currency)}</span><small>${Number(row.shares||row.units||0).toLocaleString()} 單位｜${esc(row.market)}</small></article>`).join("")}</div>`:`<div class="empty">目前沒有持有部位，請使用進階資產管理新增。</div>`}</section>`; }
+      if(state.tab==="trades") return `${head}<div class="two-col grid"><form id="tradeForm" class="panel"><div class="panel-head"><div><h3>新增交易</h3><p>指定現金帳戶後會連動可用資金</p></div></div><div class="form-grid"><label>買賣<select name="type"><option value="buy">買入</option><option value="sell">賣出</option></select></label><label>日期<input name="date" type="date" value="${FinanceCore.localDate()}"></label><label>市場<select name="market"><option value="TW">台股</option><option value="US">美股</option></select></label><label>代號<input name="code" required></label><label>名稱<input name="name"></label><label>股數<input name="shares" type="number" min="0" step="0.0001" required></label><label>成交價<input name="price" type="number" min="0" step="0.0001" required></label><label>幣別<input name="currency" value="TWD"></label><label>手續費<input name="fee" type="number" min="0" value="0"></label><label>交易稅<input name="tax" type="number" min="0" value="0"></label><label class="wide">現金帳戶<select name="cashAccount"><option value="">不連動帳戶</option>${accountOptions("",true)}</select></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">儲存交易</button></form><section class="panel"><div class="panel-head"><div><h3>最近交易</h3><p>買入與賣出為投資事件</p></div></div>${eventRows(current.events.filter(row=>row.kind.startsWith("investment_")).slice(0,12))}</section></div>`;
+      return `${head}<div class="two-col grid"><form id="dividendForm" class="panel"><div class="panel-head"><div><h3>新增股息</h3><p>股息屬於投資收入，可連動入款帳戶</p></div></div><div class="form-grid"><label>日期<input name="date" type="date" value="${FinanceCore.localDate()}"></label><label>來源<input name="source" required></label><label>金額<input name="amount" type="number" min="0" required></label><label>幣別<input name="currency" value="TWD"></label><label class="wide">入款帳戶<select name="cashAccount"><option value="">不連動帳戶</option>${accountOptions("",true)}</select></label><label class="wide">備註<input name="note"></label></div><button class="action-btn green" style="width:100%;margin-top:13px" type="submit">儲存股息</button></form><section class="panel"><div class="panel-head"><div><h3>最近股息</h3><p>首頁收入與帳戶餘額會同步更新</p></div></div>${eventRows(current.events.filter(row=>row.kind==="dividend").slice(0,12))}</section></div>`;
+    }
+    function categoryBars() { const rows=Object.entries(current.month.categorySpend).sort((a,b)=>b[1]-a[1]); const max=rows[0]?.[1]||1; return rows.length?`<div class="bar-list">${rows.map(([key,value])=>`<div class="allocation-row"><strong>${esc(key)}</strong><div class="bar"><i style="width:${value/max*100}%;background:linear-gradient(90deg,var(--coral),var(--amber))"></i></div><span class="money-value">${Math.round(value).toLocaleString()}</span></div>`).join("")}</div>`:`<div class="empty">本月尚無支出資料。</div>`; }
+    function backupRows() { const rows=FinanceCore.listBackups(); return rows.length?`<div class="backup-list">${rows.map(row=>`<div class="backup-row"><div><strong>${esc(row.reason)}</strong><small>${dateTime(row.createdAt)}｜資料版本 ${row.schemaVersion}</small></div><button class="action-btn" data-restore-backup="${esc(row.id)}">還原</button></div>`).join("")}</div>`:`<div class="empty">尚未建立還原點。</div>`; }
+    function renderAnalysis() {
+      const head=pageHeading("Financial Intelligence",state.tab==="trends"?"資產趨勢":state.tab==="spending"?"支出分析":state.tab==="events"?"統一財務事件":"資料管理","分析會說明原因與下一步，而不只是增加圖表。",`<a class="action-btn" href="personal-assets-dashboard.html#chart">開啟完整報表 ↗</a>`);
+      if(state.tab==="trends") return `${head}<div class="four-col grid">${metric("目前淨資產",money(current.assetsSummary.netWorth),"資產－負債","tone-blue")}${metric("本月現金流",money(current.month.balance),"收入－一般支出",current.month.balance>=0?"tone-green":"tone-coral")}${metric("平均月支出",money(current.averageMonthlyExpense),"最近有資料的 3 個月","tone-amber")}${metric("現金安全月數",current.averageMonthlyExpense?`${(current.assetsSummary.cash/current.averageMonthlyExpense).toFixed(1)} 個月`:"待設定","建議至少 6 個月","tone-teal")}</div><section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>淨資產快照</h3><p>用於辨識長期方向與資產波動</p></div></div>${snapshotBars()}</section><section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>診斷與建議</h3><p>由預算、帳單、安全水位與配置自動產生</p></div></div>${alertList(current.alerts)}</section>`;
+      if(state.tab==="spending") return `${head}<div class="two-col grid"><section class="panel"><div class="panel-head"><div><h3>${esc(current.month.month)} 支出分類</h3><p>只計算一般支出，不含轉帳與投資</p></div></div>${categoryBars()}</section><section class="panel"><div class="panel-head"><div><h3>預算狀態</h3><p>達 80% 提醒、100% 標示超支</p></div></div>${alertList(current.alerts.filter(row=>/預算/.test(row.title)))}</section></div>`;
+      if(state.tab==="events") return `${head}<section class="panel"><div class="panel-head"><div><h3>跨模組財務事件</h3><p>收入、支出、轉帳、投資買賣與股息共用一致格式</p></div></div>${eventRows(current.events.slice(0,80))}</section>`;
+      return `${head}<div class="two-col grid"><section class="panel"><div class="panel-head"><div><h3>備份與還原</h3><p>重大修改與匯入前會自動建立還原點；自動備份不含大型發票照片。</p></div><button class="action-btn" data-create-backup>立即建立</button></div>${backupRows()}</section><section class="grid"><section class="panel"><div class="panel-head"><div><h3>完整存檔</h3><p>JSON 可完整保留記帳與資產資料</p></div></div><div class="grid"><button class="action-btn blue" data-export>匯出完整存檔</button><button class="action-btn" data-import>匯入完整存檔</button></div></section><section class="panel"><div class="panel-head"><div><h3>資料健康</h3><p>統一資料層版本與同步資訊</p></div></div><div class="alert-list"><article class="alert-card"><i class="alert-dot"></i><div><strong>資料版本 ${FinanceCore.VERSION}</strong><small>舊版記帳與資產存檔已自動相容</small></div><span class="status-chip">正常</span></article><article class="alert-card"><i class="alert-dot"></i><div><strong>${current.events.length} 筆財務事件</strong><small>最後更新 ${dateTime(current.updatedAt)}</small></div><span class="status-chip">已整合</span></article><article class="alert-card"><i class="alert-dot"></i><div><strong>裝置識別已建立</strong><small>用於判斷同步來源與衝突</small></div><span class="status-chip">安全</span></article></div></section></section></div>`;
+    }
+    function render() {
+      current = FinanceCore.insights();
+      const renderer = { home:renderHome, daily:renderDaily, accounts:renderAccounts, investments:renderInvestments, analysis:renderAnalysis }[state.domain] || renderHome;
+      app.innerHTML = renderer();
+      document.querySelectorAll("[data-domain]").forEach(node=>node.classList.toggle("active",node.dataset.domain===state.domain));
+      if(window.lucide) lucide.createIcons();
+    }
+    function formValues(form) { return Object.fromEntries(new FormData(form).entries()); }
+    function download(name,data,type="application/json") { const blob=new Blob([data],{type});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000); }
+    document.addEventListener("click", event => {
+      const domain=event.target.closest("[data-domain]")?.dataset.domain;if(domain){setRoute(domain);return}
+      const tab=event.target.closest("[data-tab]")?.dataset.tab;if(tab){setRoute(state.domain,tab);return}
+      const go=event.target.closest("[data-go]")?.dataset.go;if(go){const [d,t]=go.split("/");setRoute(d,t);return}
+      if(event.target.closest("[data-create-backup]")){FinanceCore.createBackup("手動建立還原點");showToast("已建立可還原的資料快照");render();return}
+      if(event.target.closest("[data-export]")){download(`tsubin-finance-center-${FinanceCore.localDate()}.json`,JSON.stringify(FinanceCore.exportBundle(),null,2));showToast("已匯出完整財務存檔");return}
+      if(event.target.closest("[data-import]")){document.getElementById("importFile").click();return}
+      const restore=event.target.closest("[data-restore-backup]")?.dataset.restoreBackup;if(restore&&confirm("確定要還原這個版本嗎？目前資料會先自動備份。")){FinanceCore.restoreBackup(restore);showToast("資料已還原");refresh()}
     });
-    window.addEventListener("message", event => {
-      if (event.data?.type !== "finance-center-status") return;
-      const loggedIn = Boolean(event.data.loggedIn);
-      const syncNote = document.getElementById("syncNote");
-      syncNote.textContent = loggedIn ? "● 已登入" : "● 未登入";
-      syncNote.dataset.state = loggedIn ? "logged-in" : "logged-out";
+    document.addEventListener("submit", event => {
+      event.preventDefault(); const values=formValues(event.target);
+      try {
+        if(event.target.id==="quickEntryForm") FinanceCore.addEntry(values);
+        if(event.target.id==="transferForm") FinanceCore.addTransfer(values);
+        if(event.target.id==="tradeForm") FinanceCore.addPurchase(values);
+        if(event.target.id==="dividendForm") FinanceCore.addDividend(values);
+        if(event.target.id==="accountForm") FinanceCore.addAccount(values);
+        showToast("已儲存並同步更新財務總覽");refresh();
+      } catch(error){showToast(error.message||"儲存失敗")}
     });
-    document.querySelectorAll("[data-center-action]").forEach(button => button.addEventListener("click", () => {
-      const action = button.dataset.centerAction;
-      if (action === "login") sendToActive({ type: "finance-center-action", action, email: emailInput.value.trim() });
-      else sendToActive({ type: "finance-center-action", action });
-      document.querySelector(".utility-menu")?.removeAttribute("open");
-      toolState.textContent = action === "updatePrices" ? "正在更新市場資料…" : "工具已送出：" + button.textContent;
-      setTimeout(() => { toolState.textContent = activePage.startsWith("assets:") ? "目前控制：個人資產" : "目前控制：記帳中心"; }, 1800);
-    }));
-    document.querySelectorAll("[data-center-page]").forEach(button => button.addEventListener("click", () => selectPage(button.dataset.centerPage, { replace: true })));
-    const initialHash = location.hash.replace(/^#/, "");
-    const initialPage = initialHash === "ledger" ? "accounting:entryView" : initialHash.startsWith("assets-") ? `assets:${initialHash.slice(7)}` : initialHash.startsWith("accounting-") ? `accounting:${initialHash.slice(10)}` : activePage;
-    selectPage(initialPage, { replace: false });
-    window.addEventListener("storage", event => {
-      if (!["personal-assets-dashboard-tsubin-v2", "personal-accounting-tsubin-v1"].includes(event.key)) return;
-      sendToActive({ type: "finance-center-refresh", key: event.key });
-    });
+    document.getElementById("importFile").addEventListener("change",async event=>{const file=event.target.files?.[0];if(!file)return;try{const payload=JSON.parse(await file.text());FinanceCore.importBundle(payload);showToast("已匯入，原資料已建立還原點");refresh()}catch(error){showToast(error.message||"匯入失敗")}finally{event.target.value=""}});
+    function setPrivacy(enabled, notify = true) { state.privacy = Boolean(enabled); document.body.classList.toggle("privacy", state.privacy); if (notify) showToast(state.privacy ? "金額已隱藏" : "金額已顯示"); }
+    function armPrivacyTimer() { clearTimeout(privacyTimer); if (!state.privacy) privacyTimer = setTimeout(() => setPrivacy(true, true), 300000); }
+    document.getElementById("privacyToggle").addEventListener("click",()=>{setPrivacy(!state.privacy);armPrivacyTimer()});
+    ["pointerdown","keydown","touchstart"].forEach(type=>document.addEventListener(type,armPrivacyTimer,{passive:true}));
+    window.addEventListener("finance-core-change",()=>{clearTimeout(cloudSaveTimer);if(cloudUser)cloudSaveTimer=setTimeout(()=>saveCloud(true),1800)});
+    window.addEventListener("storage",event=>{if([FinanceCore.KEYS.ledger,FinanceCore.KEYS.assets].includes(event.key))refresh()});
+    window.addEventListener("hashchange",readRoute);
+    document.addEventListener("visibilitychange",()=>{if(document.hidden&&!state.privacy)setPrivacy(true,false)});
+    async function publicConfig(){try{const response=await fetch(`api/public-config?ts=${Date.now()}`,{cache:"no-store"});if(response.ok)return await response.json()}catch{}return window.PUBLIC_CONFIG||window.APP_CONFIG||{supabaseUrl:window.SUPABASE_URL||"",supabaseAnonKey:window.SUPABASE_ANON_KEY||""}}
+    function updateCloudUi(message,stateName="offline") { const status=document.getElementById("cloudStatus");status.textContent=message;status.dataset.state=stateName;["cloudSave","cloudLoad","cloudLogout"].forEach(id=>document.getElementById(id).hidden=!cloudUser);document.getElementById("cloudLogin").hidden=Boolean(cloudUser); }
+    async function initCloud(){if(!window.supabase)return;const config=await publicConfig();const url=config.supabaseUrl||config.SUPABASE_URL;const key=config.supabaseAnonKey||config.SUPABASE_ANON_KEY;if(!url||!key)return;supabaseClient=supabase.createClient(url,key);const {data}=await supabaseClient.auth.getSession();cloudUser=data.session?.user||null;updateCloudUi(cloudUser?"● 已登入":"● 本機",cloudUser?"online":"offline");supabaseClient.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;updateCloudUi(cloudUser?"● 已登入":"● 本機",cloudUser?"online":"offline")})}
+    async function loginCloud(){if(!supabaseClient){showToast("雲端服務尚未設定");return}const email=document.getElementById("cloudEmail").value.trim();if(!email){showToast("請先輸入 Email");return}const {error}=await supabaseClient.auth.signInWithOtp({email,options:{emailRedirectTo:location.href.split("#")[0]}});showToast(error?error.message:"登入連結已寄到 Email")}
+    async function saveCloud(silent=false){if(!supabaseClient||!cloudUser)return;const bundle=FinanceCore.exportBundle();const data={...bundle.assets,accountingLedger:bundle.ledger,financeCenterMeta:{schemaVersion:bundle.schemaVersion,updatedAt:bundle.updatedAt,deviceId:bundle.deviceId}};const {error}=await supabaseClient.from("asset_dashboard_profiles").upsert({user_id:cloudUser.id,data,updated_at:new Date().toISOString()});if(!silent)showToast(error?`雲端儲存失敗：${error.message}`:"完整財務資料已儲存到雲端")}
+    async function loadCloud(){if(!supabaseClient||!cloudUser)return;const {data:row,error}=await supabaseClient.from("asset_dashboard_profiles").select("data,updated_at").eq("user_id",cloudUser.id).maybeSingle();if(error||!row?.data){showToast(error?.message||"雲端目前沒有存檔");return}const remoteTime=new Date(row.updated_at).getTime();const localTime=new Date(current.updatedAt).getTime();if(remoteTime<localTime&&!confirm("本機資料比雲端新，仍要載入雲端版本嗎？目前本機資料會先備份。"))return;const {accountingLedger,...assetPayload}=row.data;FinanceCore.importBundle({assets:assetPayload,ledger:accountingLedger});showToast("已載入雲端資料並建立本機還原點");refresh()}
+    document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 本機")});
+    FinanceCore.touch("財務中心啟動"); readRoute(); initCloud(); armPrivacyTimer();
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=86").catch(()=>{});
   </script>
 </body>
 </html>

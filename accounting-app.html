@@ -2929,6 +2929,7 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
+  <script src="finance-core.js?v=1"></script>
   <script>
     if (new URLSearchParams(location.search).get("embedded") === "1") document.body.classList.add("finance-center-embedded");
     const accountingKey = "personal-accounting-tsubin-v1";
@@ -3571,6 +3572,7 @@
     }
     function saveLedger() {
       localStorage.setItem(accountingKey, JSON.stringify(ledger));
+      window.FinanceCore?.touch("記帳資料更新");
       if (!cloudHydrating) {
         cloudSyncMeta.lastLocalChangeAt = new Date().toISOString();
         saveCloudSyncMeta();
@@ -6685,7 +6687,7 @@
     window.addEventListener("resize", updateMobileHeaderOffset);
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=83").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=86").catch(() => {});
       });
     }
   </script>
