@@ -322,6 +322,34 @@
     return persist(ledger, assets, row.type === "income" ? "新增收入" : "新增支出");
   }
 
+  function updateEntry(id, values) {
+    const { ledger, assets } = load();
+    const row = ledger.entries.find(item => item.id === id);
+    if (!row) throw new Error("找不到這筆收支紀錄");
+    const type = values.type === "income" ? "income" : "expense";
+    Object.assign(row, {
+      type, date: values.date || row.date || localDate(), amount: Math.max(0, number(values.amount)),
+      category: values.category || "未分類", item: values.item || "", account: values.account || "",
+      merchant: values.merchant || "", note: values.note || "", updatedAt: nowIso()
+    });
+    ledger.categories[type] = unique([...(ledger.categories[type] || []), row.category]);
+    return persist(ledger, assets, "修改收支紀錄");
+  }
+
+  function recycle(ledger, kind, row) {
+    ledger.recycleBin.unshift({ id: uid("trash"), kind, removedAt: nowIso(), row: clone(row) });
+    ledger.recycleBin = ledger.recycleBin.slice(0, 100);
+  }
+
+  function removeEntry(id) {
+    const { ledger, assets } = load();
+    const index = ledger.entries.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆收支紀錄");
+    recycle(ledger, "entry", ledger.entries[index]);
+    ledger.entries.splice(index, 1);
+    return persist(ledger, assets, "刪除收支紀錄");
+  }
+
   function addTransfer(values) {
     const { ledger, assets } = load();
     const amount = Math.max(0, number(values.amount));
@@ -332,6 +360,33 @@
       creditBillId: values.creditBillId || "", note: values.note || "", createdAt: nowIso()
     });
     return persist(ledger, assets, "新增帳戶轉帳");
+  }
+
+  function updateTransfer(id, values) {
+    const { ledger, assets } = load();
+    const row = ledger.transfers.find(item => item.id === id);
+    if (!row) throw new Error("找不到這筆轉帳");
+    const amount = Math.max(0, number(values.amount ?? values.fromAmount));
+    Object.assign(row, {
+      date: values.date || row.date || localDate(), fromAccount: values.fromAccount || "", toAccount: values.toAccount || "",
+      fromAmount: amount, toAmount: Math.max(0, number(values.toAmount) || amount),
+      feeAmount: Math.max(0, number(values.feeAmount)), feeAccount: values.feeAccount || values.fromAccount || "",
+      note: values.note || "", updatedAt: nowIso()
+    });
+    return persist(ledger, assets, "修改帳戶轉帳");
+  }
+
+  function removeTransfer(id) {
+    const { ledger, assets } = load();
+    const index = ledger.transfers.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆轉帳");
+    const row = ledger.transfers[index];
+    recycle(ledger, "transfer", row);
+    ledger.transfers.splice(index, 1);
+    ledger.creditBills.forEach(bill => {
+      if (bill.transferId === id) Object.assign(bill, { paid: false, paidAt: "", transferId: "" });
+    });
+    return persist(ledger, assets, "刪除帳戶轉帳");
   }
 
   function addPurchase(values) {
@@ -360,6 +415,133 @@
     if (!values.name || ledger.accounts.some(row => row.name === values.name)) throw new Error("帳戶名稱不可空白或重複");
     ledger.accounts.push({ id: uid("account"), name: values.name, type: values.type || "銀行帳戶", currency: normalizeCurrency(values.currency || "TWD"), openingBalance: number(values.openingBalance), statementDay: number(values.statementDay), paymentDay: number(values.paymentDay) });
     return persist(ledger, assets, "新增財務帳戶");
+  }
+
+  function replaceAccountReferences(ledger, assets, from, to) {
+    if (!from || from === to) return;
+    ledger.entries.forEach(row => { if (row.account === from) row.account = to; });
+    ledger.transfers.forEach(row => ["fromAccount", "toAccount", "feeAccount"].forEach(key => { if (row[key] === from) row[key] = to; }));
+    ledger.creditBills.forEach(row => { if (row.card === from) row.card = to; if (row.payAccount === from) row.payAccount = to; });
+    ledger.creditInstallments.forEach(row => { if (row.card === from) row.card = to; });
+    ledger.templates.forEach(row => { if (row.account === from) row.account = to; });
+    ledger.recurringRules.forEach(row => { if (row.account === from) row.account = to; });
+    ledger.reconciliations.forEach(row => { if (row.account === from) row.account = to; });
+    ledger.creditStatementChecks.forEach(row => { if (row.card === from) row.card = to; });
+    assets.purchaseRecords.forEach(row => { if (row.cashAccount === from) row.cashAccount = to; });
+    assets.dividends.forEach(row => { if (row.cashAccount === from) row.cashAccount = to; });
+    assets.cash.forEach(row => { if (row.bank === from) row.bank = to; });
+  }
+
+  function updateAccount(id, values) {
+    const { ledger, assets } = load();
+    const row = ledger.accounts.find(item => item.id === id);
+    const name = String(values.name || "").trim();
+    if (!row) throw new Error("找不到這個帳戶");
+    if (!name || ledger.accounts.some(item => item.id !== id && item.name === name)) throw new Error("帳戶名稱不可空白或重複");
+    const oldName = row.name;
+    Object.assign(row, {
+      name, type: values.type || "銀行帳戶", currency: normalizeCurrency(values.currency || "TWD"),
+      openingBalance: number(values.openingBalance), statementDay: number(values.statementDay),
+      paymentDay: number(values.paymentDay), updatedAt: nowIso()
+    });
+    replaceAccountReferences(ledger, assets, oldName, name);
+    return persist(ledger, assets, "修改財務帳戶");
+  }
+
+  function addCreditBill(values) {
+    const { ledger, assets } = load();
+    if (!values.card || !values.payAccount || !values.billMonth || number(values.amount) <= 0) throw new Error("請完整填寫帳單資料");
+    ledger.creditBills.push({
+      id: uid("bill"), card: values.card, billMonth: String(values.billMonth).slice(0, 7), dueDate: values.dueDate || "",
+      amount: Math.max(0, number(values.amount)), payAccount: values.payAccount, paid: false, paidAt: "", transferId: "", createdAt: nowIso()
+    });
+    return persist(ledger, assets, "新增信用卡帳單");
+  }
+
+  function updateCreditBill(id, values) {
+    const { ledger, assets } = load();
+    const row = ledger.creditBills.find(item => item.id === id);
+    if (!row) throw new Error("找不到這筆信用卡帳單");
+    Object.assign(row, { card: values.card, billMonth: String(values.billMonth || row.billMonth).slice(0, 7), dueDate: values.dueDate || "", amount: Math.max(0, number(values.amount)), payAccount: values.payAccount, updatedAt: nowIso() });
+    return persist(ledger, assets, "修改信用卡帳單");
+  }
+
+  function removeCreditBill(id) {
+    const { ledger, assets } = load();
+    const index = ledger.creditBills.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆信用卡帳單");
+    const bill = ledger.creditBills[index];
+    if (bill.transferId) ledger.transfers = ledger.transfers.filter(row => row.id !== bill.transferId);
+    recycle(ledger, "creditBill", bill);
+    ledger.creditBills.splice(index, 1);
+    return persist(ledger, assets, "刪除信用卡帳單");
+  }
+
+  function setCreditBillPaid(id, paid = true) {
+    const { ledger, assets } = load();
+    const bill = ledger.creditBills.find(row => row.id === id);
+    if (!bill) throw new Error("找不到這筆信用卡帳單");
+    if (paid && !bill.paid) {
+      if (!ledger.accounts.some(row => row.name === bill.card) || !ledger.accounts.some(row => row.name === bill.payAccount)) throw new Error("找不到信用卡或繳款帳戶");
+      const transferId = uid("transfer");
+      ledger.transfers.push({ id: transferId, date: localDate(), fromAccount: bill.payAccount, toAccount: bill.card, fromAmount: number(bill.amount), toAmount: number(bill.amount), feeAmount: 0, feeAccount: bill.payAccount, creditBillId: bill.id, note: `${bill.billMonth} ${bill.card} 信用卡帳單繳款`, createdAt: nowIso() });
+      Object.assign(bill, { paid: true, paidAt: nowIso(), transferId });
+    } else if (!paid && bill.paid) {
+      ledger.transfers = ledger.transfers.filter(row => row.id !== bill.transferId);
+      Object.assign(bill, { paid: false, paidAt: "", transferId: "" });
+    }
+    return persist(ledger, assets, paid ? "記錄信用卡繳款" : "取消信用卡繳款");
+  }
+
+  function addRecurring(values) {
+    const { ledger, assets } = load();
+    const row = {
+      id: uid("recurring"), type: values.type === "income" ? "income" : "expense", name: String(values.name || "").trim(),
+      amount: Math.max(0, number(values.amount)), category: values.category || "未分類", item: values.item || "",
+      account: values.account || "", cycle: ["weekly", "monthly", "yearly"].includes(values.cycle) ? values.cycle : "monthly",
+      day: Math.min(31, Math.max(1, number(values.day) || 1)), endDate: values.endDate || "", startMonth: monthOf(), createdAt: nowIso()
+    };
+    if (!row.name || !row.amount || !row.account) throw new Error("請完整填寫固定收支");
+    ledger.recurringRules.push(row);
+    ledger.categories[row.type] = unique([...(ledger.categories[row.type] || []), row.category]);
+    return persist(ledger, assets, "新增固定收支");
+  }
+
+  function updateRecurring(id, values) {
+    const { ledger, assets } = load();
+    const row = ledger.recurringRules.find(item => item.id === id);
+    if (!row) throw new Error("找不到這筆固定收支");
+    Object.assign(row, { type: values.type === "income" ? "income" : "expense", name: String(values.name || "").trim(), amount: Math.max(0, number(values.amount)), category: values.category || "未分類", item: values.item || "", account: values.account || "", cycle: ["weekly", "monthly", "yearly"].includes(values.cycle) ? values.cycle : "monthly", day: Math.min(31, Math.max(1, number(values.day) || 1)), endDate: values.endDate || "", updatedAt: nowIso() });
+    return persist(ledger, assets, "修改固定收支");
+  }
+
+  function removeRecurring(id) {
+    const { ledger, assets } = load();
+    const index = ledger.recurringRules.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆固定收支");
+    recycle(ledger, "recurring", ledger.recurringRules[index]);
+    ledger.recurringRules.splice(index, 1);
+    return persist(ledger, assets, "刪除固定收支");
+  }
+
+  function upsertBudget(values) {
+    const { ledger, assets } = load();
+    const category = String(values.category || "").trim();
+    const amount = Math.max(0, number(values.amount));
+    if (!category || !amount) throw new Error("請選擇分類並輸入預算");
+    const row = ledger.budgets.find(item => item.id === values.id || item.category === category);
+    if (row) Object.assign(row, { category, amount, updatedAt: nowIso() });
+    else ledger.budgets.push({ id: uid("budget"), category, amount, createdAt: nowIso() });
+    return persist(ledger, assets, row ? "修改分類預算" : "新增分類預算");
+  }
+
+  function removeBudget(id) {
+    const { ledger, assets } = load();
+    const index = ledger.budgets.findIndex(item => item.id === id);
+    if (index < 0) throw new Error("找不到這筆分類預算");
+    recycle(ledger, "budget", ledger.budgets[index]);
+    ledger.budgets.splice(index, 1);
+    return persist(ledger, assets, "刪除分類預算");
   }
 
   function listBackups() { return readJson(KEYS.backups, []).map(({ data, ...meta }) => meta); }
@@ -402,7 +584,10 @@
 
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
-    addEntry, addTransfer, addPurchase, addDividend, addAccount, createBackup, listBackups, restoreBackup, importBundle,
+    addEntry, updateEntry, removeEntry, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
+    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
+    addRecurring, updateRecurring, removeRecurring, upsertBudget, removeBudget,
+    createBackup, listBackups, restoreBackup, importBundle,
     exportBundle, localDate, monthOf, fxRate
   };
 })();
