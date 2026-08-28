@@ -9,42 +9,63 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <style>
-    :root { color-scheme: light; --ink:#18243a; --muted:#69778c; --line:#d7e0eb; --blue:#3478f6; --green:#20b486; --purple:#8667d8; --bg:#eef3f8; }
+    :root { color-scheme: light; --ink:#18243a; --muted:#69778c; --blue:#4d82ff; --green:#20b486; --header:#17284b; --header-2:#235dc8; --header-3:#138d8a; }
     * { box-sizing: border-box; }
-    html, body { min-height: 100%; margin: 0; }
-    body { color: var(--ink); font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; background: radial-gradient(circle at 8% 0%, rgba(102,166,247,.20), transparent 28%), radial-gradient(circle at 92% 12%, rgba(32,180,134,.16), transparent 26%), var(--bg); }
-    .center-shell { min-height: 100vh; padding: 14px; }
-    .center-header { width: min(1560px, 100%); margin: 0 auto 12px; padding: 9px 14px 10px; border-radius: 14px; color: #fff; background: linear-gradient(118deg, #18243a 0%, #3158c9 50%, #168b87 100%); box-shadow: 0 10px 24px rgba(24,36,58,.16); }
-    .brand-row { display:grid; grid-template-columns:minmax(240px,1fr) minmax(0,auto); align-items:center; gap:18px; }
-    .brand-copy { min-width: 0; display:flex; align-items:center; gap:10px; }
-    .kicker { display:none; }
-    h1 { margin:0; font-size: clamp(18px, 2.2vw, 23px); white-space:nowrap; }
-    .sub { display:none; }
-    .sync-note { padding:6px 9px; border:1px solid rgba(255,255,255,.2); border-radius:9px; color:rgba(255,255,255,.82); background:rgba(255,255,255,.1); font-size:11px; white-space:nowrap; }
-    .top-controls { display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:0; overflow:auto; }
-    .auth-strip, .utility-strip { display:flex; align-items:center; gap:6px; flex:0 0 auto; }
-    .utility-strip { padding-left:8px; border-left:1px solid rgba(255,255,255,.2); }
-    .top-controls input { width:150px; min-width:150px; height:32px; padding:0 9px; border:1px solid rgba(255,255,255,.25); border-radius:8px; color:#fff; background:rgba(255,255,255,.12); outline:0; }
-    .top-controls input::placeholder { color:rgba(255,255,255,.68); }
-    .top-controls button { min-height:32px; padding:6px 10px; border:1px solid rgba(255,255,255,.18); border-radius:8px; color:#fff; background:rgba(255,255,255,.1); font:inherit; font-size:12px; font-weight:750; cursor:pointer; white-space:nowrap; }
-    .top-controls button:hover { background:rgba(255,255,255,.2); }
-    .top-controls button[data-center-action="login"], .top-controls button[data-center-action="updatePrices"] { background:#3478f6; }
-    .top-controls button[data-center-action="save"] { background:#20b486; }
-    .top-controls button[data-center-action="load"], .top-controls button[data-center-action="theme"] { background:#8667d8; }
-    .top-controls button[data-center-action="privacy"] { background:#4b6ee8; }
-    .top-controls button[data-center-action="dataManagement"] { background:#53627b; }
-    .top-controls .tool-state { color:rgba(255,255,255,.72); font-size:11px; white-space:nowrap; }
-    .center-nav { display:flex; align-items:center; gap:5px; overflow:auto; margin:0; padding-bottom:0; }
-    .nav-group { flex:0 0 auto; margin-left:8px; padding-left:10px; border-left:1px solid rgba(255,255,255,.24); color:rgba(255,255,255,.62); font-size:11px; font-weight:800; writing-mode:vertical-rl; }
-    .center-nav button { border:1px solid rgba(255,255,255,.17); border-radius:10px; padding:10px 14px; color:rgba(255,255,255,.78); background:rgba(255,255,255,.08); font:inherit; font-weight:750; cursor:pointer; white-space:nowrap; }
-    .center-nav button:hover { background:rgba(255,255,255,.16); }
-    .center-nav button.active { color:var(--ink); background:#fff; box-shadow:0 5px 15px rgba(0,0,0,.13); }
-    .center-nav { width:100%; padding-top:9px; border-top:1px solid rgba(255,255,255,.16); }
-    .workspace { width:min(1560px,100%); margin:0 auto; }
-    .frame-wrap { overflow:hidden; min-height:calc(100vh - 108px); border:1px solid var(--line); border-radius:18px; background:#fff; box-shadow:0 12px 30px rgba(24,36,58,.10); }
-    iframe { display:block; width:100%; height:calc(100vh - 108px); min-height:760px; border:0; background:#eef3f8; }
-    .shortcut { margin:10px 0 0; color:var(--muted); font-size:12px; text-align:right; }
-    @media (max-width:720px) { .center-shell{padding:0 0 10px;} .center-header{border-radius:0 0 16px 16px; padding:9px 10px;} .brand-row{display:flex; flex-wrap:wrap;} .brand-copy{flex:1 1 auto;} .center-nav{order:3; flex:1 0 100%; justify-content:flex-start;} .center-tools{margin-top:7px;} .center-tools input{width:128px;min-width:128px;} .tool-state{display:none;} .sync-note{display:none;} .frame-wrap{border-radius:0; border-left:0; border-right:0;} iframe{height:calc(100vh - 102px); min-height:760px;} .shortcut{padding:0 12px;} }
+    html, body { min-height:100%; margin:0; }
+    body { color:var(--ink); font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; background:#f1f5f9; }
+    button, input, summary { font:inherit; }
+    .center-shell { min-height:100vh; }
+    .center-header { position:sticky; top:0; z-index:100; width:100%; color:#fff; background:linear-gradient(112deg,var(--header) 0%,var(--header-2) 55%,var(--header-3) 100%); box-shadow:0 5px 18px rgba(19,38,73,.18); }
+    .brand-row { display:flex; align-items:center; justify-content:space-between; gap:20px; width:min(1600px,calc(100% - 40px)); min-height:64px; margin:0 auto; }
+    .brand-copy { min-width:0; }
+    .kicker, .sub { display:none; }
+    h1 { margin:0; font-size:24px; line-height:1; letter-spacing:.01em; white-space:nowrap; }
+    .top-controls { display:flex; align-items:center; justify-content:flex-end; gap:8px; min-width:0; }
+    .auth-strip { display:flex; align-items:center; gap:6px; }
+    .top-controls input { width:156px; height:34px; padding:0 10px; border:1px solid rgba(255,255,255,.24); border-radius:8px; color:#fff; background:rgba(255,255,255,.10); outline:none; }
+    .top-controls input:focus { border-color:rgba(255,255,255,.64); background:rgba(255,255,255,.16); }
+    .top-controls input::placeholder { color:rgba(255,255,255,.62); }
+    .top-controls button, .utility-menu summary { min-height:34px; padding:7px 11px; border:1px solid rgba(255,255,255,.15); border-radius:8px; color:#fff; background:rgba(255,255,255,.09); font-size:12px; font-weight:750; cursor:pointer; white-space:nowrap; }
+    .top-controls button:hover, .utility-menu summary:hover { background:rgba(255,255,255,.18); }
+    .top-controls button[data-center-action="login"] { background:#3f78ed; }
+    .top-controls button[data-center-action="save"] { background:#169b73; }
+    .top-controls button[data-center-action="load"] { background:#7758ca; }
+    .sync-note { display:inline-flex; align-items:center; min-height:30px; padding:5px 9px; border:1px solid rgba(255,255,255,.18); border-radius:999px; color:rgba(255,255,255,.82); background:rgba(10,29,50,.18); font-size:11px; white-space:nowrap; }
+    .sync-note[data-state="logged-in"] { color:#c6ffea; border-color:rgba(80,224,171,.35); background:rgba(15,98,74,.35); }
+    .utility-menu { position:relative; }
+    .utility-menu summary { display:flex; align-items:center; list-style:none; }
+    .utility-menu summary::-webkit-details-marker { display:none; }
+    .utility-strip { position:absolute; top:42px; right:0; z-index:20; display:grid; gap:7px; min-width:170px; padding:10px; border:1px solid rgba(255,255,255,.16); border-radius:12px; background:#172a4d; box-shadow:0 14px 34px rgba(5,18,38,.28); }
+    .utility-strip button { width:100%; text-align:left; }
+    .tool-state { padding:5px 3px 0; color:rgba(255,255,255,.62); font-size:11px; white-space:nowrap; }
+    .center-nav { display:flex; align-items:stretch; gap:0; width:100%; min-height:48px; overflow-x:auto; padding:0 max(20px,calc((100vw - 1600px)/2)); border-top:1px solid rgba(255,255,255,.12); background:rgba(8,27,59,.16); scrollbar-width:thin; }
+    .nav-group { flex:0 0 auto; align-self:center; margin:0 8px 0 16px; padding:4px 8px; border-radius:999px; color:#b7c9e9; background:rgba(255,255,255,.08); font-size:10px; font-weight:800; white-space:nowrap; }
+    .nav-group:first-child { margin-left:0; }
+    .center-nav button { flex:0 0 auto; min-height:48px; padding:0 13px; border:0; border-bottom:3px solid transparent; color:rgba(255,255,255,.72); background:transparent; font-weight:700; cursor:pointer; white-space:nowrap; }
+    .center-nav button:hover { color:#fff; background:rgba(255,255,255,.07); }
+    .center-nav button.active { color:#fff; border-bottom-color:#7ce6c7; background:rgba(255,255,255,.11); }
+    .workspace, .frame-wrap { width:100%; margin:0; }
+    .frame-wrap { min-height:calc(100vh - 112px); background:#f1f5f9; }
+    iframe { display:block; width:100%; height:calc(100vh - 112px); min-height:760px; border:0; background:#f1f5f9; }
+    .shortcut { display:none; }
+    @media (max-width:980px) {
+      .brand-row { width:100%; min-height:58px; padding:7px 12px; gap:10px; }
+      h1 { font-size:19px; }
+      .top-controls { max-width:70vw; overflow-x:auto; }
+      .top-controls input { width:132px; min-width:132px; }
+      .top-controls button[data-center-action="save"], .top-controls button[data-center-action="load"], .top-controls button[data-center-action="logout"] { display:none; }
+      .center-nav { padding-inline:10px; }
+      .frame-wrap, iframe { height:calc(100vh - 106px); min-height:720px; }
+    }
+    @media (max-width:560px) {
+      .brand-row { min-height:54px; }
+      h1 { font-size:17px; }
+      .top-controls input { display:none; }
+      .sync-note { padding-inline:7px; }
+      .center-nav { min-height:46px; }
+      .center-nav button { min-height:46px; padding-inline:11px; font-size:13px; }
+      .frame-wrap, iframe { height:calc(100vh - 100px); }
+    }
   </style>
 </head>
 <body>
@@ -61,13 +82,16 @@
             <button type="button" data-center-action="logout">登出</button>
             <span class="sync-note" id="syncNote">● 未登入</span>
           </div>
-          <div class="utility-strip">
-            <button type="button" data-center-action="updatePrices" data-assets-only>更新估值</button>
-            <button type="button" data-center-action="privacy">隱私模式</button>
-            <button type="button" data-center-action="theme">深色模式</button>
-            <button type="button" data-center-action="dataManagement" data-assets-only>資料管理</button>
-            <span class="tool-state" id="toolState">目前控制：記帳中心</span>
-          </div>
+          <details class="utility-menu">
+            <summary>工具</summary>
+            <div class="utility-strip">
+              <button type="button" data-center-action="updatePrices" data-assets-only>更新估值</button>
+              <button type="button" data-center-action="privacy">隱私模式</button>
+              <button type="button" data-center-action="theme">深色模式</button>
+              <button type="button" data-center-action="dataManagement" data-assets-only>資料管理</button>
+              <span class="tool-state" id="toolState">目前控制：記帳中心</span>
+            </div>
+          </details>
         </div>
       </div>
       <nav class="center-nav" aria-label="財務中心導覽">
@@ -100,7 +124,7 @@
       </nav>
     </header>
     <section class="workspace" aria-label="財務中心內容">
-      <div class="frame-wrap" id="mainFrameWrap"><iframe id="mainFrame" title="個人財務中心內容" src="accounting-app.html?embedded=1&amp;v=78#quick-entry"></iframe></div>
+      <div class="frame-wrap" id="mainFrameWrap"><iframe id="mainFrame" title="個人財務中心內容" src="accounting-app.html?embedded=1&amp;v=80#quick-entry"></iframe></div>
       <p class="shortcut">記帳與個人資產使用同一個財務中心、同一個瀏覽器資料來源與雲端同步資料。</p>
     </section>
   </main>
@@ -118,7 +142,7 @@
       setActiveButton(page);
       document.querySelectorAll("[data-assets-only]").forEach(item => item.hidden = module !== "assets");
       toolState.textContent = module === "assets" ? "目前控制：個人資產" : "目前控制：記帳中心";
-      const target = module === "assets" ? `personal-assets-dashboard.html?embedded=1&v=78#${view}` : `accounting-app.html?embedded=1&v=78#${view === "entryView" ? "quick-entry" : view === "analyticsView" ? "analytics" : ""}`;
+      const target = module === "assets" ? `personal-assets-dashboard.html?embedded=1&v=80#${view}` : `accounting-app.html?embedded=1&v=80#${view === "entryView" ? "quick-entry" : view === "analyticsView" ? "analytics" : ""}`;
       if (mainFrame.dataset.module !== module) { mainFrame.dataset.module = module; mainFrame.src = target; }
       else sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view });
       if (replace) history.replaceState(null, "", `#${page.replace(":", "-")}`);
@@ -127,12 +151,15 @@
     window.addEventListener("message", event => {
       if (event.data?.type !== "finance-center-status") return;
       const loggedIn = Boolean(event.data.loggedIn);
-      document.getElementById("syncNote").textContent = loggedIn ? "● 已登入" : "● 未登入";
+      const syncNote = document.getElementById("syncNote");
+      syncNote.textContent = loggedIn ? "● 已登入" : "● 未登入";
+      syncNote.dataset.state = loggedIn ? "logged-in" : "logged-out";
     });
     document.querySelectorAll("[data-center-action]").forEach(button => button.addEventListener("click", () => {
       const action = button.dataset.centerAction;
       if (action === "login") sendToActive({ type: "finance-center-action", action, email: emailInput.value.trim() });
       else sendToActive({ type: "finance-center-action", action });
+      document.querySelector(".utility-menu")?.removeAttribute("open");
       toolState.textContent = action === "updatePrices" ? "正在更新市場資料…" : "工具已送出：" + button.textContent;
       setTimeout(() => { toolState.textContent = activePage.startsWith("assets:") ? "目前控制：個人資產" : "目前控制：記帳中心"; }, 1800);
     }));
