@@ -198,7 +198,8 @@
     const manualByKey = new Map();
     manual.forEach(row => { if (row.key && !manualByKey.has(row.key)) manualByKey.set(row.key, row); });
     const positions = new Map();
-    (assets.purchaseRecords || []).map((row, index) => ({ row, index })).sort((a, b) => String(a.row.date || "").localeCompare(String(b.row.date || "")) || a.index - b.index).forEach(({ row }) => {
+    const tradeDetails = [];
+    (assets.purchaseRecords || []).map((row, index) => ({ row, index })).sort((a, b) => String(a.row.date || "").localeCompare(String(b.row.date || "")) || a.index - b.index).forEach(({ row, index }) => {
       const key = stockTradeKey(row);
       const shares = Math.max(0, number(row.shares));
       if (!key || !shares) return;
@@ -220,14 +221,33 @@
         const appliedShares = Math.min(shares, available);
         const averageCost = available > epsilon ? position.basis / available : 0;
         const soldBasis = averageCost * appliedShares;
+        const proceeds = Math.max(0, gross - fees);
+        const realized = proceeds - soldBasis;
         position.sold += shares;
         position.rawShares -= shares;
         position.basis = Math.max(0, position.basis - soldBasis);
-        position.realized += Math.max(0, gross - fees) - soldBasis;
+        position.realized += realized;
+        tradeDetails.push({
+          ...row, sourceId: row.id || "", originalIndex: index, key, type, shares,
+          price: Math.max(0, number(row.price)), fee: Math.max(0, number(row.fee)), tax: Math.max(0, number(row.tax)),
+          gross, fees, netAmount: proceeds, twdNetAmount: proceeds * fxRate(assets, row.currency), averageCost, soldBasis, realized,
+          twdRealized: realized * fxRate(assets, row.currency),
+          realizedRate: soldBasis > epsilon ? realized / soldBasis * 100 : 0,
+          remainingShares: Math.max(0, position.rawShares), oversold: shares > available + epsilon
+        });
       } else {
+        const totalCost = gross + fees;
         position.bought += shares;
         position.rawShares += shares;
-        position.basis += gross + fees;
+        position.basis += totalCost;
+        tradeDetails.push({
+          ...row, sourceId: row.id || "", originalIndex: index, key, type, shares,
+          price: Math.max(0, number(row.price)), fee: Math.max(0, number(row.fee)), tax: Math.max(0, number(row.tax)),
+          gross, fees, netAmount: totalCost, twdNetAmount: totalCost * fxRate(assets, row.currency),
+          averageCost: position.rawShares > epsilon ? position.basis / position.rawShares : 0,
+          soldBasis: 0, realized: null, realizedRate: null,
+          remainingShares: Math.max(0, position.rawShares), oversold: false
+        });
       }
       positions.set(key, position);
     });
@@ -259,7 +279,8 @@
       closed: rows.filter(row => row.closed),
       manualOnly: manualOnly.filter(row => !row.closed),
       discrepancies: rows.filter(row => row.discrepancy || row.oversold),
-      managedKeys: [...managedKeys]
+      managedKeys: [...managedKeys],
+      trades: tradeDetails.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || b.originalIndex - a.originalIndex)
     };
   }
 
