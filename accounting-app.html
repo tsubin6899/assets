@@ -1405,6 +1405,21 @@
     .app-header { background: linear-gradient(118deg, #18243a 0%, #3158c9 50%, #168b87 100%); }
     .kicker { color: #ffd477; }
     .tab.active { background: linear-gradient(135deg, #fffdf8, #edf7f4); color: #173441; }
+    .app-header .tabs .tab { --tab-color: var(--blue); border-bottom: 3px solid transparent; }
+    .app-header .tabs .tab[data-view="entryView"] { --tab-color: #20b486; }
+    .app-header .tabs .tab[data-view="analyticsView"] { --tab-color: #3478f6; }
+    .app-header .tabs .tab[data-view="accountView"],
+    .app-header .tabs .tab[data-view="accountLedgerView"] { --tab-color: #1f9da5; }
+    .app-header .tabs .tab[data-view="transferView"] { --tab-color: #8667d8; }
+    .app-header .tabs .tab[data-view="creditView"],
+    .app-header .tabs .tab[data-view="creditReconcileView"] { --tab-color: #ef6b5b; }
+    .app-header .tabs .tab[data-view="recurringView"] { --tab-color: #d9a441; }
+    .app-header .tabs .tab[data-view="categoryView"] { --tab-color: #f0a34a; }
+    .app-header .tabs .tab.active {
+      color: var(--tab-color);
+      background: color-mix(in srgb, var(--tab-color) 13%, #ffffff);
+      border-bottom-color: var(--tab-color);
+    }
     .btn.blue { background: linear-gradient(135deg, #4b88ff, #2e5ed7); }
     .btn.green { background: linear-gradient(135deg, #31c99a, #15926f); }
     .btn.purple { background: linear-gradient(135deg, #a184ee, #7052c7); }
@@ -1422,6 +1437,14 @@
     .chart-grid .chart-card:nth-child(4n + 3) { background: linear-gradient(145deg, #fffefb, #fff8ec); }
     .chart-grid .chart-card:nth-child(4n + 4) { background: linear-gradient(145deg, #fffefb, #f8f2fa); }
     .monthly-pulse { background: linear-gradient(135deg, rgba(238,244,255,.98), rgba(236,251,245,.96) 55%, rgba(244,240,255,.94)); }
+    .view > .section-head:first-child { padding-left: 13px; border-left: 5px solid var(--view-color, var(--blue)); }
+    #entryView { --view-color: #20b486; }
+    #analyticsView { --view-color: #3478f6; }
+    #accountView, #accountLedgerView { --view-color: #1f9da5; }
+    #transferView { --view-color: #8667d8; }
+    #creditView, #creditReconcileView { --view-color: #ef6b5b; }
+    #recurringView { --view-color: #d9a441; }
+    #categoryView { --view-color: #f0a34a; }
     #entryView .invoice-box {
       margin-top: 18px;
       padding: 16px;
