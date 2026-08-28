@@ -441,6 +441,38 @@
     .pulse-label { display: block; color: var(--muted); font-size: 12px; }
     .pulse-value { display: block; margin-top: 9px; color: var(--ink); font-size: 23px; line-height: 1.05; font-weight: 700; }
     .pulse-note { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .cashflow-bridge {
+      margin: 0 0 18px;
+      padding: 16px;
+      border: 1px solid #cfdcda;
+      border-radius: 12px;
+      background: var(--panel);
+    }
+    .cashflow-bridge-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 13px;
+    }
+    .cashflow-bridge-head h3 { margin: 0; font-size: 18px; }
+    .cashflow-bridge-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    .cashflow-bridge-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+    .bridge-item {
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+    }
+    .bridge-item span { display: block; color: var(--muted); font-size: 12px; }
+    .bridge-item strong { display: block; margin-top: 7px; font-size: 21px; line-height: 1.1; }
+    .bridge-item small { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; line-height: 1.4; }
+    .bridge-item.income strong { color: var(--green); }
+    .bridge-item.expense strong { color: var(--red); }
+    .bridge-item.delta strong { color: var(--blue); }
+    .bridge-item.gap strong { color: var(--purple); }
+    .cashflow-bridge-note { margin: 12px 0 0; color: var(--muted); font-size: 11px; line-height: 1.5; }
     .meta-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
@@ -549,7 +581,9 @@
     .valuation-field textarea { min-height: 70px; resize: vertical; }
     .valuation-dialog-actions { display: flex; justify-content: flex-end; gap: 9px; padding: 13px 20px 17px; border-top: 1px solid #e1e7e5; background: #fbfcfa; }
     @media (max-width: 1320px) { .watchlist-rows { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (max-width: 980px) { .pulse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 980px) {
+      .pulse-grid, .cashflow-bridge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
     @media (max-width: 1100px) { .watchlist-rows { grid-template-columns: 1fr; } }
     @media (max-width: 720px) {
       .financial-pulse { padding: 13px; }
@@ -2344,6 +2378,9 @@
       #overview .financial-pulse .pulse-head p,
       #overview .financial-pulse .pulse-note { display: none; }
       #overview .financial-pulse .pulse-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #overview .cashflow-bridge-head p,
+      #overview .cashflow-bridge-note { display: none; }
+      #overview .cashflow-bridge-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #overview .dashboard-alerts .alert-tile:nth-child(n+3) { display: none; }
       #overview .asset-grid .donut { display: none; }
       #overview .asset-grid { display: block; }
@@ -3455,8 +3492,7 @@
       return rows.length ? rows : data.cash;
     }
     function accountingRows(month = localMonthString()) {
-      return loadAccountingLedger().entries
-        .filter(row => accountingIsRealizedEntry(row))
+      return accountingAllEntryRows(loadAccountingLedger())
         .filter(row => String(row.date || "").startsWith(month))
         .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
     }
@@ -4266,6 +4302,28 @@
         </div>
       </article>`;
     }
+    function renderCashflowBridge(monthChange) {
+      const month = localMonthString();
+      const rows = accountingRows(month);
+      const incomeRows = rows.filter(row => row.type === "income");
+      const expenseRows = rows.filter(row => row.type === "expense");
+      const income = sum(incomeRows, row => Number(row.amount) || 0);
+      const expense = sum(expenseRows, row => Number(row.amount) || 0);
+      const netCashflow = income - expense;
+      const snapshotDelta = Number(monthChange?.value) || 0;
+      const unexplained = snapshotDelta - netCashflow;
+      const signMoney = value => `${value >= 0 ? "+" : "-"}${money(Math.abs(value))}`;
+      return `<article class="cashflow-bridge">
+        <div class="cashflow-bridge-head"><div><h3>資產變化橋接</h3><p>把本月記帳現金流與淨資產快照放在同一張表，快速找出資產變化來源。</p></div><a class="btn small green" href="accounting-app.html#quick-entry">新增記帳</a></div>
+        <div class="cashflow-bridge-grid">
+          <div class="bridge-item income"><span>本月收入</span><strong>${money(income)}</strong><small>${incomeRows.length} 筆記帳</small></div>
+          <div class="bridge-item expense"><span>本月支出</span><strong>-${money(expense)}</strong><small>${expenseRows.length} 筆記帳</small></div>
+          <div class="bridge-item delta"><span>淨資產快照變化</span><strong>${signMoney(snapshotDelta)}</strong><small>${escapeHtml(monthChange?.note || "尚未建立基準")}</small></div>
+          <div class="bridge-item gap"><span>待解釋差額</span><strong>${signMoney(unexplained)}</strong><small>投資市值波動、資產轉移或尚未記帳</small></div>
+        </div>
+        <p class="cashflow-bridge-note">計算方式：淨資產快照變化 −（本月收入 − 本月支出）。這是管理用勾稽提示，不會把投資損益誤當成日常收入。</p>
+      </article>`;
+    }
     function compactTwd(value) {
       const amount = Number(value) || 0;
       const absolute = Math.abs(amount);
@@ -4343,6 +4401,7 @@
           }).join("")}</div>
         </div></article>
         ${renderFinancialPulse()}
+        ${renderCashflowBridge(monthChange)}
         <div class="cards">
           ${card("投入成本估算", money(t.cost), "TWD")}
           ${card("全資產未實現損益", money(t.gain), "TWD", "accent")}
@@ -5414,10 +5473,10 @@
     });
     render();
     window.addEventListener("focus", () => {
-      if (currentTab === "bookkeeping") render();
+      if (["overview", "cash", "bookkeeping", "chart"].includes(currentTab)) render();
     });
     window.addEventListener("storage", (event) => {
-      if (event.key === accountingStorageKey && currentTab === "bookkeeping") render();
+      if (event.key === accountingStorageKey && ["overview", "cash", "bookkeeping", "chart"].includes(currentTab)) render();
     });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
