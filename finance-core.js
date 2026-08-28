@@ -717,7 +717,8 @@
     const entries = ledger.entries.filter(row => row.account === card && String(row.billMonth || row.statementMonthOverride || row.date || "").startsWith(billMonth));
     const appAmount = entries.reduce((sum, row) => sum + (row.type === "expense" ? number(row.amount) : -number(row.amount)), 0);
     const statementAmount = number(values.statementAmount), existing = ledger.creditStatementChecks.find(row => row.card === card && row.billMonth === billMonth);
-    const data = { id: existing?.id || uid("statement"), card, billMonth, statementAmount, appAmount, diff: statementAmount - appAmount, matchedKeys: [], rowCount: entries.length, matchedAmount: appAmount, note: values.note || "", checkedAt: nowIso(), updatedAt: nowIso() };
+    const matchedEntries = entries.map(row => ({ id: row.id || "", date: row.date || "", type: row.type === "income" ? "income" : "expense", category: row.category || "未分類", item: row.item || "", merchant: row.merchant || "", amount: number(row.amount), note: row.note || "" }));
+    const data = { id: existing?.id || uid("statement"), card, billMonth, statementAmount, appAmount, diff: statementAmount - appAmount, matchedKeys: matchedEntries.map(row => row.id).filter(Boolean), matchedEntries, rowCount: entries.length, matchedAmount: appAmount, note: values.note || "", checkedAt: nowIso(), updatedAt: nowIso() };
     if (existing) Object.assign(existing, data); else ledger.creditStatementChecks.push(data);
     return persist(ledger, assets, "儲存信用卡對帳");
   }
