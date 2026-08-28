@@ -11,12 +11,12 @@
   <style>
     :root { color-scheme: light; --ink:#18243a; --muted:#69778c; --blue:#4d82ff; --green:#20b486; --header:#17284b; --header-2:#235dc8; --header-3:#138d8a; }
     * { box-sizing: border-box; }
-    html, body { min-height:100%; margin:0; }
+    html, body { height:100%; min-height:100%; margin:0; overflow:hidden; }
     body { color:var(--ink); font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif; background:#f1f5f9; }
     button, input, summary { font:inherit; }
-    .center-shell { min-height:100vh; }
-    .center-header { position:sticky; top:0; z-index:100; width:100%; color:#fff; background:linear-gradient(112deg,var(--header) 0%,var(--header-2) 55%,var(--header-3) 100%); box-shadow:0 5px 18px rgba(19,38,73,.18); }
-    .brand-row { display:flex; align-items:center; justify-content:space-between; gap:24px; width:min(1500px,calc(100% - 48px)); min-height:150px; margin:0 auto; padding:0 24px; }
+    .center-shell { display:flex; flex-direction:column; height:100dvh; min-height:0; overflow:hidden; }
+    .center-header { position:relative; z-index:100; flex:0 0 auto; width:100%; color:#fff; background:linear-gradient(112deg,var(--header) 0%,var(--header-2) 55%,var(--header-3) 100%); box-shadow:0 5px 18px rgba(19,38,73,.18); }
+    .brand-row { display:flex; align-items:center; justify-content:space-between; gap:24px; width:min(1500px,calc(100% - 48px)); min-height:100px; margin:0 auto; padding:0 24px; }
     .brand-copy { min-width:0; }
     .kicker, .sub { display:none; }
     h1 { margin:0; font-size:clamp(30px,2.5vw,38px); line-height:1; letter-spacing:.01em; white-space:nowrap; }
@@ -39,16 +39,21 @@
     .utility-strip { position:absolute; top:42px; right:0; z-index:20; display:grid; gap:7px; min-width:170px; padding:10px; border:1px solid rgba(255,255,255,.16); border-radius:12px; background:#172a4d; box-shadow:0 14px 34px rgba(5,18,38,.28); }
     .utility-strip button { width:100%; text-align:left; }
     .tool-state { padding:5px 3px 0; color:rgba(255,255,255,.62); font-size:11px; white-space:nowrap; }
-    .center-nav { display:grid; grid-template-rows:auto auto; width:100%; padding:5px max(20px,calc((100vw - 1500px)/2)); border-top:1px solid rgba(255,255,255,.12); background:rgba(8,27,59,.18); }
-    .nav-row { display:flex; align-items:stretch; min-width:0; min-height:46px; overflow-x:auto; scrollbar-width:thin; }
-    .nav-group { flex:0 0 auto; align-self:center; margin:0 8px 0 16px; padding:4px 8px; border-radius:999px; color:#b7c9e9; background:rgba(255,255,255,.08); font-size:10px; font-weight:800; white-space:nowrap; }
-    .nav-group:first-child { margin-left:0; }
-    .center-nav button { flex:0 0 auto; min-height:48px; padding:0 13px; border:0; border-bottom:3px solid transparent; color:rgba(255,255,255,.72); background:transparent; font-weight:700; cursor:pointer; white-space:nowrap; }
-    .center-nav button:hover { color:#fff; background:rgba(255,255,255,.07); }
-    .center-nav button.active { color:#fff; border-bottom-color:#7ce6c7; background:rgba(255,255,255,.11); }
+    .center-nav { display:grid; grid-template-rows:auto auto; width:100%; padding:4px max(20px,calc((100vw - 1500px)/2)); border-top:1px solid rgba(255,255,255,.12); background:linear-gradient(180deg,rgba(8,27,59,.22),rgba(8,27,59,.12)); }
+    .nav-row { display:flex; align-items:center; gap:4px; min-width:0; min-height:46px; padding:4px 0; overflow-x:auto; scrollbar-width:thin; }
+    .nav-group { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex:0 0 112px; min-height:34px; margin-right:8px; padding:6px 12px; border:1px solid rgba(255,255,255,.20); border-radius:10px; color:#fff; font-size:12px; font-weight:850; letter-spacing:.04em; white-space:nowrap; box-shadow:0 5px 14px rgba(5,18,38,.16); }
+    .nav-group::before { content:""; width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:rgba(255,255,255,.88); box-shadow:0 0 0 3px rgba(255,255,255,.16); }
+    .nav-row-accounting .nav-group { background:linear-gradient(135deg,#f0a34a,#e87961); }
+    .nav-row-assets .nav-group { background:linear-gradient(135deg,#20b486,#1f9da5); }
+    .center-nav button { flex:0 0 auto; min-height:36px; padding:0 13px; border:1px solid rgba(255,255,255,.08); border-radius:10px; color:rgba(255,255,255,.76); background:rgba(255,255,255,.035); font-weight:700; cursor:pointer; white-space:nowrap; transition:color .18s ease,background .18s ease,border-color .18s ease,transform .18s ease,box-shadow .18s ease; }
+    .center-nav button:hover { color:#fff; border-color:rgba(255,255,255,.20); background:rgba(255,255,255,.11); transform:translateY(-1px); }
+    .center-nav button.active { color:#17284b; border-color:rgba(255,255,255,.72); background:#fff; box-shadow:0 6px 16px rgba(5,18,38,.20); }
+    .nav-row-accounting button.active { box-shadow:inset 0 -3px 0 #e87961,0 6px 16px rgba(5,18,38,.20); }
+    .nav-row-assets button.active { box-shadow:inset 0 -3px 0 #20b486,0 6px 16px rgba(5,18,38,.20); }
+    .workspace { flex:1 1 auto; min-height:0; overflow:hidden; }
     .workspace, .frame-wrap { width:100%; margin:0; }
-    .frame-wrap { min-height:calc(100vh - 252px); background:#f1f5f9; }
-    iframe { display:block; width:100%; height:calc(100vh - 252px); min-height:720px; border:0; background:#f1f5f9; }
+    .frame-wrap { height:100%; min-height:0; background:#f1f5f9; }
+    iframe { display:block; width:100%; height:100%; min-height:0; border:0; background:#f1f5f9; }
     .shortcut { display:none; }
     @media (max-width:980px) {
       .brand-row { width:100%; min-height:84px; padding:10px 16px; gap:10px; }
@@ -57,15 +62,17 @@
       .top-controls input { width:132px; min-width:132px; }
       .top-controls button[data-center-action="save"], .top-controls button[data-center-action="load"], .top-controls button[data-center-action="logout"] { display:none; }
       .center-nav { padding-inline:10px; }
-      .frame-wrap, iframe { height:calc(100vh - 186px); min-height:680px; }
+      .nav-group { flex-basis:104px; }
+      .frame-wrap, iframe { height:100%; min-height:0; }
     }
     @media (max-width:560px) {
       .brand-row { min-height:64px; }
       h1 { font-size:18px; }
       .top-controls input { display:none; }
       .sync-note { padding-inline:7px; }
-      .center-nav button { min-height:46px; padding-inline:11px; font-size:13px; }
-      .frame-wrap, iframe { height:calc(100vh - 166px); }
+      .nav-group { flex-basis:94px; min-height:32px; margin-right:4px; padding-inline:9px; font-size:11px; }
+      .center-nav button { min-height:36px; padding-inline:11px; font-size:13px; }
+      .frame-wrap, iframe { height:100%; }
     }
   </style>
 </head>
@@ -97,7 +104,7 @@
       </div>
       <nav class="center-nav" aria-label="財務中心導覽">
         <div class="nav-row nav-row-accounting">
-          <span class="nav-group">記帳</span>
+          <span class="nav-group">日常記帳</span>
           <button class="active" type="button" data-center-page="accounting:entryView">首頁</button>
           <button type="button" data-center-page="accounting:analyticsView">明細</button>
           <button type="button" data-center-page="accounting:accountView">帳戶</button>
@@ -126,7 +133,7 @@
       </nav>
     </header>
     <section class="workspace" aria-label="財務中心內容">
-      <div class="frame-wrap" id="mainFrameWrap"><iframe id="mainFrame" title="個人財務中心內容" src="accounting-app.html?embedded=1&amp;v=81#quick-entry"></iframe></div>
+      <div class="frame-wrap" id="mainFrameWrap"><iframe id="mainFrame" title="個人財務中心內容" src="accounting-app.html?embedded=1&amp;v=82#quick-entry"></iframe></div>
       <p class="shortcut">記帳與個人資產使用同一個財務中心、同一個瀏覽器資料來源與雲端同步資料。</p>
     </section>
   </main>
@@ -136,6 +143,10 @@
     const toolState = document.getElementById("toolState");
     let activePage = "accounting:entryView";
     function sendToActive(message) { mainFrame.contentWindow?.postMessage(message, "*"); }
+    function resetWorkspacePosition() {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      try { mainFrame.contentWindow?.scrollTo({ top: 0, left: 0, behavior: "auto" }); } catch {}
+    }
     function setEmbeddedShell() { sendToActive({ type: "finance-center-shell", compact: true }); }
     function setActiveButton(page) { document.querySelectorAll("[data-center-page]").forEach(item => item.classList.toggle("active", item.dataset.centerPage === page)); }
     function selectPage(page, { replace = false } = {}) {
@@ -144,12 +155,20 @@
       setActiveButton(page);
       document.querySelectorAll("[data-assets-only]").forEach(item => item.hidden = module !== "assets");
       toolState.textContent = module === "assets" ? "目前控制：個人資產" : "目前控制：記帳中心";
-      const target = module === "assets" ? `personal-assets-dashboard.html?embedded=1&v=81#${view}` : `accounting-app.html?embedded=1&v=81#${view === "entryView" ? "quick-entry" : view === "analyticsView" ? "analytics" : ""}`;
+      const target = module === "assets" ? `personal-assets-dashboard.html?embedded=1&v=82#${view}` : `accounting-app.html?embedded=1&v=82#${view === "entryView" ? "quick-entry" : view === "analyticsView" ? "analytics" : ""}`;
       if (mainFrame.dataset.module !== module) { mainFrame.dataset.module = module; mainFrame.src = target; }
       else sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view });
+      setTimeout(resetWorkspacePosition, 0);
       if (replace) history.replaceState(null, "", `#${page.replace(":", "-")}`);
     }
-    mainFrame.addEventListener("load", () => { setEmbeddedShell(); const [module, view] = activePage.split(":"); setTimeout(() => sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view }), 60); });
+    mainFrame.addEventListener("load", () => {
+      setEmbeddedShell();
+      const [module, view] = activePage.split(":");
+      setTimeout(() => {
+        sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view });
+        resetWorkspacePosition();
+      }, 60);
+    });
     window.addEventListener("message", event => {
       if (event.data?.type !== "finance-center-status") return;
       const loggedIn = Boolean(event.data.loggedIn);
