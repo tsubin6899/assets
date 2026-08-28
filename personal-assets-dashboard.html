@@ -1810,6 +1810,11 @@
     body.finance-center-embedded .mobile-quick-nav { display: none !important; }
     body.finance-center-embedded .app-header { border-radius: 0; }
     body.finance-center-embedded .auth-status-badge { display: none !important; }
+    .mobile-brand-title { display: none; }
+    @media (max-width: 720px) {
+      .desktop-brand-title { display: none; }
+      .mobile-brand-title { display: inline; }
+    }
     @media (min-width: 981px) {
       .section-title { display: flex; align-items: center; gap: 9px; }
       .section-title-icon {
@@ -2469,7 +2474,7 @@
             <button class="product-more" type="button" data-mobile-more aria-label="更多功能"><i data-lucide="ellipsis"></i></button>
           </div>
           <span class="brand-kicker">Personal Assets</span>
-          <h1>個人資產儀表板｜阿斌 Tsubin</h1>
+          <h1><span class="desktop-brand-title">個人資產儀表板｜阿斌 Tsubin</span><span class="mobile-brand-title">個人財務中心</span></h1>
           <p class="sub">台股、美股、現金、貴金屬、定期投入與支出規畫。</p>
         </div>
         <section class="actions" aria-label="操作工具">
@@ -5564,7 +5569,7 @@
     autoApplyLatestPrices();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=82").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=83").catch(() => {});
       });
     }
   </script>
