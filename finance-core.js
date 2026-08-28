@@ -178,6 +178,91 @@
     return (direct || units * price) * fxRate(assets, currency);
   }
 
+  function stockTradeKey(row) {
+    const market = String(row.market || "TW").trim().toUpperCase() === "US" ? "US" : "TW";
+    const code = String(row.code || "").trim().toUpperCase();
+    const currency = normalizeCurrency(row.currency || (market === "US" ? "USD" : "TWD"));
+    return code ? `${market}:${code}:${currency}` : "";
+  }
+
+  function manualStockRows(assets) {
+    return [
+      ...(assets.tw || []).map(row => ({ ...row, assetClass: "tw", market: "TW", currency: normalizeCurrency(row.currency || "TWD"), manualId: row.id || "" })),
+      ...(assets.us || []).map(row => ({ ...row, assetClass: "us", market: "US", currency: normalizeCurrency(row.currency || "USD"), manualId: row.id || "" }))
+    ].map(row => ({ ...row, key: stockTradeKey(row) }));
+  }
+
+  function stockPositionSummary(assets) {
+    const epsilon = 0.000001;
+    const manual = manualStockRows(assets);
+    const manualByKey = new Map();
+    manual.forEach(row => { if (row.key && !manualByKey.has(row.key)) manualByKey.set(row.key, row); });
+    const positions = new Map();
+    (assets.purchaseRecords || []).map((row, index) => ({ row, index })).sort((a, b) => String(a.row.date || "").localeCompare(String(b.row.date || "")) || a.index - b.index).forEach(({ row }) => {
+      const key = stockTradeKey(row);
+      const shares = Math.max(0, number(row.shares));
+      if (!key || !shares) return;
+      const type = row.type === "sell" ? "sell" : "buy";
+      const position = positions.get(key) || {
+        key, market: String(row.market || "TW").toUpperCase() === "US" ? "US" : "TW",
+        assetClass: String(row.market || "TW").toUpperCase() === "US" ? "us" : "tw",
+        currency: normalizeCurrency(row.currency || (row.market === "US" ? "USD" : "TWD")),
+        code: String(row.code || "").trim().toUpperCase(), name: row.name || "", bought: 0, sold: 0,
+        rawShares: 0, basis: 0, realized: 0, lastPrice: 0, lastDate: ""
+      };
+      const gross = shares * Math.max(0, number(row.price));
+      const fees = Math.max(0, number(row.fee)) + Math.max(0, number(row.tax));
+      position.name = row.name || position.name;
+      if (number(row.price) > 0) position.lastPrice = number(row.price);
+      position.lastDate = String(row.date || position.lastDate);
+      if (type === "sell") {
+        const available = Math.max(0, position.rawShares);
+        const appliedShares = Math.min(shares, available);
+        const averageCost = available > epsilon ? position.basis / available : 0;
+        const soldBasis = averageCost * appliedShares;
+        position.sold += shares;
+        position.rawShares -= shares;
+        position.basis = Math.max(0, position.basis - soldBasis);
+        position.realized += Math.max(0, gross - fees) - soldBasis;
+      } else {
+        position.bought += shares;
+        position.rawShares += shares;
+        position.basis += gross + fees;
+      }
+      positions.set(key, position);
+    });
+    const rows = [...positions.values()].map(position => {
+      const manualRow = manualByKey.get(position.key);
+      const shares = Math.max(0, position.rawShares);
+      const manualShares = Math.max(0, number(manualRow?.shares ?? manualRow?.units ?? manualRow?.quantity));
+      const currentPrice = number(manualRow?.currentPrice ?? manualRow?.price ?? manualRow?.marketPrice) || position.lastPrice;
+      const averageCost = shares > epsilon ? position.basis / shares : 0;
+      return {
+        ...position, shares, manualShares, currentPrice, averageCost,
+        value: shares * currentPrice * fxRate(assets, position.currency),
+        closed: position.bought > 0 && shares <= epsilon,
+        oversold: position.rawShares < -epsilon,
+        manualId: manualRow?.manualId || "",
+        manualAssetClass: manualRow?.assetClass || position.assetClass,
+        discrepancy: Boolean(manualRow && Math.abs(manualShares - shares) > epsilon),
+        source: "trades"
+      };
+    });
+    const managedKeys = new Set(rows.map(row => row.key));
+    const manualOnly = manual.filter(row => !row.key || !managedKeys.has(row.key)).map(row => {
+      const shares = Math.max(0, number(row.shares ?? row.units ?? row.quantity));
+      const currentPrice = number(row.currentPrice ?? row.price ?? row.marketPrice);
+      return { ...row, shares, currentPrice, value: holdingValue(row, assets, row.currency), closed: shares <= epsilon, source: "manual" };
+    });
+    return {
+      active: rows.filter(row => !row.closed),
+      closed: rows.filter(row => row.closed),
+      manualOnly: manualOnly.filter(row => !row.closed),
+      discrepancies: rows.filter(row => row.discrepancy || row.oversold),
+      managedKeys: [...managedKeys]
+    };
+  }
+
   function assetSummary(ledger, assets) {
     const accounts = accountBalances(ledger, assets);
     const regularCash = accounts.filter(row => row.type !== "信用卡").reduce((sum, row) => sum + row.twdBalance, 0);
@@ -185,8 +270,10 @@
     const manualCash = (assets.cash || []).filter(row => !knownNames.has(row.bank)).reduce((sum, row) => sum + number(row.amount) * fxRate(assets, row.currency), 0);
     const creditDebt = accounts.filter(row => row.type === "信用卡").reduce((sum, row) => sum + Math.max(0, row.twdBalance), 0);
     const legacyCards = (assets.cards || []).filter(row => !knownNames.has(row.card)).reduce((sum, row) => sum + Math.max(0, number(row.amount)), 0);
-    const tw = (assets.tw || []).reduce((sum, row) => sum + holdingValue(row, assets, "TWD"), 0);
-    const us = (assets.us || []).reduce((sum, row) => sum + holdingValue(row, assets, "USD"), 0);
+    const stockPositions = stockPositionSummary(assets);
+    const activeStocks = [...stockPositions.active, ...stockPositions.manualOnly];
+    const tw = activeStocks.filter(row => row.market === "TW").reduce((sum, row) => sum + number(row.value), 0);
+    const us = activeStocks.filter(row => row.market === "US").reduce((sum, row) => sum + number(row.value), 0);
     const funds = [...(assets.funds || []), ...(assets.usdFunds || [])].reduce((sum, row) => sum + holdingValue(row, assets, row.currency || "TWD"), 0);
     const gold = (assets.gold || []).reduce((sum, row) => sum + (holdingValue(row, assets, "TWD") || number(row.grams ?? row.quantity) * number(assets.rates?.goldGram)), 0);
     const silver = (assets.silver || []).reduce((sum, row) => sum + (holdingValue(row, assets, "TWD") || number(row.ounces ?? row.quantity) * number(assets.rates?.silverOz)), 0);
@@ -633,6 +720,22 @@
   function addHolding(values) { const {ledger,assets}=load(); const rows=holdingCollection(assets,values.assetClass); rows.push({id:uid("holding"),code:String(values.code||"").trim().toUpperCase(),name:values.name||"",shares:Math.max(0,number(values.shares)),units:Math.max(0,number(values.shares)),price:Math.max(0,number(values.price)),currency:normalizeCurrency(values.currency||((values.assetClass==="us"||values.assetClass==="usdFunds")?"USD":"TWD")),createdAt:nowIso()}); return persist(ledger,assets,"新增投資持倉"); }
   function updateHolding(assetClass,id,values) { const {ledger,assets}=load(); const source=holdingCollection(assets,assetClass),index=source.findIndex(item=>item.id===id),row=source[index]; if(!row)throw new Error("找不到這筆持倉"); Object.assign(row,{code:String(values.code||"").trim().toUpperCase(),name:values.name||"",shares:Math.max(0,number(values.shares)),units:Math.max(0,number(values.shares)),price:Math.max(0,number(values.price)),currency:normalizeCurrency(values.currency||row.currency||"TWD"),updatedAt:nowIso()}); if(values.assetClass&&values.assetClass!==assetClass){source.splice(index,1);holdingCollection(assets,values.assetClass).push(row);} return persist(ledger,assets,"修改投資持倉"); }
   function removeHolding(assetClass,id) { const {ledger,assets}=load(); const rows=holdingCollection(assets,assetClass),index=rows.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆持倉"); rows.splice(index,1); return persist(ledger,assets,"刪除投資持倉"); }
+  function syncLegacyHolding(key) {
+    const { ledger, assets } = load();
+    const summary = stockPositionSummary(assets);
+    const position = [...summary.active, ...summary.closed].find(row => row.key === key);
+    if (!position || !position.manualId) throw new Error("找不到可同步的舊持倉");
+    const rows = holdingCollection(assets, position.manualAssetClass);
+    const row = rows.find(item => item.id === position.manualId);
+    if (!row) throw new Error("找不到舊持倉資料");
+    if (row.legacySharesBeforeTradeSync === undefined) row.legacySharesBeforeTradeSync = number(row.shares ?? row.units ?? row.quantity);
+    row.shares = position.shares;
+    if ("units" in row) row.units = position.shares;
+    if ("quantity" in row) row.quantity = position.shares;
+    row.tradeManaged = true;
+    row.reconciledAt = nowIso();
+    return persist(ledger, assets, position.closed ? "同步已出清持倉" : "同步交易持股");
+  }
   function addAssetSnapshot(values={}) { const {ledger,assets}=load(); const summary=assetSummary(ledger,assets); const date=values.date||localDate(); assets.assetSnapshots=assets.assetSnapshots.filter(row=>row.date!==date); assets.assetSnapshots.push({id:uid("snapshot"),date,total:summary.totalAssets,liabilities:summary.liabilities,net:summary.netWorth,createdAt:nowIso()}); return persist(ledger,assets,"建立資產快照"); }
 
   function listBackups() { return readJson(KEYS.backups, []).map(({ data, ...meta }) => meta); }
@@ -667,6 +770,7 @@
     return {
       ledger, assets, events, updatedAt, deviceId,
       assetsSummary: assetSummary(ledger, assets),
+      stockPositions: stockPositionSummary(assets),
       month: monthSummary(ledger, assets),
       alerts: alerts(ledger, assets),
       averageMonthlyExpense: averageMonthlyExpense(ledger, assets)
@@ -680,7 +784,7 @@
     addRecurring, updateRecurring, removeRecurring, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
-    addHolding, updateHolding, removeHolding, addAssetSnapshot,
+    addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
     createBackup, listBackups, restoreBackup, importBundle,
     exportBundle, localDate, monthOf, fxRate
   };
