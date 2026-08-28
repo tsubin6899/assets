@@ -61,7 +61,7 @@
     .page-heading p{margin-top:7px;color:var(--muted);font-size:13px}
     .eyebrow{display:block;margin-bottom:5px;color:var(--blue);font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
     .grid{display:grid;gap:16px}.grid>*{min-width:0}
-    .page[data-domain="investments"]>*{width:100%;max-width:100%}.page[data-domain="investments"] .inline-item>*{min-width:0}
+    .page[data-section="investments"]>*{width:100%;max-width:100%}.page[data-section="investments"] .inline-item>*{min-width:0}
     .home-grid{grid-template-columns:minmax(0,1.65fr) minmax(320px,.85fr)}
     .two-col{grid-template-columns:repeat(2,minmax(0,1fr))}
     .three-col{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -150,10 +150,10 @@
       .secondary-track::after{content:"左右滑動";position:sticky;right:0;flex:0 0 auto;align-self:center;padding:5px 7px;border-radius:999px;color:#7b8797;background:rgba(238,243,246,.92);font-size:9px;font-weight:850;letter-spacing:.04em;pointer-events:none}
       .secondary-track button{min-height:38px;padding:8px 14px;border-color:#e2e9ef;border-radius:12px;color:#58677c;background:#fff;box-shadow:0 2px 7px rgba(28,50,76,.05);font-size:12px}
       .secondary-track button.active{color:#fff;border-color:transparent;background:linear-gradient(145deg,#285dca,#3979ed);box-shadow:0 7px 16px rgba(40,93,202,.28)}
-      .secondary-track[data-domain="daily"] button.active{background:linear-gradient(145deg,#d65d57,#e98a6f);box-shadow:0 7px 16px rgba(214,93,87,.28)}
-      .secondary-track[data-domain="accounts"] button.active{background:linear-gradient(145deg,#11877d,#25ae92);box-shadow:0 7px 16px rgba(17,135,125,.27)}
-      .secondary-track[data-domain="investments"] button.active{background:linear-gradient(145deg,#5d50b7,#3979ed);box-shadow:0 7px 16px rgba(74,77,175,.28)}
-      .secondary-track[data-domain="analysis"] button.active{background:linear-gradient(145deg,#7659c9,#9b6cd6);box-shadow:0 7px 16px rgba(118,89,201,.28)}
+      .secondary-track[data-section="daily"] button.active{background:linear-gradient(145deg,#d65d57,#e98a6f);box-shadow:0 7px 16px rgba(214,93,87,.28)}
+      .secondary-track[data-section="accounts"] button.active{background:linear-gradient(145deg,#11877d,#25ae92);box-shadow:0 7px 16px rgba(17,135,125,.27)}
+      .secondary-track[data-section="investments"] button.active{background:linear-gradient(145deg,#5d50b7,#3979ed);box-shadow:0 7px 16px rgba(74,77,175,.28)}
+      .secondary-track[data-section="analysis"] button.active{background:linear-gradient(145deg,#7659c9,#9b6cd6);box-shadow:0 7px 16px rgba(118,89,201,.28)}
       .secondary-track a{display:none}
       .page{width:100%;padding:17px 12px calc(178px + env(safe-area-inset-bottom))}.page-heading{align-items:flex-start}.page-heading h2{font-size:23px}.page-heading .action-btn{display:none}
       .two-col,.three-col,.four-col{grid-template-columns:1fr}.home-grid{grid-template-columns:1fr}.panel{padding:15px}.hero-card{min-height:0;padding:20px 16px}.hero-top{display:block}.net-worth{font-size:42px}.hero-metrics{grid-template-columns:1fr}.metric-card strong{font-size:23px}.form-grid{grid-template-columns:1fr}.form-grid .wide{grid-column:auto}.holding-grid{grid-template-columns:1fr 1fr}.allocation-row{grid-template-columns:58px 1fr 66px}.table-wrap{border:0}
@@ -246,14 +246,14 @@
       const allowed = routes[domain].tabs.map(row => row[0]);
       state.domain = domain; state.tab = allowed.includes(tab) ? tab : allowed[0];
       history.replaceState(null, "", `#${state.domain}/${state.tab}`);
-      document.querySelectorAll("[data-domain]").forEach(node => node.classList.toggle("active", node.dataset.domain === domain));
+      document.querySelectorAll(".primary-nav [data-domain],.mobile-nav [data-domain]").forEach(node => node.classList.toggle("active", node.dataset.domain === domain));
       renderSecondary(); render(); window.scrollTo({ top: 0, behavior: "auto" });
     }
     function hasCloudAuthCallback() { const hash=location.hash.replace(/^#/,"");return location.search.includes("code=")||/(^|&)(access_token|refresh_token|error|error_description|type)=/.test(hash); }
     function readRoute() { if(hasCloudAuthCallback()){state.domain="home";state.tab="overview";renderSecondary();render();return}const [domain, tab] = location.hash.replace(/^#/, "").split("/"); setRoute(domain || "home", tab || ""); }
     function renderSecondary() {
       const route = routes[state.domain];
-      secondaryNav.dataset.domain = state.domain;
+      secondaryNav.dataset.section = state.domain;
       secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id === state.tab ? "active" : ""}" data-tab="${id}">${label}</button>`).join("");
       requestAnimationFrame(() => { const active=secondaryNav.querySelector("button.active");if(!active)return;const left=Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2);secondaryNav.scrollTo({left,behavior:"smooth"}) });
     }
@@ -405,15 +405,15 @@
     function render() {
       current = FinanceCore.insights();
       const renderer = { home:renderHome, daily:renderDaily, accounts:renderAccounts, investments:renderInvestments, analysis:renderAnalysis }[state.domain] || renderHome;
-      app.dataset.domain = state.domain;
+      app.dataset.section = state.domain;
       app.innerHTML = renderer();
-      document.querySelectorAll("[data-domain]").forEach(node=>node.classList.toggle("active",node.dataset.domain===state.domain));
+      document.querySelectorAll(".primary-nav [data-domain],.mobile-nav [data-domain]").forEach(node=>node.classList.toggle("active",node.dataset.domain===state.domain));
       if(window.lucide) lucide.createIcons();
     }
     function formValues(form) { return Object.fromEntries(new FormData(form).entries()); }
     function download(name,data,type="application/json") { const blob=new Blob([data],{type});const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=name;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000); }
     document.addEventListener("click", event => {
-      const domain=event.target.closest("[data-domain]")?.dataset.domain;if(domain){setRoute(domain);return}
+      const domainControl=event.target.closest(".primary-nav [data-domain],.mobile-nav [data-domain]");const domain=domainControl?.dataset.domain;if(domain){setRoute(domain);return}
       const tab=event.target.closest("[data-tab]")?.dataset.tab;if(tab){setRoute(state.domain,tab);return}
       const go=event.target.closest("[data-go]")?.dataset.go;if(go){const [d,t]=go.split("/");setRoute(d,t);return}
       const calendarShift=event.target.closest("[data-calendar-shift]")?.dataset.calendarShift;if(calendarShift){ui.calendarMonth=shiftMonthValue(ui.calendarMonth,Number(calendarShift));ui.selectedDate=`${ui.calendarMonth}-01`;render();return}
@@ -496,7 +496,7 @@
     async function loadCloud(){if(!supabaseClient||!cloudUser)return;const {data:row,error}=await supabaseClient.from("asset_dashboard_profiles").select("data,updated_at").eq("user_id",cloudUser.id).maybeSingle();if(error||!row?.data){showToast(error?.message||"雲端目前沒有存檔");return}const remoteTime=new Date(row.updated_at).getTime();const localTime=new Date(current.updatedAt).getTime();if(remoteTime<localTime&&!confirm("本機資料比雲端新，仍要載入雲端版本嗎？目前本機資料會先備份。"))return;const {accountingLedger,...assetPayload}=row.data;FinanceCore.importBundle({assets:assetPayload,ledger:accountingLedger});showToast("已載入雲端資料並建立本機還原點");refresh()}
     document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");cloudStatus.addEventListener("click",()=>refreshCloudSession({notify:true,force:true}));cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();refreshCloudSession({notify:true,force:true})}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
     FinanceCore.touch("財務中心啟動"); readRoute(); initCloud(); armPrivacyTimer();
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=91").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=92").catch(()=>{});
   </script>
 </body>
 </html>
