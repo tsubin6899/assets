@@ -1806,6 +1806,8 @@
     .financial-pulse { background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(235,242,255,.94) 52%, rgba(237,252,247,.92)); }
     .cashflow-bridge { background: linear-gradient(135deg, #fffefa, #f0f5ff 55%, #f1fbf7); }
     body.finance-center-embedded .app-header .brand-row { display: none !important; }
+    body.finance-center-embedded .app-header .tabs,
+    body.finance-center-embedded .mobile-quick-nav { display: none !important; }
     body.finance-center-embedded .app-header { border-radius: 0; }
     body.finance-center-embedded .auth-status-badge { display: none !important; }
     @media (min-width: 981px) {
@@ -5529,6 +5531,10 @@
       }
       if (event.data?.type === "finance-center-refresh" && event.data.key === accountingStorageKey) render();
       if (event.data?.type !== "finance-center-action") return;
+      if (event.data.action === "tab") {
+        document.querySelector(`[data-tab="${event.data.value}"]`)?.click();
+        return;
+      }
       const actionMap = { login: "cloudLogin", save: "cloudSave", load: "cloudLoad", logout: "cloudLogout", updatePrices: "importPrices", privacy: "privacyToggle", theme: "themeToggle" };
       if (event.data.action === "login" && event.data.email) document.getElementById("cloudEmail").value = event.data.email;
       if (actionMap[event.data.action]) document.getElementById(actionMap[event.data.action])?.click();
@@ -5560,7 +5566,7 @@
     autoApplyLatestPrices();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=76").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=77").catch(() => {});
       });
     }
   </script>

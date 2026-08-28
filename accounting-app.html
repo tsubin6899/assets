@@ -1438,6 +1438,8 @@
     .chart-grid .chart-card:nth-child(4n + 4) { background: linear-gradient(145deg, #fffefb, #f8f2fa); }
     .monthly-pulse { background: linear-gradient(135deg, rgba(238,244,255,.98), rgba(236,251,245,.96) 55%, rgba(244,240,255,.94)); }
     body.finance-center-embedded .app-header .brand-row { display: none !important; }
+    body.finance-center-embedded .app-header .tabs,
+    body.finance-center-embedded .mobile-actions { display: none !important; }
     body.finance-center-embedded .app-header { border-radius: 0; }
     body.finance-center-embedded .auth-status-badge { display: none !important; }
     .view > .section-head:first-child { padding-left: 13px; border-left: 5px solid var(--view-color, var(--blue)); }
@@ -6659,6 +6661,10 @@
         render();
       }
       if (event.data?.type !== "finance-center-action") return;
+      if (event.data.action === "view") {
+        document.querySelector(`[data-view="${event.data.value}"]`)?.click();
+        return;
+      }
       const actionMap = { login: "cloudLogin", save: "cloudSave", load: "cloudLoad", logout: "cloudLogout", privacy: "privacyToggle", theme: "themeToggle" };
       if (event.data.action === "login" && event.data.email) document.getElementById("cloudEmail").value = event.data.email;
       if (actionMap[event.data.action]) document.getElementById(actionMap[event.data.action])?.click();
@@ -6673,7 +6679,7 @@
     window.addEventListener("resize", updateMobileHeaderOffset);
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-      navigator.serviceWorker.register("service-worker.js?v=76").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=77").catch(() => {});
       });
     }
   </script>

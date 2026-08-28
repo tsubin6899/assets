@@ -21,7 +21,8 @@
     h1 { margin:0; font-size: clamp(18px, 2.2vw, 23px); white-space:nowrap; }
     .sub { display:none; }
     .sync-note { justify-self:end; padding:6px 9px; border:1px solid rgba(255,255,255,.2); border-radius:9px; color:rgba(255,255,255,.82); background:rgba(255,255,255,.1); font-size:11px; white-space:nowrap; }
-    .center-nav { display:flex; gap:6px; overflow:auto; margin:0; padding-bottom:0; }
+    .center-nav { display:flex; align-items:center; gap:5px; overflow:auto; margin:0; padding-bottom:0; }
+    .nav-group { flex:0 0 auto; margin-left:8px; padding-left:10px; border-left:1px solid rgba(255,255,255,.24); color:rgba(255,255,255,.62); font-size:11px; font-weight:800; writing-mode:vertical-rl; }
     .center-nav button { border:1px solid rgba(255,255,255,.17); border-radius:10px; padding:10px 14px; color:rgba(255,255,255,.78); background:rgba(255,255,255,.08); font:inherit; font-weight:750; cursor:pointer; white-space:nowrap; }
     .center-nav button:hover { background:rgba(255,255,255,.16); }
     .center-nav button.active { color:var(--ink); background:#fff; box-shadow:0 5px 15px rgba(0,0,0,.13); }
@@ -37,8 +38,7 @@
     .center-tools button[data-center-action="dataManagement"] { background:#53627b; }
     .tool-state { margin-left:auto; color:rgba(255,255,255,.72); font-size:11px; white-space:nowrap; }
     .workspace { width:min(1560px,100%); margin:0 auto; }
-    .frame-wrap { display:none; overflow:hidden; min-height:calc(100vh - 108px); border:1px solid var(--line); border-radius:18px; background:#fff; box-shadow:0 12px 30px rgba(24,36,58,.10); }
-    .frame-wrap.active { display:block; }
+    .frame-wrap { overflow:hidden; min-height:calc(100vh - 108px); border:1px solid var(--line); border-radius:18px; background:#fff; box-shadow:0 12px 30px rgba(24,36,58,.10); }
     iframe { display:block; width:100%; height:calc(100vh - 108px); min-height:760px; border:0; background:#eef3f8; }
     .shortcut { margin:10px 0 0; color:var(--muted); font-size:12px; text-align:right; }
     @media (max-width:720px) { .center-shell{padding:0 0 10px;} .center-header{border-radius:0 0 16px 16px; padding:9px 10px;} .brand-row{display:flex; flex-wrap:wrap;} .brand-copy{flex:1 1 auto;} .center-nav{order:3; flex:1 0 100%; justify-content:flex-start;} .center-tools{margin-top:7px;} .center-tools input{width:128px;min-width:128px;} .tool-state{display:none;} .sync-note{display:none;} .frame-wrap{border-radius:0; border-left:0; border-right:0;} iframe{height:calc(100vh - 102px); min-height:760px;} .shortcut{padding:0 12px;} }
@@ -50,8 +50,32 @@
       <div class="brand-row">
         <div class="brand-copy"><div><div class="kicker">Personal Finance Center</div><h1>個人財務中心</h1><p class="sub">資產、記帳、帳戶、投資與報表集中在同一個入口。</p></div></div>
         <nav class="center-nav" aria-label="財務中心導覽">
-          <button class="active" type="button" data-center-view="assets">資產總覽</button>
-          <button type="button" data-center-view="ledger">日常記帳</button>
+          <span class="nav-group">記帳</span>
+          <button class="active" type="button" data-center-page="accounting:entryView">首頁</button>
+          <button type="button" data-center-page="accounting:analyticsView">明細</button>
+          <button type="button" data-center-page="accounting:accountView">帳戶</button>
+          <button type="button" data-center-page="accounting:accountLedgerView">帳戶明細</button>
+          <button type="button" data-center-page="accounting:transferView">轉帳</button>
+          <button type="button" data-center-page="accounting:creditView">信用卡</button>
+          <button type="button" data-center-page="accounting:creditReconcileView">對帳</button>
+          <button type="button" data-center-page="accounting:recurringView">固定收支</button>
+          <button type="button" data-center-page="accounting:categoryView">分類</button>
+          <span class="nav-group">個人資產</span>
+          <button type="button" data-center-page="assets:overview">總覽</button>
+          <button type="button" data-center-page="assets:cash">現金</button>
+          <button type="button" data-center-page="assets:tw">台股</button>
+          <button type="button" data-center-page="assets:us">美股</button>
+          <button type="button" data-center-page="assets:metal">貴金屬</button>
+          <button type="button" data-center-page="assets:fund">基金</button>
+          <button type="button" data-center-page="assets:dca">定期投入</button>
+          <button type="button" data-center-page="assets:watchlist">觀察名單</button>
+          <button type="button" data-center-page="assets:purchase">交易</button>
+          <button type="button" data-center-page="assets:dividend">股息</button>
+          <button type="button" data-center-page="assets:bookkeeping">記帳總覽</button>
+          <button type="button" data-center-page="assets:expense">支出規畫</button>
+          <button type="button" data-center-page="assets:allocation">資金分配</button>
+          <button type="button" data-center-page="assets:annual">年度報表</button>
+          <button type="button" data-center-page="assets:chart">圖表</button>
         </nav>
         <div class="sync-note" id="syncNote">資料由共用財務模組提供</div>
       </div>
@@ -69,43 +93,44 @@
       </section>
     </header>
     <section class="workspace" aria-label="財務中心內容">
-      <div class="frame-wrap active" id="assetsFrame"><iframe title="資產儀表板" src="personal-assets-dashboard.html?embedded=1&amp;v=76"></iframe></div>
-      <div class="frame-wrap" id="ledgerFrame"><iframe title="日常記帳 App" src="accounting-app.html?embedded=1&amp;v=76"></iframe></div>
-      <p class="shortcut">兩個功能使用同一個瀏覽器資料來源與雲端同步資料；切換分頁不會複製或搬移資料。</p>
+      <div class="frame-wrap" id="mainFrameWrap"><iframe id="mainFrame" title="個人財務中心內容" src="accounting-app.html?embedded=1&amp;v=77#quick-entry"></iframe></div>
+      <p class="shortcut">記帳與個人資產使用同一個財務中心、同一個瀏覽器資料來源與雲端同步資料。</p>
     </section>
   </main>
   <script>
-    const frames = { assets: document.getElementById("assetsFrame"), ledger: document.getElementById("ledgerFrame") };
+    const mainFrame = document.getElementById("mainFrame");
     const emailInput = document.getElementById("centerCloudEmail");
     const toolState = document.getElementById("toolState");
-    function activeFrame() { return frames[location.hash === "#ledger" ? "ledger" : "assets"].querySelector("iframe"); }
-    function sendToActive(message) { activeFrame()?.contentWindow?.postMessage(message, "*"); }
-    function compactEmbeddedFrame(frame) {
-      frame?.contentWindow?.postMessage({ type: "finance-center-shell", compact: true }, "*");
+    let activePage = "accounting:entryView";
+    function sendToActive(message) { mainFrame.contentWindow?.postMessage(message, "*"); }
+    function setEmbeddedShell() { sendToActive({ type: "finance-center-shell", compact: true }); }
+    function setActiveButton(page) { document.querySelectorAll("[data-center-page]").forEach(item => item.classList.toggle("active", item.dataset.centerPage === page)); }
+    function selectPage(page, { replace = false } = {}) {
+      const [module, view] = page.split(":");
+      activePage = page;
+      setActiveButton(page);
+      document.querySelectorAll("[data-assets-only]").forEach(item => item.hidden = module !== "assets");
+      toolState.textContent = module === "assets" ? "目前控制：個人資產" : "目前控制：記帳中心";
+      const target = module === "assets" ? `personal-assets-dashboard.html?embedded=1&v=77#${view}` : `accounting-app.html?embedded=1&v=77#${view === "entryView" ? "quick-entry" : view === "analyticsView" ? "analytics" : ""}`;
+      if (mainFrame.dataset.module !== module) { mainFrame.dataset.module = module; mainFrame.src = target; }
+      else sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view });
+      if (replace) history.replaceState(null, "", `#${page.replace(":", "-")}`);
     }
-    document.querySelectorAll("iframe").forEach(frame => frame.addEventListener("load", () => compactEmbeddedFrame(frame)));
+    mainFrame.addEventListener("load", () => { setEmbeddedShell(); const [module, view] = activePage.split(":"); setTimeout(() => sendToActive({ type: "finance-center-action", action: module === "assets" ? "tab" : "view", value: view }), 60); });
     document.querySelectorAll("[data-center-action]").forEach(button => button.addEventListener("click", () => {
       const action = button.dataset.centerAction;
       if (action === "login") sendToActive({ type: "finance-center-action", action, email: emailInput.value.trim() });
       else sendToActive({ type: "finance-center-action", action });
       toolState.textContent = action === "updatePrices" ? "正在更新市場資料…" : "工具已送出：" + button.textContent;
-      setTimeout(() => { toolState.textContent = location.hash === "#ledger" ? "目前控制：日常記帳" : "目前控制：資產總覽"; }, 1800);
+      setTimeout(() => { toolState.textContent = activePage.startsWith("assets:") ? "目前控制：個人資產" : "目前控制：記帳中心"; }, 1800);
     }));
-    document.querySelectorAll("[data-center-view]").forEach(button => button.addEventListener("click", () => {
-      const view = button.dataset.centerView;
-      document.querySelectorAll("[data-center-view]").forEach(item => item.classList.toggle("active", item === button));
-      Object.entries(frames).forEach(([key, frame]) => frame.classList.toggle("active", key === view));
-      document.querySelectorAll("[data-assets-only]").forEach(item => item.hidden = view !== "assets");
-      toolState.textContent = view === "ledger" ? "目前控制：日常記帳" : "目前控制：資產總覽";
-      history.replaceState(null, "", `#${view}`);
-      const target = frames[view].querySelector("iframe");
-      target?.contentWindow?.postMessage({ type: "finance-center-shell", compact: true }, "*");
-    }));
-    const initial = location.hash === "#ledger" ? "ledger" : "assets";
-    document.querySelector(`[data-center-view="${initial}"]`).click();
+    document.querySelectorAll("[data-center-page]").forEach(button => button.addEventListener("click", () => selectPage(button.dataset.centerPage, { replace: true })));
+    const initialHash = location.hash.replace(/^#/, "");
+    const initialPage = initialHash === "ledger" ? "accounting:entryView" : initialHash.startsWith("assets-") ? `assets:${initialHash.slice(7)}` : initialHash.startsWith("accounting-") ? `accounting:${initialHash.slice(10)}` : activePage;
+    selectPage(initialPage, { replace: false });
     window.addEventListener("storage", event => {
       if (!["personal-assets-dashboard-tsubin-v2", "personal-accounting-tsubin-v1"].includes(event.key)) return;
-      document.querySelectorAll("iframe").forEach(frame => frame.contentWindow?.postMessage({ type: "finance-center-refresh", key: event.key }, "*"));
+      sendToActive({ type: "finance-center-refresh", key: event.key });
     });
   </script>
 </body>
