@@ -6645,6 +6645,13 @@
       investmentCashFlowCache = { raw: null, data: {} };
       render();
     });
+    window.addEventListener("message", event => {
+      if (event.data?.type !== "finance-center-refresh") return;
+      if (event.data.key === dashboardStorageKey) {
+        investmentCashFlowCache = { raw: null, data: {} };
+        render();
+      }
+    });
     window.addEventListener("online", () => {
       autoSyncedUserId = "";
       cloudSyncError = false;

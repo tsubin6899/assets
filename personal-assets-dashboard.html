@@ -5518,6 +5518,10 @@
     window.addEventListener("storage", (event) => {
       if (event.key === accountingStorageKey && ["overview", "cash", "bookkeeping", "chart"].includes(currentTab)) render();
     });
+    window.addEventListener("message", (event) => {
+      if (event.data?.type !== "finance-center-refresh") return;
+      if (event.data.key === accountingStorageKey) render();
+    });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
         backgroundedAt = Date.now();

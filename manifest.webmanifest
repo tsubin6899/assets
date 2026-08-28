@@ -1,14 +1,14 @@
 {
-  "name": "個人資產儀表板｜阿斌 Tsubin",
-  "short_name": "資產儀表板",
-  "description": "整合台股、美股、現金、基金、貴金屬、資產配置與財務健康提醒。",
+  "name": "個人財務中心｜阿斌 Tsubin",
+  "short_name": "個人財務中心",
+  "description": "集中管理資產、記帳、帳戶、投資、負債與財務報表。",
   "lang": "zh-Hant-TW",
-  "start_url": "./personal-assets-dashboard.html",
+  "start_url": "./finance-center.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#edf0f2",
-  "theme_color": "#172033",
+  "background_color": "#eef3f8",
+  "theme_color": "#18243a",
   "icons": [
     {
       "src": "icons/icon-192.png",

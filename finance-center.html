@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>個人財務中心｜阿斌 Tsubin</title>
+  <meta name="theme-color" content="#18243a">
+  <meta name="application-name" content="個人財務中心">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <style>
+    :root { color-scheme: light; --ink:#18243a; --muted:#69778c; --line:#d7e0eb; --blue:#3478f6; --green:#20b486; --purple:#8667d8; --bg:#eef3f8; }
+    * { box-sizing: border-box; }
+    html, body { min-height: 100%; margin: 0; }
+    body { color: var(--ink); font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; background: radial-gradient(circle at 8% 0%, rgba(102,166,247,.20), transparent 28%), radial-gradient(circle at 92% 12%, rgba(32,180,134,.16), transparent 26%), var(--bg); }
+    .center-shell { min-height: 100vh; padding: 14px; }
+    .center-header { width: min(1560px, 100%); margin: 0 auto 12px; padding: 18px 20px 14px; border-radius: 18px; color: #fff; background: linear-gradient(118deg, #18243a 0%, #3158c9 50%, #168b87 100%); box-shadow: 0 15px 36px rgba(24,36,58,.18); }
+    .brand-row { display:flex; align-items:center; justify-content:space-between; gap: 16px; }
+    .kicker { color:#ffd477; font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    h1 { margin:4px 0 0; font-size: clamp(22px, 3vw, 32px); }
+    .sub { margin:6px 0 0; color:rgba(255,255,255,.76); font-size:13px; }
+    .sync-note { padding:8px 11px; border:1px solid rgba(255,255,255,.2); border-radius:10px; color:rgba(255,255,255,.86); background:rgba(255,255,255,.1); font-size:12px; white-space:nowrap; }
+    .center-nav { display:flex; gap:8px; overflow:auto; margin-top:16px; padding-bottom:2px; }
+    .center-nav button { border:1px solid rgba(255,255,255,.17); border-radius:10px; padding:10px 14px; color:rgba(255,255,255,.78); background:rgba(255,255,255,.08); font:inherit; font-weight:750; cursor:pointer; white-space:nowrap; }
+    .center-nav button:hover { background:rgba(255,255,255,.16); }
+    .center-nav button.active { color:var(--ink); background:#fff; box-shadow:0 5px 15px rgba(0,0,0,.13); }
+    .workspace { width:min(1560px,100%); margin:0 auto; }
+    .frame-wrap { display:none; overflow:hidden; min-height:calc(100vh - 154px); border:1px solid var(--line); border-radius:18px; background:#fff; box-shadow:0 12px 30px rgba(24,36,58,.10); }
+    .frame-wrap.active { display:block; }
+    iframe { display:block; width:100%; height:calc(100vh - 154px); min-height:760px; border:0; background:#eef3f8; }
+    .shortcut { margin:10px 0 0; color:var(--muted); font-size:12px; text-align:right; }
+    @media (max-width:720px) { .center-shell{padding:0 0 10px;} .center-header{border-radius:0 0 16px 16px; padding:14px 14px 12px;} .brand-row{align-items:flex-start;} .sync-note{display:none;} .frame-wrap{border-radius:0; border-left:0; border-right:0;} iframe{height:calc(100vh - 132px); min-height:760px;} .shortcut{padding:0 12px;} }
+  </style>
+</head>
+<body>
+  <main class="center-shell">
+    <header class="center-header">
+      <div class="brand-row">
+        <div><div class="kicker">Personal Finance Center</div><h1>個人財務中心</h1><p class="sub">資產、記帳、帳戶、投資與報表集中在同一個入口。</p></div>
+        <div class="sync-note" id="syncNote">資料由共用財務模組提供</div>
+      </div>
+      <nav class="center-nav" aria-label="財務中心導覽">
+        <button class="active" type="button" data-center-view="assets">資產總覽</button>
+        <button type="button" data-center-view="ledger">日常記帳</button>
+      </nav>
+    </header>
+    <section class="workspace" aria-label="財務中心內容">
+      <div class="frame-wrap active" id="assetsFrame"><iframe title="資產儀表板" src="personal-assets-dashboard.html"></iframe></div>
+      <div class="frame-wrap" id="ledgerFrame"><iframe title="日常記帳 App" src="accounting-app.html"></iframe></div>
+      <p class="shortcut">兩個功能使用同一個瀏覽器資料來源與雲端同步資料；切換分頁不會複製或搬移資料。</p>
+    </section>
+  </main>
+  <script>
+    const frames = { assets: document.getElementById("assetsFrame"), ledger: document.getElementById("ledgerFrame") };
+    document.querySelectorAll("[data-center-view]").forEach(button => button.addEventListener("click", () => {
+      const view = button.dataset.centerView;
+      document.querySelectorAll("[data-center-view]").forEach(item => item.classList.toggle("active", item === button));
+      Object.entries(frames).forEach(([key, frame]) => frame.classList.toggle("active", key === view));
+      history.replaceState(null, "", `#${view}`);
+    }));
+    const initial = location.hash === "#ledger" ? "ledger" : "assets";
+    document.querySelector(`[data-center-view="${initial}"]`).click();
+    window.addEventListener("storage", event => {
+      if (!["personal-assets-dashboard-tsubin-v2", "personal-accounting-tsubin-v1"].includes(event.key)) return;
+      document.querySelectorAll("iframe").forEach(frame => frame.contentWindow?.postMessage({ type: "finance-center-refresh", key: event.key }, "*"));
+    });
+  </script>
+</body>
+</html>
