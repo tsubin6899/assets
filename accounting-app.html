@@ -1437,6 +1437,8 @@
     .chart-grid .chart-card:nth-child(4n + 3) { background: linear-gradient(145deg, #fffefb, #fff8ec); }
     .chart-grid .chart-card:nth-child(4n + 4) { background: linear-gradient(145deg, #fffefb, #f8f2fa); }
     .monthly-pulse { background: linear-gradient(135deg, rgba(238,244,255,.98), rgba(236,251,245,.96) 55%, rgba(244,240,255,.94)); }
+    body.finance-center-embedded .app-header .brand-row { display: none !important; }
+    body.finance-center-embedded .app-header { border-radius: 0; }
     .view > .section-head:first-child { padding-left: 13px; border-left: 5px solid var(--view-color, var(--blue)); }
     #entryView { --view-color: #20b486; }
     #analyticsView { --view-color: #3478f6; }
@@ -6646,11 +6648,18 @@
       render();
     });
     window.addEventListener("message", event => {
-      if (event.data?.type !== "finance-center-refresh") return;
-      if (event.data.key === dashboardStorageKey) {
+      if (event.data?.type === "finance-center-shell") {
+        document.body.classList.toggle("finance-center-embedded", Boolean(event.data.compact));
+        return;
+      }
+      if (event.data?.type === "finance-center-refresh" && event.data.key === dashboardStorageKey) {
         investmentCashFlowCache = { raw: null, data: {} };
         render();
       }
+      if (event.data?.type !== "finance-center-action") return;
+      const actionMap = { login: "cloudLogin", save: "cloudSave", load: "cloudLoad", logout: "cloudLogout", privacy: "privacyToggle", theme: "themeToggle" };
+      if (event.data.action === "login" && event.data.email) document.getElementById("cloudEmail").value = event.data.email;
+      if (actionMap[event.data.action]) document.getElementById(actionMap[event.data.action])?.click();
     });
     window.addEventListener("online", () => {
       autoSyncedUserId = "";

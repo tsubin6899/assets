@@ -14,7 +14,7 @@
     html, body { min-height: 100%; margin: 0; }
     body { color: var(--ink); font-family: "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif; background: radial-gradient(circle at 8% 0%, rgba(102,166,247,.20), transparent 28%), radial-gradient(circle at 92% 12%, rgba(32,180,134,.16), transparent 26%), var(--bg); }
     .center-shell { min-height: 100vh; padding: 14px; }
-    .center-header { width: min(1560px, 100%); margin: 0 auto 12px; padding: 9px 14px; border-radius: 14px; color: #fff; background: linear-gradient(118deg, #18243a 0%, #3158c9 50%, #168b87 100%); box-shadow: 0 10px 24px rgba(24,36,58,.16); }
+    .center-header { width: min(1560px, 100%); margin: 0 auto 12px; padding: 9px 14px 10px; border-radius: 14px; color: #fff; background: linear-gradient(118deg, #18243a 0%, #3158c9 50%, #168b87 100%); box-shadow: 0 10px 24px rgba(24,36,58,.16); }
     .brand-row { display:flex; align-items:center; justify-content:space-between; gap: 12px; }
     .brand-copy { min-width: 0; display:flex; align-items:center; gap:10px; }
     .kicker { display:none; }
@@ -25,12 +25,23 @@
     .center-nav button { border:1px solid rgba(255,255,255,.17); border-radius:10px; padding:10px 14px; color:rgba(255,255,255,.78); background:rgba(255,255,255,.08); font:inherit; font-weight:750; cursor:pointer; white-space:nowrap; }
     .center-nav button:hover { background:rgba(255,255,255,.16); }
     .center-nav button.active { color:var(--ink); background:#fff; box-shadow:0 5px 15px rgba(0,0,0,.13); }
+    .center-tools { display:flex; align-items:center; gap:6px; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.16); overflow:auto; }
+    .center-tools input { width:150px; min-width:150px; height:32px; padding:0 9px; border:1px solid rgba(255,255,255,.25); border-radius:8px; color:#fff; background:rgba(255,255,255,.12); outline:0; }
+    .center-tools input::placeholder { color:rgba(255,255,255,.68); }
+    .center-tools button { min-height:32px; padding:6px 10px; border:1px solid rgba(255,255,255,.18); border-radius:8px; color:#fff; background:rgba(255,255,255,.1); font:inherit; font-size:12px; font-weight:750; cursor:pointer; white-space:nowrap; }
+    .center-tools button:hover { background:rgba(255,255,255,.2); }
+    .center-tools button[data-center-action="login"], .center-tools button[data-center-action="updatePrices"] { background:#3478f6; }
+    .center-tools button[data-center-action="save"] { background:#20b486; }
+    .center-tools button[data-center-action="load"], .center-tools button[data-center-action="theme"] { background:#8667d8; }
+    .center-tools button[data-center-action="privacy"] { background:#4b6ee8; }
+    .center-tools button[data-center-action="dataManagement"] { background:#53627b; }
+    .tool-state { margin-left:auto; color:rgba(255,255,255,.72); font-size:11px; white-space:nowrap; }
     .workspace { width:min(1560px,100%); margin:0 auto; }
     .frame-wrap { display:none; overflow:hidden; min-height:calc(100vh - 108px); border:1px solid var(--line); border-radius:18px; background:#fff; box-shadow:0 12px 30px rgba(24,36,58,.10); }
     .frame-wrap.active { display:block; }
     iframe { display:block; width:100%; height:calc(100vh - 108px); min-height:760px; border:0; background:#eef3f8; }
     .shortcut { margin:10px 0 0; color:var(--muted); font-size:12px; text-align:right; }
-    @media (max-width:720px) { .center-shell{padding:0 0 10px;} .center-header{border-radius:0 0 16px 16px; padding:9px 10px;} .brand-row{flex-wrap:wrap;} .brand-copy{flex:1 1 auto;} .center-nav{order:3; flex:1 0 100%; justify-content:flex-start;} .sync-note{display:none;} .frame-wrap{border-radius:0; border-left:0; border-right:0;} iframe{height:calc(100vh - 102px); min-height:760px;} .shortcut{padding:0 12px;} }
+    @media (max-width:720px) { .center-shell{padding:0 0 10px;} .center-header{border-radius:0 0 16px 16px; padding:9px 10px;} .brand-row{flex-wrap:wrap;} .brand-copy{flex:1 1 auto;} .center-nav{order:3; flex:1 0 100%; justify-content:flex-start;} .center-tools{margin-top:7px;} .center-tools input{width:128px;min-width:128px;} .tool-state{display:none;} .sync-note{display:none;} .frame-wrap{border-radius:0; border-left:0; border-right:0;} iframe{height:calc(100vh - 102px); min-height:760px;} .shortcut{padding:0 12px;} }
   </style>
 </head>
 <body>
@@ -44,6 +55,18 @@
         </nav>
         <div class="sync-note" id="syncNote">資料由共用財務模組提供</div>
       </div>
+      <section class="center-tools" aria-label="財務中心工具列">
+        <input id="centerCloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
+        <button type="button" data-center-action="login">登入同步</button>
+        <button type="button" data-center-action="save">儲存</button>
+        <button type="button" data-center-action="load">載入</button>
+        <button type="button" data-center-action="logout">登出</button>
+        <button type="button" data-center-action="updatePrices" data-assets-only>更新估值</button>
+        <button type="button" data-center-action="privacy">隱私模式</button>
+        <button type="button" data-center-action="theme">深色模式</button>
+        <button type="button" data-center-action="dataManagement" data-assets-only>資料管理</button>
+        <span class="tool-state" id="toolState">目前控制：資產總覽</span>
+      </section>
     </header>
     <section class="workspace" aria-label="財務中心內容">
       <div class="frame-wrap active" id="assetsFrame"><iframe title="資產儀表板" src="personal-assets-dashboard.html"></iframe></div>
@@ -53,11 +76,30 @@
   </main>
   <script>
     const frames = { assets: document.getElementById("assetsFrame"), ledger: document.getElementById("ledgerFrame") };
+    const emailInput = document.getElementById("centerCloudEmail");
+    const toolState = document.getElementById("toolState");
+    function activeFrame() { return frames[location.hash === "#ledger" ? "ledger" : "assets"].querySelector("iframe"); }
+    function sendToActive(message) { activeFrame()?.contentWindow?.postMessage(message, "*"); }
+    function compactEmbeddedFrame(frame) {
+      frame?.contentWindow?.postMessage({ type: "finance-center-shell", compact: true }, "*");
+    }
+    document.querySelectorAll("iframe").forEach(frame => frame.addEventListener("load", () => compactEmbeddedFrame(frame)));
+    document.querySelectorAll("[data-center-action]").forEach(button => button.addEventListener("click", () => {
+      const action = button.dataset.centerAction;
+      if (action === "login") sendToActive({ type: "finance-center-action", action, email: emailInput.value.trim() });
+      else sendToActive({ type: "finance-center-action", action });
+      toolState.textContent = action === "updatePrices" ? "正在更新市場資料…" : "工具已送出：" + button.textContent;
+      setTimeout(() => { toolState.textContent = location.hash === "#ledger" ? "目前控制：日常記帳" : "目前控制：資產總覽"; }, 1800);
+    }));
     document.querySelectorAll("[data-center-view]").forEach(button => button.addEventListener("click", () => {
       const view = button.dataset.centerView;
       document.querySelectorAll("[data-center-view]").forEach(item => item.classList.toggle("active", item === button));
       Object.entries(frames).forEach(([key, frame]) => frame.classList.toggle("active", key === view));
+      document.querySelectorAll("[data-assets-only]").forEach(item => item.hidden = view !== "assets");
+      toolState.textContent = view === "ledger" ? "目前控制：日常記帳" : "目前控制：資產總覽";
       history.replaceState(null, "", `#${view}`);
+      const target = frames[view].querySelector("iframe");
+      target?.contentWindow?.postMessage({ type: "finance-center-shell", compact: true }, "*");
     }));
     const initial = location.hash === "#ledger" ? "ledger" : "assets";
     document.querySelector(`[data-center-view="${initial}"]`).click();

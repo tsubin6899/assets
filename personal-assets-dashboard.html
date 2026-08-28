@@ -1805,6 +1805,8 @@
     .net-worth-hero { background: linear-gradient(125deg, #192a55 0%, #3158c9 52%, #168b87 100%); }
     .financial-pulse { background: linear-gradient(135deg, rgba(255,255,255,.98), rgba(235,242,255,.94) 52%, rgba(237,252,247,.92)); }
     .cashflow-bridge { background: linear-gradient(135deg, #fffefa, #f0f5ff 55%, #f1fbf7); }
+    body.finance-center-embedded .app-header .brand-row { display: none !important; }
+    body.finance-center-embedded .app-header { border-radius: 0; }
     @media (min-width: 981px) {
       .section-title { display: flex; align-items: center; gap: 9px; }
       .section-title-icon {
@@ -5519,8 +5521,16 @@
       if (event.key === accountingStorageKey && ["overview", "cash", "bookkeeping", "chart"].includes(currentTab)) render();
     });
     window.addEventListener("message", (event) => {
-      if (event.data?.type !== "finance-center-refresh") return;
-      if (event.data.key === accountingStorageKey) render();
+      if (event.data?.type === "finance-center-shell") {
+        document.body.classList.toggle("finance-center-embedded", Boolean(event.data.compact));
+        return;
+      }
+      if (event.data?.type === "finance-center-refresh" && event.data.key === accountingStorageKey) render();
+      if (event.data?.type !== "finance-center-action") return;
+      const actionMap = { login: "cloudLogin", save: "cloudSave", load: "cloudLoad", logout: "cloudLogout", updatePrices: "importPrices", privacy: "privacyToggle", theme: "themeToggle" };
+      if (event.data.action === "login" && event.data.email) document.getElementById("cloudEmail").value = event.data.email;
+      if (actionMap[event.data.action]) document.getElementById(actionMap[event.data.action])?.click();
+      if (event.data.action === "dataManagement") document.querySelector("[data-open-data-management]")?.click();
     });
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) {
