@@ -2598,6 +2598,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
   <script>
+    if (new URLSearchParams(location.search).get("embedded") === "1") document.body.classList.add("finance-center-embedded");
     const storageKey = "personal-assets-dashboard-tsubin-v2";
     const accountingStorageKey = "personal-accounting-tsubin-v1";
     const metaKey = "personal-assets-dashboard-tsubin-ui-meta-v1";
@@ -5559,7 +5560,7 @@
     autoApplyLatestPrices();
     if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("service-worker.js").catch(() => {});
+      navigator.serviceWorker.register("service-worker.js?v=76").catch(() => {});
       });
     }
   </script>
