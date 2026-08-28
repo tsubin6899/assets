@@ -38,6 +38,72 @@
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   }
   function monthOf(date = localDate()) { return String(date).slice(0, 7); }
+  function shiftMonthValue(month = monthOf(), offset = 0) {
+    const [year, monthNumber] = String(month).split("-").map(Number);
+    const date = new Date(year, monthNumber - 1 + number(offset), 1);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+  }
+  function daysInMonth(month = monthOf()) {
+    const [year, monthNumber] = String(month).split("-").map(Number);
+    return new Date(year, monthNumber, 0).getDate();
+  }
+  function recurringDatesForMonth(rule, month = monthOf()) {
+    const cycle = ["weekly", "monthly", "yearly"].includes(rule?.cycle) ? rule.cycle : "monthly";
+    const endDate = String(rule?.endDate || "");
+    const startMonth = String(rule?.startMonth || rule?.createdAt || "").slice(0, 7);
+    const startDate = String(rule?.startDate || rule?.createdAt || "").slice(0, 10);
+    if (startMonth && month < startMonth) return [];
+    const dates = [];
+    if (cycle === "weekly") {
+      const targetDow = number(rule?.day) >= 7 ? 0 : Math.max(1, number(rule?.day) || 1);
+      for (let day = 1; day <= daysInMonth(month); day += 1) {
+        const date = `${month}-${String(day).padStart(2, "0")}`;
+        if (new Date(`${date}T00:00:00`).getDay() === targetDow && (!startDate || date >= startDate) && (!endDate || date <= endDate)) dates.push(date);
+      }
+      return dates;
+    }
+    if (cycle === "yearly") {
+      const annualMonth = String(rule?.startMonth || rule?.createdAt || month).slice(5, 7);
+      if (month.slice(5, 7) !== annualMonth) return [];
+    }
+    const date = `${month}-${String(Math.min(Math.max(1, number(rule?.day) || 1), daysInMonth(month))).padStart(2, "0")}`;
+    return (!startDate || date >= startDate) && (!endDate || date <= endDate) ? [date] : [];
+  }
+  function recurringScheduledDate(entry) { return String(entry?.scheduledDate || entry?.date || ""); }
+  function recurringOccurrences(ledger, month = monthOf(), asOf = localDate()) {
+    const entries = Array.isArray(ledger?.entries) ? ledger.entries : [];
+    return (ledger?.recurringRules || []).flatMap(rule => recurringDatesForMonth(rule, month).map(scheduledDate => {
+      const existing = entries.find(row => row.recurringId === rule.id && recurringScheduledDate(row) === scheduledDate);
+      if (existing?.recurringSkipped) return null;
+      const date = String(existing?.date || scheduledDate);
+      return {
+        id: existing?.id || `projected:${rule.id}:${scheduledDate}`, sourceId: existing?.id || "", ruleId: rule.id,
+        type: existing ? (existing.type === "income" ? "income" : "expense") : (rule.type === "income" ? "income" : "expense"), date, scheduledDate,
+        amount: number(existing?.amount ?? rule.amount), category: existing?.category || rule.category || "未分類",
+        item: existing?.item || rule.item || "", account: existing?.account || rule.account || "",
+        merchant: existing?.merchant || rule.name || "固定收支", note: existing?.note || "固定收支預定項目",
+        pending: Boolean(date > asOf), virtual: !existing, recurringId: rule.id
+      };
+    }).filter(Boolean));
+  }
+  function materializeDueRecurring(ledger, asOf = localDate()) {
+    if (!ledger || !Array.isArray(ledger.entries)) return 0;
+    const month = monthOf(asOf);
+    let created = 0;
+    (ledger.recurringRules || []).forEach(rule => recurringDatesForMonth(rule, month).forEach(scheduledDate => {
+      if (scheduledDate > asOf) return;
+      const exists = ledger.entries.some(row => row.recurringId === rule.id && recurringScheduledDate(row) === scheduledDate);
+      if (exists) return;
+      ledger.entries.push({
+        id: uid("entry"), type: rule.type === "income" ? "income" : "expense", date: scheduledDate,
+        amount: Math.max(0, number(rule.amount)), category: rule.category || "未分類", item: rule.item || "",
+        account: rule.account || "", merchant: rule.name || "固定收支", note: "固定收支到期自動入帳",
+        recurringId: rule.id, scheduledDate, recurringRealizedAt: nowIso(), createdAt: nowIso()
+      });
+      created += 1;
+    }));
+    return created;
+  }
   function number(value) { const result = Number(value); return Number.isFinite(result) ? result : 0; }
   function normalizeCurrency(value) { return String(value || "TWD").trim().toUpperCase() || "TWD"; }
   function unique(list) { return [...new Set((list || []).filter(Boolean))]; }
@@ -103,7 +169,7 @@
         date: row.date || "", title: row.merchant || row.item || row.category || (row.type === "income" ? "收入" : "支出"),
         category: row.category || "未分類", account: row.account || "", currency, amount,
         twdAmount: amount * fxRate(assets, currency), direction: row.type === "income" ? 1 : -1,
-        pending: Boolean(row.recurringId && String(row.date || "") > localDate()), note: row.note || "", raw: row
+        pending: Boolean(row.date && String(row.date) > localDate()), note: row.note || "", raw: row
       };
     });
     const transfers = (ledger.transfers || []).map(row => ({
@@ -359,12 +425,15 @@
     const previous = readJson(KEYS.unified, {});
     const ledger = ensureLedger(readJson(KEYS.ledger, emptyLedger));
     const assets = ensureAssets(readJson(KEYS.assets, emptyAssets));
+    const materialized = materializeDueRecurring(ledger);
+    if (materialized) writeJson(KEYS.ledger, ledger);
     return {
       schemaVersion: VERSION,
-      updatedAt: previous.updatedAt || nowIso(),
+      updatedAt: materialized ? nowIso() : (previous.updatedAt || nowIso()),
       deviceId: preferences().deviceId,
       ledger, assets,
-      events: buildEvents(ledger, assets)
+      events: buildEvents(ledger, assets),
+      ...(materialized ? { lastMutation: `固定收支到期自動入帳 ${materialized} 筆` } : {})
     };
   }
 
@@ -607,7 +676,7 @@
       id: uid("recurring"), type: values.type === "income" ? "income" : "expense", name: String(values.name || "").trim(),
       amount: Math.max(0, number(values.amount)), category: values.category || "未分類", item: values.item || "",
       account: values.account || "", cycle: ["weekly", "monthly", "yearly"].includes(values.cycle) ? values.cycle : "monthly",
-      day: Math.min(31, Math.max(1, number(values.day) || 1)), endDate: values.endDate || "", startMonth: monthOf(), createdAt: nowIso()
+      day: Math.min(31, Math.max(1, number(values.day) || 1)), endDate: values.endDate || "", startMonth: monthOf(), startDate: localDate(), createdAt: nowIso()
     };
     if (!row.name || !row.amount || !row.account) throw new Error("請完整填寫固定收支");
     ledger.recurringRules.push(row);
@@ -801,6 +870,7 @@
 
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
+    recurringDatesForMonth, recurringOccurrences, materializeDueRecurring,
     addEntry, updateEntry, removeEntry, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
     addRecurring, updateRecurring, removeRecurring, upsertBudget, removeBudget,
