@@ -437,6 +437,85 @@
     return result.slice(0, 12);
   }
 
+  function addDays(dateString, days) {
+    const date = new Date(`${dateString}T00:00:00`);
+    date.setDate(date.getDate() + number(days));
+    return localDate(date);
+  }
+
+  function projectedRecurring(ledger, assets, endDate) {
+    const today = localDate();
+    const startMonth = monthOf(today);
+    const endMonth = monthOf(endDate);
+    const accountMap = new Map((ledger.accounts || []).map(row => [row.name, row]));
+    const months = [];
+    for (let offset = 0; offset < 18; offset += 1) {
+      const month = shiftMonthValue(startMonth, offset);
+      if (month > endMonth) break;
+      months.push(month);
+    }
+    return months.flatMap(month => recurringOccurrences(ledger, month, today)).filter(row => row.scheduledDate > today && row.scheduledDate <= endDate).map(row => {
+      const currency = normalizeCurrency(accountMap.get(row.account)?.currency || "TWD");
+      return { ...row, currency, twdAmount: number(row.amount) * fxRate(assets, currency) };
+    });
+  }
+
+  function financialForecast(ledger, assets, horizons = [30, 60, 90]) {
+    const today = localDate();
+    const maxHorizon = Math.max(...horizons.map(number), 90);
+    const recurring = projectedRecurring(ledger, assets, addDays(today, maxHorizon));
+    const averageExpense = averageMonthlyExpense(ledger, assets);
+    const recurringExpense90 = recurring.filter(row => row.type !== "income" && row.scheduledDate <= addDays(today, 90)).reduce((sum, row) => sum + row.twdAmount, 0);
+    const fixedMonthlyExpense = recurringExpense90 / 3;
+    const variableMonthlyExpense = Math.max(0, averageExpense - fixedMonthlyExpense);
+    const openingCash = assetSummary(ledger, assets).cash;
+    const rows = horizons.map(days => {
+      const endDate = addDays(today, days);
+      const scheduled = recurring.filter(row => row.scheduledDate <= endDate);
+      const recurringIncome = scheduled.filter(row => row.type === "income").reduce((sum, row) => sum + row.twdAmount, 0);
+      const recurringExpense = scheduled.filter(row => row.type !== "income").reduce((sum, row) => sum + row.twdAmount, 0);
+      const bills = (ledger.creditBills || []).filter(row => !row.paid && row.dueDate && row.dueDate > today && row.dueDate <= endDate).reduce((sum, row) => sum + number(row.amount), 0);
+      const variableExpense = variableMonthlyExpense * days / 30;
+      const projectedCash = openingCash + recurringIncome - recurringExpense - bills - variableExpense;
+      return { days, endDate, openingCash, recurringIncome, recurringExpense, bills, variableExpense, projectedCash };
+    });
+    const safetyTarget = averageExpense * Math.max(3, number(assets.safety?.safetyMonths) || 6);
+    const investableAmount = Math.max(0, number(rows.find(row => row.days === 30)?.projectedCash ?? rows[0]?.projectedCash) - safetyTarget);
+    return { asOf: today, averageExpense, fixedMonthlyExpense, variableMonthlyExpense, safetyTarget, investableAmount, rows };
+  }
+
+  function investmentPerformance(assets) {
+    const positions = stockPositionSummary(assets);
+    const activeValue = [...positions.active, ...positions.manualOnly].reduce((sum, row) => sum + number(row.value), 0);
+    const managedCost = positions.active.reduce((sum, row) => sum + number(row.basis) * fxRate(assets, row.currency), 0);
+    const manualCost = positions.manualOnly.reduce((sum, row) => sum + number(row.cost ?? row.totalCost ?? 0) * fxRate(assets, row.currency), 0);
+    const cost = managedCost + manualCost;
+    const realized = positions.trades.filter(row => row.type === "sell").reduce((sum, row) => sum + number(row.twdRealized), 0);
+    return { value: activeValue, cost, unrealized: activeValue - cost, unrealizedRate: cost ? (activeValue - cost) / cost * 100 : 0, realized };
+  }
+
+  function financialHealth(ledger, assets) {
+    const summary = assetSummary(ledger, assets);
+    const month = monthSummary(ledger, assets);
+    const averageExpense = averageMonthlyExpense(ledger, assets);
+    const safetyMonths = averageExpense > 0 ? summary.cash / averageExpense : 0;
+    const debtRatio = summary.totalAssets > 0 ? summary.liabilities / summary.totalAssets : 0;
+    const allocationValues = Object.values(summary.allocation).filter(value => value > 0);
+    const allocationTotal = allocationValues.reduce((sum, value) => sum + value, 0);
+    const largestAllocation = allocationTotal ? Math.max(...allocationValues) / allocationTotal : 1;
+    const budgetUsage = month.budget ? month.expense / month.budget : null;
+    const breakdown = {
+      safety: Math.round(Math.min(30, Math.max(0, safetyMonths / 6 * 30))),
+      cashflow: month.balance >= 0 ? 20 : Math.round(Math.max(0, 20 + month.balance / Math.max(month.expense, 1) * 20)),
+      debt: Math.round(Math.max(0, 20 * (1 - Math.min(1, debtRatio / 0.5)))),
+      budget: budgetUsage === null ? 8 : Math.round(Math.max(0, 15 * (1 - Math.max(0, budgetUsage - 0.8) / 0.7))),
+      diversification: Math.round(Math.max(0, 15 * (1 - Math.max(0, largestAllocation - 0.4) / 0.6)))
+    };
+    const score = Math.max(0, Math.min(100, Object.values(breakdown).reduce((sum, value) => sum + value, 0)));
+    const grade = score >= 85 ? "穩健" : score >= 70 ? "良好" : score >= 55 ? "需留意" : "需要調整";
+    return { score, grade, breakdown, safetyMonths, debtRatio, budgetUsage, largestAllocation };
+  }
+
   function buildEnvelope() {
     const previous = readJson(KEYS.unified, {});
     const ledger = ensureLedger(readJson(KEYS.ledger, emptyLedger));
@@ -541,6 +620,60 @@
     recycle(ledger, "entry", ledger.entries[index]);
     ledger.entries.splice(index, 1);
     return persist(ledger, assets, "刪除收支紀錄");
+  }
+
+  function saveEntryTemplate(id) {
+    const { ledger, assets } = load();
+    const entry = ledger.entries.find(row => row.id === id);
+    if (!entry) throw new Error("找不到這筆收支紀錄");
+    const signature = [entry.type, entry.amount, entry.category, entry.item, entry.account, entry.merchant].join("|");
+    const existing = ledger.templates.find(row => row.signature === signature);
+    const template = {
+      id: existing?.id || uid("template"), signature,
+      name: entry.merchant || entry.item || entry.category || (entry.type === "income" ? "收入範本" : "支出範本"),
+      type: entry.type === "income" ? "income" : "expense", amount: number(entry.amount), category: entry.category || "未分類",
+      item: entry.item || "", account: entry.account || "", merchant: entry.merchant || "", note: entry.note || "", updatedAt: nowIso()
+    };
+    if (existing) Object.assign(existing, template); else ledger.templates.unshift(template);
+    ledger.templates = ledger.templates.slice(0, 20);
+    return persist(ledger, assets, existing ? "更新記帳範本" : "建立記帳範本");
+  }
+
+  function removeTemplate(id) {
+    const { ledger, assets } = load();
+    const before = ledger.templates.length;
+    ledger.templates = ledger.templates.filter(row => row.id !== id);
+    if (before === ledger.templates.length) throw new Error("找不到這個記帳範本");
+    return persist(ledger, assets, "刪除記帳範本");
+  }
+
+  function entrySignature(row) {
+    return [String(row.date || "").slice(0, 10), row.type === "income" ? "income" : "expense", Math.round(number(row.amount) * 100) / 100, String(row.account || "").trim(), String(row.merchant || "").trim(), String(row.item || "").trim()].join("|").toLocaleLowerCase("zh-TW");
+  }
+
+  function importEntries(rows = []) {
+    const { ledger, assets } = load();
+    const existing = new Set(ledger.entries.map(entrySignature));
+    let imported = 0;
+    let duplicates = 0;
+    let invalid = 0;
+    rows.forEach(source => {
+      const row = {
+        id: uid("entry"), type: source.type === "income" ? "income" : "expense", date: String(source.date || "").slice(0, 10),
+        amount: Math.max(0, number(source.amount)), category: source.category || "未分類", item: source.item || "",
+        account: source.account || ledger.accounts[0]?.name || "", merchant: source.merchant || "", note: source.note || "",
+        createdAt: nowIso(), importedAt: nowIso(), importSource: source.importSource || "CSV"
+      };
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !row.amount || !row.account) { invalid += 1; return; }
+      const signature = entrySignature(row);
+      if (existing.has(signature)) { duplicates += 1; return; }
+      existing.add(signature);
+      ledger.entries.push(row);
+      ledger.categories[row.type] = unique([...(ledger.categories[row.type] || []), row.category]);
+      imported += 1;
+    });
+    if (imported) persist(ledger, assets, `匯入 ${imported} 筆收支紀錄`);
+    return { imported, duplicates, invalid };
   }
 
   function addTransfer(values) {
@@ -975,14 +1108,17 @@
       stockPositions: stockPositionSummary(assets),
       month: monthSummary(ledger, assets),
       alerts: alerts(ledger, assets),
-      averageMonthlyExpense: averageMonthlyExpense(ledger, assets)
+      averageMonthlyExpense: averageMonthlyExpense(ledger, assets),
+      forecast: financialForecast(ledger, assets),
+      investmentPerformance: investmentPerformance(assets),
+      health: financialHealth(ledger, assets)
     };
   }
 
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring,
-    addEntry, updateEntry, removeEntry, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
+    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
     addRecurring, updateRecurring, removeRecurring, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth,
@@ -990,6 +1126,6 @@
     addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
     marketSymbols, applyMarketSnapshot,
     createBackup, listBackups, restoreBackup, importBundle,
-    exportBundle, localDate, monthOf, fxRate
+    exportBundle, localDate, monthOf, fxRate, financialForecast, investmentPerformance, financialHealth
   };
 })();
