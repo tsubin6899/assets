@@ -1418,6 +1418,46 @@
       font-size: 11px;
       white-space: nowrap;
     }
+    .auth-status-badge {
+      position: absolute;
+      top: 10px;
+      right: 16px;
+      z-index: 2;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 28px;
+      padding: 4px 9px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 999px;
+      color: #fffdf7;
+      background: rgba(23,32,51,.72);
+      box-shadow: 0 6px 16px rgba(0,0,0,.16);
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .auth-status-badge::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #d35b4c;
+      box-shadow: 0 0 0 3px rgba(211,91,76,.18);
+    }
+    .auth-status-badge[data-state="logged-in"]::before {
+      background: #52c595;
+      box-shadow: 0 0 0 3px rgba(82,197,149,.18);
+    }
+    @media (max-width: 720px) {
+      .auth-status-badge {
+        top: 8px;
+        right: 10px;
+        min-height: 26px;
+        padding: 3px 8px;
+        font-size: 11px;
+      }
+    }
     .app-header .tabs {
       position: static;
       top: auto;
@@ -2337,6 +2377,7 @@
 <body>
   <main class="shell">
     <header class="app-header">
+      <div class="auth-status-badge" id="authStatusBadge" data-state="logged-out" role="status" aria-live="polite" title="目前雲端登入狀態">未登入</div>
       <div class="brand-row">
         <div class="brand-copy">
           <div class="product-switcher" aria-label="主要 App">
@@ -2678,6 +2719,12 @@
     }
     function updateCloudControls() {
       const loggedIn = Boolean(cloudUser);
+      const authBadge = document.getElementById("authStatusBadge");
+      if (authBadge) {
+        authBadge.textContent = loggedIn ? "已登入" : "未登入";
+        authBadge.dataset.state = loggedIn ? "logged-in" : "logged-out";
+        authBadge.title = loggedIn && cloudUser?.email ? `已登入：${cloudUser.email}` : "目前尚未登入雲端同步";
+      }
       document.getElementById("cloudSave").disabled = !loggedIn || cloudSyncInProgress;
       document.getElementById("cloudLoad").disabled = !loggedIn || cloudSyncInProgress;
       document.getElementById("cloudLogout").disabled = !loggedIn;
