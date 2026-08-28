@@ -3,7 +3,9 @@
 ## 主要入口
 
 - `finance-center.html`：原生單頁財務中心，提供首頁、日常記帳、帳戶與負債、投資資產、分析與報表。
-- `finance-core.js`：共用資料契約、舊資料遷移、財務事件、分析、備份、還原與寫入操作。
+- `finance-center-routes.js`：主要領域與分頁定義，避免分頁結構散落在畫面程式中。
+- `finance-core.js`：唯一財務資料來源，負責舊資料遷移、財務事件、餘額、持股、市值、分析、備份與所有寫入操作。
+- `finance-market.js`：讀取與觸發股價、匯率及估值更新，再交由 `finance-core.js` 統一套用。
 - `accounting-app.html`、`personal-assets-dashboard.html`：僅保留作為舊網址與資料格式相容頁；主介面已不再導向這兩個頁面。
 
 ## 四階段整併完成範圍
@@ -30,6 +32,18 @@
 - `dividend`：投資收入，可連動入款帳戶。
 
 信用卡消費增加負債；繳款以轉帳降低負債，不重複計算支出。
+
+帳戶餘額、月份收支、信用卡負債、投資現金流、持股股數與總資產不可由畫面自行保存結果；畫面只讀取 `FinanceCore.insights()` 的推導結果。
+
+## 市場資料與匯率
+
+- 新版財務中心會自動讀取 `latest-prices.json`、`latest-rates.json` 與 `latest-valuations.json`。
+- 使用者可從頂端或「投資資產／資產配置」頁手動更新行情。
+- 更新請求沿用既有 `/api/update-prices` 與 `MARKET_DATA_UPDATE_ENDPOINT` 流程。
+- 股價保存於 `assets.marketPrices`，不再依賴舊版手動持倉是否存在；只有淨股數大於零的交易持股才計入市值。
+- 匯率保存於 `assets.fxRates`，外幣帳戶、外幣交易與美股市值皆使用同一匯率折算台幣。
+- `assets.marketDataMeta` 保存資料時間與來源；重複讀取同一版本時不重複寫入。
+- 市場資料更新不建立大量自動備份，但仍會觸發既有雲端同步。
 
 ## 財務中心原生檢視
 
@@ -60,6 +74,8 @@
 ## 後續開發原則
 
 新增財務功能時，先在 `finance-core.js` 定義資料與事件，再由頁面渲染。避免在不同頁面各自重新計算餘額、淨資產或現金流。
+
+分頁增刪先修改 `finance-center-routes.js`；外部行情來源與更新流程先修改 `finance-market.js`。`finance-center.html` 只負責畫面組合與互動。
 
 ## 固定收支與未實現項目
 

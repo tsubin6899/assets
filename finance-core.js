@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = 3;
+  const VERSION = 4;
   const KEYS = {
     ledger: "personal-accounting-tsubin-v1",
     assets: "personal-assets-dashboard-tsubin-v2",
@@ -18,6 +18,7 @@
   };
   const emptyAssets = {
     rates: { usd: 1, goldGram: 0, silverOz: 0, reserve: 0 }, fxRates: { TWD: 1 },
+    marketPrices: {}, marketDataMeta: {}, valuationCache: {},
     tw: [], us: [], cash: [], cards: [], gold: [], silver: [], funds: [], usdFunds: [], dca: [],
     dcaTargets: [], dcaSchedules: [], purchaseRecords: [], dividends: [], assetSnapshots: [], budget: [],
     pnlCalendar: [], safety: { monthlyExpense: 0, safetyMonths: 6 },
@@ -139,6 +140,9 @@
     });
     result.fxRates = { TWD: 1, ...(value.fxRates || {}) };
     result.rates = { ...emptyAssets.rates, ...(value.rates || {}) };
+    result.marketPrices = value.marketPrices && typeof value.marketPrices === "object" ? value.marketPrices : {};
+    result.marketDataMeta = value.marketDataMeta && typeof value.marketDataMeta === "object" ? value.marketDataMeta : {};
+    result.valuationCache = value.valuationCache && typeof value.valuationCache === "object" ? value.valuationCache : {};
     return result;
   }
 
@@ -251,6 +255,16 @@
     return code ? `${market}:${code}:${currency}` : "";
   }
 
+  function marketQuoteKey(market, code) {
+    const normalizedMarket = String(market || "TW").trim().toUpperCase() === "US" ? "US" : "TW";
+    const normalizedCode = String(code || "").trim().toUpperCase();
+    return normalizedCode ? `${normalizedMarket}:${normalizedCode}` : "";
+  }
+
+  function marketQuote(assets, market, code) {
+    return assets.marketPrices?.[marketQuoteKey(market, code)] || null;
+  }
+
   function manualStockRows(assets) {
     return [
       ...(assets.tw || []).map(row => ({ ...row, assetClass: "tw", market: "TW", currency: normalizeCurrency(row.currency || "TWD"), manualId: row.id || "" })),
@@ -321,7 +335,8 @@
       const manualRow = manualByKey.get(position.key);
       const shares = Math.max(0, position.rawShares);
       const manualShares = Math.max(0, number(manualRow?.shares ?? manualRow?.units ?? manualRow?.quantity));
-      const currentPrice = number(manualRow?.currentPrice ?? manualRow?.price ?? manualRow?.marketPrice) || position.lastPrice;
+      const quote = marketQuote(assets, position.market, position.code);
+      const currentPrice = number(quote?.price) || number(manualRow?.currentPrice ?? manualRow?.price ?? manualRow?.marketPrice) || position.lastPrice;
       const averageCost = shares > epsilon ? position.basis / shares : 0;
       return {
         ...position, shares, manualShares, currentPrice, averageCost,
@@ -337,8 +352,9 @@
     const managedKeys = new Set(rows.map(row => row.key));
     const manualOnly = manual.filter(row => !row.key || !managedKeys.has(row.key)).map(row => {
       const shares = Math.max(0, number(row.shares ?? row.units ?? row.quantity));
-      const currentPrice = number(row.currentPrice ?? row.price ?? row.marketPrice);
-      return { ...row, shares, currentPrice, value: holdingValue(row, assets, row.currency), closed: shares <= epsilon, source: "manual" };
+      const quote = marketQuote(assets, row.market, row.code);
+      const currentPrice = number(quote?.price) || number(row.currentPrice ?? row.price ?? row.marketPrice);
+      return { ...row, shares, currentPrice, value: shares * currentPrice * fxRate(assets, row.currency), closed: shares <= epsilon, source: "manual" };
     });
     return {
       active: rows.filter(row => !row.closed),
@@ -837,6 +853,101 @@
     return persist(backup.data.ledger, backup.data.assets, `還原：${backup.reason}`, { backup: false });
   }
 
+  function marketSymbols(assetsInput) {
+    const assets = ensureAssets(assetsInput || load().assets);
+    const rows = [
+      ...(assets.tw || []).map(row => ({ ...row, market: "TW" })),
+      ...(assets.us || []).map(row => ({ ...row, market: "US" })),
+      ...(assets.purchaseRecords || []),
+      ...(assets.twWatchlist || []).map(row => ({ ...row, market: "TW" })),
+      ...(assets.usWatchlist || []).map(row => ({ ...row, market: "US" }))
+    ];
+    const uniqueSymbols = new Map();
+    rows.forEach(row => {
+      const market = String(row.market || "TW").toUpperCase() === "US" ? "US" : "TW";
+      const code = String(row.code || "").trim().toUpperCase();
+      if (!code) return;
+      uniqueSymbols.set(`${market}:${code}`, { code, name: row.name || "" });
+    });
+    const values = [...uniqueSymbols.entries()];
+    return {
+      generatedAt: nowIso(),
+      tw: values.filter(([key]) => key.startsWith("TW:")).map(([, row]) => row),
+      us: values.filter(([key]) => key.startsWith("US:")).map(([, row]) => row)
+    };
+  }
+
+  function marketDocument(payload, key) {
+    const nested = payload?.[key];
+    return nested && typeof nested === "object" && nested[key] && typeof nested[key] === "object" ? nested : payload || {};
+  }
+
+  function applyMarketSnapshot(payload = {}) {
+    const { ledger, assets } = load();
+    const priceDocument = marketDocument(payload, "prices");
+    const rateDocument = marketDocument(payload, "rates");
+    const valuationDocument = marketDocument(payload, "valuations");
+    const prices = priceDocument.prices && typeof priceDocument.prices === "object" ? priceDocument.prices : {};
+    const rates = rateDocument.rates && typeof rateDocument.rates === "object" ? rateDocument.rates : {};
+    const valuations = valuationDocument.valuations && typeof valuationDocument.valuations === "object" ? valuationDocument.valuations : {};
+    const stamp = [priceDocument.generatedAt || "", rateDocument.generatedAt || "", valuationDocument.generatedAt || ""].join("|");
+    if (stamp && assets.marketDataMeta?.stamp === stamp) {
+      return { unchanged: true, pricesUpdated: 0, ratesUpdated: 0, valuationsUpdated: 0, generatedAt: assets.marketDataMeta.generatedAt || "" };
+    }
+
+    let pricesUpdated = 0;
+    let ratesUpdated = 0;
+    assets.marketPrices = { ...(assets.marketPrices || {}) };
+    Object.entries(prices).forEach(([rawKey, rawQuote]) => {
+      const quote = rawQuote && typeof rawQuote === "object" ? rawQuote : { price: rawQuote };
+      const market = String(quote.market || String(rawKey).split(":")[0] || "TW").toUpperCase() === "US" ? "US" : "TW";
+      const code = String(quote.symbol || String(rawKey).split(":").pop() || "").trim().toUpperCase();
+      const price = number(quote.price);
+      const key = marketQuoteKey(market, code);
+      if (!key || price <= 0) return;
+      assets.marketPrices[key] = {
+        ...quote, market, symbol: code, price,
+        currency: normalizeCurrency(quote.currency || (market === "US" ? "USD" : "TWD")),
+        fetchedAt: quote.fetchedAt || priceDocument.generatedAt || nowIso()
+      };
+      const collection = market === "US" ? assets.us : assets.tw;
+      collection.filter(row => String(row.code || "").trim().toUpperCase() === code).forEach(row => {
+        row.price = price;
+        row.currentPrice = price;
+        row.priceUpdatedAt = quote.fetchedAt || priceDocument.generatedAt || nowIso();
+      });
+      const watchlist = market === "US" ? assets.usWatchlist : assets.twWatchlist;
+      (watchlist || []).filter(row => String(row.code || "").trim().toUpperCase() === code).forEach(row => { row.price = price; });
+      pricesUpdated += 1;
+    });
+    Object.entries(rates).forEach(([currency, rawRate]) => {
+      const code = normalizeCurrency(currency);
+      const rate = number(rawRate);
+      if (!code || code === "TWD" || rate <= 0) return;
+      assets.fxRates[code] = rate;
+      if (code === "USD") assets.rates.usd = rate;
+      ratesUpdated += 1;
+    });
+    assets.fxRates.TWD = 1;
+    if (Object.keys(valuations).length) assets.valuationCache = { ...(assets.valuationCache || {}), ...valuations };
+    const generatedAt = priceDocument.generatedAt || rateDocument.generatedAt || valuationDocument.generatedAt || nowIso();
+    assets.fxRateMeta = ratesUpdated ? { generatedAt: rateDocument.generatedAt || generatedAt, source: rateDocument.source || "自動匯率" } : assets.fxRateMeta;
+    assets.marketDataMeta = {
+      stamp, generatedAt,
+      priceGeneratedAt: priceDocument.generatedAt || "",
+      rateGeneratedAt: rateDocument.generatedAt || "",
+      valuationGeneratedAt: valuationDocument.generatedAt || "",
+      priceSource: Object.values(prices)[0]?.source || priceDocument.source || "市場行情",
+      rateSource: rateDocument.source || "匯率資料",
+      pricesUpdated, ratesUpdated, valuationsUpdated: Object.keys(valuations).length
+    };
+    if (!pricesUpdated && !ratesUpdated && !Object.keys(valuations).length) {
+      return { unchanged: true, pricesUpdated: 0, ratesUpdated: 0, valuationsUpdated: 0, generatedAt };
+    }
+    persist(ledger, assets, "更新股價與匯率", { backup: false });
+    return { unchanged: false, pricesUpdated, ratesUpdated, valuationsUpdated: Object.keys(valuations).length, generatedAt };
+  }
+
   function importBundle(payload) {
     const current = load();
     let ledger = current.ledger;
@@ -877,6 +988,7 @@
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
     addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
+    marketSymbols, applyMarketSnapshot,
     createBackup, listBackups, restoreBackup, importBundle,
     exportBundle, localDate, monthOf, fxRate
   };
