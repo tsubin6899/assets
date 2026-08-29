@@ -18,6 +18,7 @@
       --radius:18px;
     }
     *{box-sizing:border-box}
+    [hidden]{display:none!important}
     html{min-height:100%;max-width:100%;overflow-x:clip;background:var(--canvas)}
     body{min-height:100%;max-width:100%;margin:0;overflow-x:clip;color:var(--ink);font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;background:radial-gradient(circle at 92% 4%,rgba(62,199,176,.16),transparent 25rem),linear-gradient(135deg,#edf4fb,#f5f7f4 55%,#edf9f5)}
     body.privacy .money-value{filter:blur(9px);user-select:none}
@@ -585,7 +586,7 @@
     document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");cloudStatus.addEventListener("click",()=>refreshCloudSession({notify:true,force:true}));cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();refreshCloudSession({notify:true,force:true})}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
     FinanceCore.touch("財務中心啟動"); readRoute(); initCloud(); armPrivacyTimer();
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=101").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=102").catch(()=>{});
   </script>
 </body>
 </html>

@@ -95,5 +95,6 @@ assert.equal(window.FinanceSync.hasPending(), false);
 const financeCenterHtml = fs.readFileSync("finance-center.html", "utf8");
 assert.equal(financeCenterHtml.includes('event.target.id==='), false, "form handlers must not use a shadowable form.id property");
 assert.equal(financeCenterHtml.includes('event.target.getAttribute("id")'), true, "form handlers must read the form id attribute explicitly");
+assert.equal(financeCenterHtml.includes('[hidden]{display:none!important}'), true, "hidden import inputs must never appear in the page layout");
 
 console.log("finance center regression test OK");
