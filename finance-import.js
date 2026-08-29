@@ -49,6 +49,8 @@
       category: findColumn(headers, ["category", "分類", "收支分類"]),
       item: findColumn(headers, ["item", "項目", "品項"]),
       account: findColumn(headers, ["account", "帳戶", "卡片", "付款帳戶"]),
+      currency: findColumn(headers, ["currency", "幣別", "交易幣別", "貨幣"]),
+      purchaseRegion: findColumn(headers, ["purchaseregion", "刷卡地區", "交易地區", "國內外"]),
       merchant: findColumn(headers, ["merchant", "商家", "來源", "交易說明", "摘要"]),
       note: findColumn(headers, ["note", "備註", "說明"])
     };
@@ -60,7 +62,8 @@
       const typeText = columns.type >= 0 ? String(cells[columns.type] || "").toLowerCase() : "";
       const type = /收入|income|存入|貸方/.test(typeText) || income > 0 ? "income" : "expense";
       const cell = key => columns[key] >= 0 ? cells[columns[key]] || "" : "";
-      return { date: date(cell("date")), type, amount: Math.abs(signedAmount), category: cell("category") || (type === "income" ? "其他收入" : "其他支出"), item: cell("item"), account: cell("account"), merchant: cell("merchant"), note: cell("note"), importSource: "CSV" };
+      const regionText = String(cell("purchaseRegion") || "").toLowerCase();
+      return { date: date(cell("date")), type, amount: Math.abs(signedAmount), category: cell("category") || (type === "income" ? "其他收入" : "其他支出"), item: cell("item"), account: cell("account"), currency: String(cell("currency")||"TWD").toUpperCase(), purchaseRegion: /國外|foreign|海外/.test(regionText)?"foreign":"domestic", merchant: cell("merchant"), note: cell("note"), importSource: "CSV" };
     }).filter(row => row.date || row.amount);
   }
 

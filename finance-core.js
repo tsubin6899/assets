@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = 4;
+  const VERSION = 5;
   const KEYS = {
     ledger: "personal-accounting-tsubin-v1",
     assets: "personal-assets-dashboard-tsubin-v2",
@@ -162,6 +162,19 @@
     return number(assets.fxRates?.[code] ?? (code === "USD" ? assets.rates?.usd : 1)) || 1;
   }
 
+  function normalizeInvestmentMarket(value) {
+    const market = String(value || "TW").trim().toUpperCase();
+    return ["TW", "US", "FUND", "USD_FUND"].includes(market) ? market : "TW";
+  }
+
+  function marketCurrency(market) {
+    return ["US", "USD_FUND"].includes(normalizeInvestmentMarket(market)) ? "USD" : "TWD";
+  }
+
+  function marketAssetClass(market) {
+    return ({ TW: "tw", US: "us", FUND: "funds", USD_FUND: "usdFunds" })[normalizeInvestmentMarket(market)];
+  }
+
   function buildEvents(ledger, assets) {
     const accountMap = new Map((ledger.accounts || []).map(row => [row.name, row]));
     const entries = (ledger.entries || []).filter(row => !row.recurringSkipped).map(row => {
@@ -183,7 +196,7 @@
       twdAmount: number(row.fromAmount), direction: 0, note: row.note || "", raw: row
     }));
     const investments = (assets.purchaseRecords || []).map(row => {
-      const currency = normalizeCurrency(row.currency || (row.market === "US" ? "USD" : "TWD"));
+      const currency = normalizeCurrency(row.currency || marketCurrency(row.market));
       const gross = number(row.price) * number(row.shares);
       const total = row.type === "sell" ? gross - number(row.fee) - number(row.tax) : gross + number(row.fee) + number(row.tax);
       return {
@@ -230,12 +243,19 @@
     });
     (assets.purchaseRecords || []).filter(row => row.cashAccount && (!row.date || String(row.date) <= asOf)).forEach(row => {
       if (!balances.has(row.cashAccount)) return;
+      const account = accountMap.get(row.cashAccount);
+      const tradeCurrency = normalizeCurrency(row.currency || marketCurrency(row.market));
       const gross = number(row.price) * number(row.shares);
       const cashFlow = row.type === "sell" ? gross - number(row.fee) - number(row.tax) : -(gross + number(row.fee) + number(row.tax));
-      balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + cashFlow);
+      const accountAmount = cashFlow * fxRate(assets, tradeCurrency) / fxRate(assets, account?.currency || "TWD");
+      balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + accountAmount);
     });
     (assets.dividends || []).filter(row => row.cashAccount && (!row.date || String(row.date) <= asOf)).forEach(row => {
-      if (balances.has(row.cashAccount)) balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + number(row.amount));
+      if (balances.has(row.cashAccount)) {
+        const account = accountMap.get(row.cashAccount);
+        const accountAmount = number(row.amount) * fxRate(assets, row.currency || "TWD") / fxRate(assets, account?.currency || "TWD");
+        balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + accountAmount);
+      }
     });
     return (ledger.accounts || []).map(account => ({ ...account, balance: number(balances.get(account.name)), twdBalance: number(balances.get(account.name)) * fxRate(assets, account.currency) }));
   }
@@ -249,14 +269,14 @@
   }
 
   function stockTradeKey(row) {
-    const market = String(row.market || "TW").trim().toUpperCase() === "US" ? "US" : "TW";
+    const market = normalizeInvestmentMarket(row.market);
     const code = String(row.code || "").trim().toUpperCase();
-    const currency = normalizeCurrency(row.currency || (market === "US" ? "USD" : "TWD"));
+    const currency = normalizeCurrency(row.currency || marketCurrency(market));
     return code ? `${market}:${code}:${currency}` : "";
   }
 
   function marketQuoteKey(market, code) {
-    const normalizedMarket = String(market || "TW").trim().toUpperCase() === "US" ? "US" : "TW";
+    const normalizedMarket = normalizeInvestmentMarket(market);
     const normalizedCode = String(code || "").trim().toUpperCase();
     return normalizedCode ? `${normalizedMarket}:${normalizedCode}` : "";
   }
@@ -268,7 +288,9 @@
   function manualStockRows(assets) {
     return [
       ...(assets.tw || []).map(row => ({ ...row, assetClass: "tw", market: "TW", currency: normalizeCurrency(row.currency || "TWD"), manualId: row.id || "" })),
-      ...(assets.us || []).map(row => ({ ...row, assetClass: "us", market: "US", currency: normalizeCurrency(row.currency || "USD"), manualId: row.id || "" }))
+      ...(assets.us || []).map(row => ({ ...row, assetClass: "us", market: "US", currency: normalizeCurrency(row.currency || "USD"), manualId: row.id || "" })),
+      ...(assets.funds || []).map(row => ({ ...row, assetClass: "funds", market: "FUND", currency: normalizeCurrency(row.currency || "TWD"), manualId: row.id || "" })),
+      ...(assets.usdFunds || []).map(row => ({ ...row, assetClass: "usdFunds", market: "USD_FUND", currency: normalizeCurrency(row.currency || "USD"), manualId: row.id || "" }))
     ].map(row => ({ ...row, key: stockTradeKey(row) }));
   }
 
@@ -284,10 +306,10 @@
       const shares = Math.max(0, number(row.shares));
       if (!key || !shares) return;
       const type = row.type === "sell" ? "sell" : "buy";
+      const market = normalizeInvestmentMarket(row.market);
       const position = positions.get(key) || {
-        key, market: String(row.market || "TW").toUpperCase() === "US" ? "US" : "TW",
-        assetClass: String(row.market || "TW").toUpperCase() === "US" ? "us" : "tw",
-        currency: normalizeCurrency(row.currency || (row.market === "US" ? "USD" : "TWD")),
+        key, market, assetClass: marketAssetClass(market),
+        currency: normalizeCurrency(row.currency || marketCurrency(market)),
         code: String(row.code || "").trim().toUpperCase(), name: row.name || "", bought: 0, sold: 0,
         rawShares: 0, basis: 0, realized: 0, lastPrice: 0, lastDate: ""
       };
@@ -308,10 +330,10 @@
         position.basis = Math.max(0, position.basis - soldBasis);
         position.realized += realized;
         tradeDetails.push({
-          ...row, sourceId: row.id || "", originalIndex: index, key, type, shares,
+          ...row, currency: position.currency, sourceId: row.id || "", originalIndex: index, key, type, shares,
           price: Math.max(0, number(row.price)), fee: Math.max(0, number(row.fee)), tax: Math.max(0, number(row.tax)),
-          gross, fees, netAmount: proceeds, twdNetAmount: proceeds * fxRate(assets, row.currency), averageCost, soldBasis, realized,
-          twdRealized: realized * fxRate(assets, row.currency),
+          gross, fees, netAmount: proceeds, twdNetAmount: proceeds * fxRate(assets, position.currency), averageCost, soldBasis, realized,
+          twdRealized: realized * fxRate(assets, position.currency),
           realizedRate: soldBasis > epsilon ? realized / soldBasis * 100 : 0,
           remainingShares: Math.max(0, position.rawShares), oversold: shares > available + epsilon
         });
@@ -321,9 +343,9 @@
         position.rawShares += shares;
         position.basis += totalCost;
         tradeDetails.push({
-          ...row, sourceId: row.id || "", originalIndex: index, key, type, shares,
+          ...row, currency: position.currency, sourceId: row.id || "", originalIndex: index, key, type, shares,
           price: Math.max(0, number(row.price)), fee: Math.max(0, number(row.fee)), tax: Math.max(0, number(row.tax)),
-          gross, fees, netAmount: totalCost, twdNetAmount: totalCost * fxRate(assets, row.currency),
+          gross, fees, netAmount: totalCost, twdNetAmount: totalCost * fxRate(assets, position.currency),
           averageCost: position.rawShares > epsilon ? position.basis / position.rawShares : 0,
           soldBasis: 0, realized: null, realizedRate: null,
           remainingShares: Math.max(0, position.rawShares), oversold: false
@@ -336,7 +358,7 @@
       const shares = Math.max(0, position.rawShares);
       const manualShares = Math.max(0, number(manualRow?.shares ?? manualRow?.units ?? manualRow?.quantity));
       const quote = marketQuote(assets, position.market, position.code);
-      const currentPrice = number(quote?.price) || number(manualRow?.currentPrice ?? manualRow?.price ?? manualRow?.marketPrice) || position.lastPrice;
+      const currentPrice = number(quote?.price) || number(manualRow?.currentPrice ?? manualRow?.price ?? manualRow?.marketPrice ?? manualRow?.nav ?? manualRow?.unitPrice) || position.lastPrice;
       const averageCost = shares > epsilon ? position.basis / shares : 0;
       return {
         ...position, shares, manualShares, currentPrice, averageCost,
@@ -353,8 +375,9 @@
     const manualOnly = manual.filter(row => !row.key || !managedKeys.has(row.key)).map(row => {
       const shares = Math.max(0, number(row.shares ?? row.units ?? row.quantity));
       const quote = marketQuote(assets, row.market, row.code);
-      const currentPrice = number(quote?.price) || number(row.currentPrice ?? row.price ?? row.marketPrice);
-      return { ...row, shares, currentPrice, value: shares * currentPrice * fxRate(assets, row.currency), closed: shares <= epsilon, source: "manual" };
+      const currentPrice = number(quote?.price) || number(row.currentPrice ?? row.price ?? row.marketPrice ?? row.nav ?? row.unitPrice);
+      const directValue = number(row.marketValue ?? row.value ?? row.currentValue);
+      return { ...row, shares, currentPrice, value: (directValue || shares * currentPrice) * fxRate(assets, row.currency), closed: shares <= epsilon && directValue <= epsilon, source: "manual" };
     });
     return {
       active: rows.filter(row => !row.closed),
@@ -377,7 +400,7 @@
     const activeStocks = [...stockPositions.active, ...stockPositions.manualOnly];
     const tw = activeStocks.filter(row => row.market === "TW").reduce((sum, row) => sum + number(row.value), 0);
     const us = activeStocks.filter(row => row.market === "US").reduce((sum, row) => sum + number(row.value), 0);
-    const funds = [...(assets.funds || []), ...(assets.usdFunds || [])].reduce((sum, row) => sum + holdingValue(row, assets, row.currency || "TWD"), 0);
+    const funds = activeStocks.filter(row => ["FUND", "USD_FUND"].includes(row.market)).reduce((sum, row) => sum + number(row.value), 0);
     const gold = (assets.gold || []).reduce((sum, row) => sum + (holdingValue(row, assets, "TWD") || number(row.grams ?? row.quantity) * number(assets.rates?.goldGram)), 0);
     const silver = (assets.silver || []).reduce((sum, row) => sum + (holdingValue(row, assets, "TWD") || number(row.ounces ?? row.quantity) * number(assets.rates?.silverOz)), 0);
     const cash = regularCash + manualCash;
@@ -580,17 +603,61 @@
     return data;
   }
 
+  function entryFields(values, ledger, assets, existing = {}) {
+    const type = values.type === "income" ? "income" : "expense";
+    const accountName = values.account || existing.account || ledger.accounts[0]?.name || "";
+    const account = ledger.accounts.find(row => row.name === accountName);
+    const accountCurrency = normalizeCurrency(account?.currency || existing.accountCurrency || "TWD");
+    const transactionCurrency = normalizeCurrency(values.currency || values.transactionCurrency || existing.transactionCurrency || accountCurrency);
+    const transactionAmount = Math.max(0, number(values.amount ?? values.transactionAmount ?? existing.transactionAmount ?? existing.amount));
+    const bookedAmount = transactionAmount * fxRate(assets, transactionCurrency) / fxRate(assets, accountCurrency);
+    const purchaseRegion = values.purchaseRegion === "foreign" ? "foreign" : "domestic";
+    return {
+      type, date: values.date || existing.date || localDate(), amount: Math.round(bookedAmount * 100) / 100,
+      transactionAmount, transactionCurrency, accountCurrency, exchangeRate: fxRate(assets, transactionCurrency),
+      category: values.category || existing.category || "未分類", item: values.item || existing.item || "",
+      account: accountName, merchant: values.merchant || existing.merchant || "", note: values.note || existing.note || "",
+      purchaseRegion, postedDate: existing.postedDate || "", statementMonthOverride: existing.statementMonthOverride || "",
+      statementStatus: existing.statementStatus || "estimated", isForeignTransactionFee: false,
+      derivedFromEntryId: existing.derivedFromEntryId || "", feeRate: number(existing.feeRate)
+    };
+  }
+
+  function syncForeignCardFee(ledger, assets, entry) {
+    ledger.entries = ledger.entries.filter(row => !(row.isForeignTransactionFee && row.derivedFromEntryId === entry.id));
+    const account = ledger.accounts.find(row => row.name === entry.account);
+    if (account?.type !== "信用卡" || entry.type !== "expense" || entry.purchaseRegion !== "foreign") return;
+    const feeRate = 0.015;
+    const feeAmount = Math.round(number(entry.amount) * feeRate * 100) / 100;
+    if (!feeAmount) return;
+    ledger.entries.push({
+      id: uid("entry"), type: "expense", date: entry.date, amount: feeAmount,
+      transactionAmount: feeAmount, transactionCurrency: entry.accountCurrency || account.currency || "TWD",
+      accountCurrency: entry.accountCurrency || account.currency || "TWD", exchangeRate: 1,
+      category: "手續費", item: "國外刷卡手續費", account: entry.account,
+      merchant: `${entry.merchant || entry.item || entry.category || "國外交易"}｜國外刷卡手續費`,
+      note: `由原交易自動計算 ${feeRate * 100}%`, purchaseRegion: "foreign", createdAt: nowIso(),
+      postedDate: "", statementMonthOverride: "", statementStatus: "estimated",
+      isForeignTransactionFee: true, derivedFromEntryId: entry.id, feeRate
+    });
+    ledger.categories.expense = unique([...(ledger.categories.expense || []), "手續費"]);
+    ledger.items.expense = ledger.items.expense || {};
+    ledger.items.expense["手續費"] = unique([...(ledger.items.expense["手續費"] || []), "國外刷卡手續費"]);
+  }
+
+  function rememberEntryTaxonomy(ledger, row) {
+    ledger.categories[row.type] = unique([...(ledger.categories[row.type] || []), row.category]);
+    ledger.items[row.type] = ledger.items[row.type] || {};
+    ledger.items[row.type][row.category] = unique([...(ledger.items[row.type][row.category] || []), row.item].filter(Boolean));
+  }
+
   function addEntry(values) {
     const { ledger, assets } = load();
-    const row = {
-      id: uid("entry"), type: values.type === "income" ? "income" : "expense", date: values.date || localDate(),
-      amount: Math.max(0, number(values.amount)), category: values.category || "未分類", item: values.item || "",
-      account: values.account || ledger.accounts[0]?.name || "", merchant: values.merchant || "", note: values.note || "",
-      createdAt: nowIso(), purchaseRegion: "", postedDate: "", statementMonthOverride: "", statementStatus: "estimated",
-      isForeignTransactionFee: false, derivedFromEntryId: "", feeRate: 0
-    };
+    const row = { id: uid("entry"), ...entryFields(values, ledger, assets), createdAt: nowIso() };
+    if (!row.amount || !row.account) throw new Error("請輸入金額並選擇帳戶");
     ledger.entries.push(row);
-    ledger.categories[row.type] = unique([...(ledger.categories[row.type] || []), row.category]);
+    rememberEntryTaxonomy(ledger, row);
+    syncForeignCardFee(ledger, assets, row);
     return persist(ledger, assets, row.type === "income" ? "新增收入" : "新增支出");
   }
 
@@ -598,13 +665,10 @@
     const { ledger, assets } = load();
     const row = ledger.entries.find(item => item.id === id);
     if (!row) throw new Error("找不到這筆收支紀錄");
-    const type = values.type === "income" ? "income" : "expense";
-    Object.assign(row, {
-      type, date: values.date || row.date || localDate(), amount: Math.max(0, number(values.amount)),
-      category: values.category || "未分類", item: values.item || "", account: values.account || "",
-      merchant: values.merchant || "", note: values.note || "", updatedAt: nowIso()
-    });
-    ledger.categories[type] = unique([...(ledger.categories[type] || []), row.category]);
+    Object.assign(row, entryFields(values, ledger, assets, row), { updatedAt: nowIso() });
+    if (!row.amount || !row.account) throw new Error("請輸入金額並選擇帳戶");
+    rememberEntryTaxonomy(ledger, row);
+    syncForeignCardFee(ledger, assets, row);
     return persist(ledger, assets, "修改收支紀錄");
   }
 
@@ -617,8 +681,12 @@
     const { ledger, assets } = load();
     const index = ledger.entries.findIndex(item => item.id === id);
     if (index < 0) throw new Error("找不到這筆收支紀錄");
-    recycle(ledger, "entry", ledger.entries[index]);
-    ledger.entries.splice(index, 1);
+    const target = ledger.entries[index];
+    const linked = target.isForeignTransactionFee ? [] : ledger.entries.filter(row => row.isForeignTransactionFee && row.derivedFromEntryId === id);
+    recycle(ledger, "entry", target);
+    linked.forEach(row => recycle(ledger, "entry", row));
+    const ids = new Set([id, ...linked.map(row => row.id)]);
+    ledger.entries = ledger.entries.filter(row => !ids.has(row.id));
     return persist(ledger, assets, "刪除收支紀錄");
   }
 
@@ -631,8 +699,9 @@
     const template = {
       id: existing?.id || uid("template"), signature,
       name: entry.merchant || entry.item || entry.category || (entry.type === "income" ? "收入範本" : "支出範本"),
-      type: entry.type === "income" ? "income" : "expense", amount: number(entry.amount), category: entry.category || "未分類",
-      item: entry.item || "", account: entry.account || "", merchant: entry.merchant || "", note: entry.note || "", updatedAt: nowIso()
+      type: entry.type === "income" ? "income" : "expense", amount: number(entry.transactionAmount ?? entry.amount), category: entry.category || "未分類",
+      item: entry.item || "", account: entry.account || "", merchant: entry.merchant || "", note: entry.note || "",
+      currency: entry.transactionCurrency || entry.accountCurrency || "TWD", purchaseRegion: entry.purchaseRegion || "domestic", updatedAt: nowIso()
     };
     if (existing) Object.assign(existing, template); else ledger.templates.unshift(template);
     ledger.templates = ledger.templates.slice(0, 20);
@@ -658,18 +727,14 @@
     let duplicates = 0;
     let invalid = 0;
     rows.forEach(source => {
-      const row = {
-        id: uid("entry"), type: source.type === "income" ? "income" : "expense", date: String(source.date || "").slice(0, 10),
-        amount: Math.max(0, number(source.amount)), category: source.category || "未分類", item: source.item || "",
-        account: source.account || ledger.accounts[0]?.name || "", merchant: source.merchant || "", note: source.note || "",
-        createdAt: nowIso(), importedAt: nowIso(), importSource: source.importSource || "CSV"
-      };
+      const row = { id: uid("entry"), ...entryFields({ ...source, date: String(source.date || "").slice(0, 10) }, ledger, assets), createdAt: nowIso(), importedAt: nowIso(), importSource: source.importSource || "CSV" };
       if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !row.amount || !row.account) { invalid += 1; return; }
       const signature = entrySignature(row);
       if (existing.has(signature)) { duplicates += 1; return; }
       existing.add(signature);
       ledger.entries.push(row);
-      ledger.categories[row.type] = unique([...(ledger.categories[row.type] || []), row.category]);
+      rememberEntryTaxonomy(ledger, row);
+      syncForeignCardFee(ledger, assets, row);
       imported += 1;
     });
     if (imported) persist(ledger, assets, `匯入 ${imported} 筆收支紀錄`);
@@ -717,11 +782,12 @@
 
   function addPurchase(values) {
     const { ledger, assets } = load();
+    const market = normalizeInvestmentMarket(values.market);
     assets.purchaseRecords.push({
       id: uid("trade"), date: values.date || localDate(), type: values.type === "sell" ? "sell" : "buy",
-      market: values.market === "US" ? "US" : "TW", code: String(values.code || "").trim().toUpperCase(), name: values.name || "",
+      market, code: String(values.code || "").trim().toUpperCase(), name: values.name || "",
       shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)),
-      tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || (values.market === "US" ? "USD" : "TWD")),
+      tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || marketCurrency(market)),
       cashAccount: values.cashAccount || "", note: values.note || "", createdAt: nowIso()
     });
     return persist(ledger, assets, values.type === "sell" ? "新增投資賣出" : "新增投資買入");
@@ -948,7 +1014,8 @@
 
   function updatePurchase(id, values) {
     const { ledger, assets } = load(); const row = assets.purchaseRecords.find(item => item.id === id); if (!row) throw new Error("找不到這筆投資交易");
-    Object.assign(row, { date: values.date || localDate(), type: values.type === "sell" ? "sell" : "buy", market: values.market === "US" ? "US" : "TW", code: String(values.code || "").trim().toUpperCase(), name: values.name || "", shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)), tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || (values.market === "US" ? "USD" : "TWD")), cashAccount: values.cashAccount || "", note: values.note || "", updatedAt: nowIso() });
+    const market = normalizeInvestmentMarket(values.market);
+    Object.assign(row, { date: values.date || localDate(), type: values.type === "sell" ? "sell" : "buy", market, code: String(values.code || "").trim().toUpperCase(), name: values.name || "", shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)), tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || marketCurrency(market)), cashAccount: values.cashAccount || "", note: values.note || "", updatedAt: nowIso() });
     return persist(ledger, assets, "修改投資交易");
   }
 
@@ -997,9 +1064,9 @@
     ];
     const uniqueSymbols = new Map();
     rows.forEach(row => {
-      const market = String(row.market || "TW").toUpperCase() === "US" ? "US" : "TW";
+      const market = normalizeInvestmentMarket(row.market);
       const code = String(row.code || "").trim().toUpperCase();
-      if (!code) return;
+      if (!code || !["TW", "US"].includes(market)) return;
       uniqueSymbols.set(`${market}:${code}`, { code, name: row.name || "" });
     });
     const values = [...uniqueSymbols.entries()];
