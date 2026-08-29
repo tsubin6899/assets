@@ -120,5 +120,8 @@ assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncQuic
 assert.equal(financeCenterHtml.includes('state.tab==="reconcile"||state.tab==="statements"'), true, "account inventory and credit card checks must render as separate tabs");
 assert.equal(financeCenterHtml.includes('id="expenseCategoryForm"'), true, "expense category editor must exist");
 assert.equal(financeCenterHtml.includes('id="expenseItemForm"'), true, "expense item editor must exist");
+assert.equal(financeCenterHtml.includes('const accountTypeOrder=["現金","銀行帳戶","外幣銀行帳戶","外幣現金","行動支付","其他","信用卡"]'), true, "account overview must use a stable type order");
+assert.equal(financeCenterHtml.includes('class="account-group ${groupVisual.cls}"'), true, "accounts of the same type must render inside a shared group");
+assert.equal(financeCenterHtml.includes('localeCompare(String(b.name||""),"zh-TW")'), true, "accounts within each type must be sorted by name");
 
 console.log("finance center regression test OK");
