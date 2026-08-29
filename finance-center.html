@@ -535,21 +535,24 @@
     });
     document.addEventListener("change",event=>{const form=event.target.closest("#quickEntryForm");if(form&&(event.target.name==="type"||event.target.name==="category")){refreshEntryTaxonomy(form);return}const trade=event.target.closest("#tradeForm");if(trade&&event.target.name==="market"){const currency=trade.elements.currency;if(currency)currency.value=["US","USD_FUND"].includes(event.target.value)?"USD":"TWD"}});
     document.addEventListener("submit", event => {
+      const formId=event.target.getAttribute("id")||"";
+      const financeForms=["entryFilterForm","quickEntryForm","transferForm","tradeForm","dividendForm","accountForm","creditBillForm","budgetForm","recurringForm","installmentForm","reconcileForm","statementCheckForm","holdingForm"];
+      if(!financeForms.includes(formId)) return;
       event.preventDefault(); const values=formValues(event.target);
       try {
-        if(event.target.id==="entryFilterForm"){ui.filters={...ui.filters,...values};render();return}
-        if(event.target.id==="quickEntryForm") { values.id?FinanceCore.updateEntry(values.id,values):FinanceCore.addEntry(values); ui.editingEntryId=""; }
-        if(event.target.id==="transferForm") { values.id?FinanceCore.updateTransfer(values.id,values):FinanceCore.addTransfer(values); ui.editingTransferId=""; }
-        if(event.target.id==="tradeForm") { values.id?FinanceCore.updatePurchase(values.id,values):FinanceCore.addPurchase(values); ui.editingTradeId=""; }
-        if(event.target.id==="dividendForm") { values.id?FinanceCore.updateDividend(values.id,values):FinanceCore.addDividend(values); ui.editingDividendId=""; }
-        if(event.target.id==="accountForm") { values.id?FinanceCore.updateAccount(values.id,values):FinanceCore.addAccount(values); ui.editingAccountId=""; }
-        if(event.target.id==="creditBillForm") { values.id?FinanceCore.updateCreditBill(values.id,values):FinanceCore.addCreditBill(values); ui.editingBillId=""; }
-        if(event.target.id==="budgetForm") { FinanceCore.upsertBudget(values); ui.editingBudgetId=""; }
-        if(event.target.id==="recurringForm") { values.id?FinanceCore.updateRecurring(values.id,values):FinanceCore.addRecurring(values); ui.editingRecurringId=""; }
-        if(event.target.id==="installmentForm") { values.id?FinanceCore.updateInstallment(values.id,values):FinanceCore.addInstallment(values); ui.editingInstallmentId=""; }
-        if(event.target.id==="reconcileForm") FinanceCore.addReconciliation(values);
-        if(event.target.id==="statementCheckForm") FinanceCore.saveCreditStatementCheck(values);
-        if(event.target.id==="holdingForm") { values.id?FinanceCore.updateHolding(values.originalClass,values.id,values):FinanceCore.addHolding(values); ui.editingHoldingKey=""; }
+        if(formId==="entryFilterForm"){ui.filters={...ui.filters,...values};render();return}
+        if(formId==="quickEntryForm") { values.id?FinanceCore.updateEntry(values.id,values):FinanceCore.addEntry(values); ui.editingEntryId=""; }
+        if(formId==="transferForm") { values.id?FinanceCore.updateTransfer(values.id,values):FinanceCore.addTransfer(values); ui.editingTransferId=""; }
+        if(formId==="tradeForm") { values.id?FinanceCore.updatePurchase(values.id,values):FinanceCore.addPurchase(values); ui.editingTradeId=""; }
+        if(formId==="dividendForm") { values.id?FinanceCore.updateDividend(values.id,values):FinanceCore.addDividend(values); ui.editingDividendId=""; }
+        if(formId==="accountForm") { values.id?FinanceCore.updateAccount(values.id,values):FinanceCore.addAccount(values); ui.editingAccountId=""; }
+        if(formId==="creditBillForm") { values.id?FinanceCore.updateCreditBill(values.id,values):FinanceCore.addCreditBill(values); ui.editingBillId=""; }
+        if(formId==="budgetForm") { FinanceCore.upsertBudget(values); ui.editingBudgetId=""; }
+        if(formId==="recurringForm") { values.id?FinanceCore.updateRecurring(values.id,values):FinanceCore.addRecurring(values); ui.editingRecurringId=""; }
+        if(formId==="installmentForm") { values.id?FinanceCore.updateInstallment(values.id,values):FinanceCore.addInstallment(values); ui.editingInstallmentId=""; }
+        if(formId==="reconcileForm") FinanceCore.addReconciliation(values);
+        if(formId==="statementCheckForm") FinanceCore.saveCreditStatementCheck(values);
+        if(formId==="holdingForm") { values.id?FinanceCore.updateHolding(values.originalClass,values.id,values):FinanceCore.addHolding(values); ui.editingHoldingKey=""; }
         showToast("已儲存並同步更新財務總覽");refresh();
       } catch(error){showToast(error.message||"儲存失敗")}
     });
@@ -582,7 +585,7 @@
     document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");cloudStatus.addEventListener("click",()=>refreshCloudSession({notify:true,force:true}));cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();refreshCloudSession({notify:true,force:true})}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
     FinanceCore.touch("財務中心啟動"); readRoute(); initCloud(); armPrivacyTimer();
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=100").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=101").catch(()=>{});
   </script>
 </body>
 </html>
