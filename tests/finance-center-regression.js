@@ -43,6 +43,17 @@ snapshot = core.insights();
 assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "美元帳戶").balance, 70, "USD account must stay in its native currency");
 assert.equal(snapshot.ledger.entries.find(row => row.merchant === "美國交通").transactionCurrency, "USD", "quick entry currency must follow the selected account");
 assert.equal(snapshot.ledger.items.expense["旅遊"].includes("交通"), true, "category should remember its item options");
+core.saveExpenseCategory({ name: "測試分類" });
+core.saveExpenseItem({ category: "測試分類", name: "測試項目" });
+core.addEntry({ type: "expense", date: today, amount: 1, category: "測試分類", item: "測試項目", account: "生活帳戶", merchant: "分類編輯測試" });
+core.saveExpenseCategory({ originalName: "測試分類", name: "更新分類" });
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "分類編輯測試").category, "更新分類", "renaming an expense category must update linked entries");
+core.saveExpenseItem({ originalCategory: "更新分類", originalName: "測試項目", category: "更新分類", name: "更新項目" });
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "分類編輯測試").item, "更新項目", "renaming an expense item must update linked entries");
+core.removeExpenseItem("更新分類", "更新項目");
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "分類編輯測試").item, "", "deleting an expense item must preserve the entry and clear only its item field");
+core.removeExpenseCategory("更新分類");
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "分類編輯測試").category, "未分類", "deleting an expense category must preserve the entry under 未分類");
 core.addEntry({ type: "expense", date: today, amount: 300, currency: "TWD", purchaseRegion: "domestic", category: "旅遊", item: "換匯支出", account: "美元帳戶", merchant: "台幣扣款" });
 assert.equal(core.insights().assetsSummary.accounts.find(row => row.name === "美元帳戶").balance, 60, "TWD transaction on a USD account must convert to the account currency");
 
@@ -85,6 +96,9 @@ assert.equal(snapshot.health.score >= 0 && snapshot.health.score <= 100, true);
 const searchResults = window.FinanceSearch.search(snapshot, "午餐");
 assert.equal(searchResults.some(row => row.title === "今日午餐"), true, "global search must find ledger entries");
 assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "forecast"), true, "forecast route must exist");
+assert.equal(window.FinanceCenterRoutes.daily.tabs.some(([id]) => id === "taxonomy"), true, "expense taxonomy management route must exist");
+assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "reconcile"), true, "account reconciliation route must exist");
+assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "statements"), true, "credit card statement check route must be separate");
 
 assert.equal(window.FinanceSync.enqueue({ reason: "財務中心啟動" }).outbox.length, 0);
 assert.equal(window.FinanceSync.enqueue({ reason: "新增支出", updatedAt: new Date().toISOString() }).outbox.length, 1);
@@ -103,5 +117,8 @@ const quickFormSource = financeCenterHtml.slice(financeCenterHtml.indexOf("funct
 assert.equal(quickFormSource.includes('name="currency"'), false, "quick entry must not expose a manual transaction currency selector");
 assert.equal(quickFormSource.includes("data-account-currency-note"), true, "quick entry must explain that currency follows the selected account");
 assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncQuickEntryAccount(form)'), true, "card region and currency note must update when the account changes");
+assert.equal(financeCenterHtml.includes('state.tab==="reconcile"||state.tab==="statements"'), true, "account inventory and credit card checks must render as separate tabs");
+assert.equal(financeCenterHtml.includes('id="expenseCategoryForm"'), true, "expense category editor must exist");
+assert.equal(financeCenterHtml.includes('id="expenseItemForm"'), true, "expense item editor must exist");
 
 console.log("finance center regression test OK");
