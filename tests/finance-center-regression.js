@@ -38,9 +38,10 @@ assert.equal(snapshot.assetsSummary.liabilities, 300, "credit liability must be 
 
 core.applyMarketSnapshot({ rates: { rates: { USD: 30 }, generatedAt: new Date().toISOString(), source: "regression" } });
 core.addAccount({ name: "美元帳戶", type: "外幣銀行帳戶", currency: "USD", openingBalance: 100 });
-core.addEntry({ type: "expense", date: today, amount: 30, currency: "USD", purchaseRegion: "domestic", category: "旅遊", item: "交通", account: "美元帳戶", merchant: "美國交通" });
+core.addEntry({ type: "expense", date: today, amount: 30, purchaseRegion: "domestic", category: "旅遊", item: "交通", account: "美元帳戶", merchant: "美國交通" });
 snapshot = core.insights();
 assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "美元帳戶").balance, 70, "USD account must stay in its native currency");
+assert.equal(snapshot.ledger.entries.find(row => row.merchant === "美國交通").transactionCurrency, "USD", "quick entry currency must follow the selected account");
 assert.equal(snapshot.ledger.items.expense["旅遊"].includes("交通"), true, "category should remember its item options");
 core.addEntry({ type: "expense", date: today, amount: 300, currency: "TWD", purchaseRegion: "domestic", category: "旅遊", item: "換匯支出", account: "美元帳戶", merchant: "台幣扣款" });
 assert.equal(core.insights().assetsSummary.accounts.find(row => row.name === "美元帳戶").balance, 60, "TWD transaction on a USD account must convert to the account currency");
@@ -98,6 +99,9 @@ assert.equal(financeCenterHtml.includes('event.target.getAttribute("id")'), true
 assert.equal(financeCenterHtml.includes('[hidden]{display:none!important}'), true, "hidden import inputs must never appear in the page layout");
 assert.equal(financeCenterHtml.includes('<label>幣別<select name="currency">${option("TWD","台幣 TWD"'), true, "manual holding currency must use a TWD and USD select menu");
 assert.equal(financeCenterHtml.includes('data-card-region ${creditAccount?"":"hidden"}'), true, "card region must be hidden unless the selected account is a credit card");
-assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncCardRegion(form)'), true, "card region visibility must update when the account changes");
+const quickFormSource = financeCenterHtml.slice(financeCenterHtml.indexOf("function quickEntryForm"), financeCenterHtml.indexOf("function uniqueCategories"));
+assert.equal(quickFormSource.includes('name="currency"'), false, "quick entry must not expose a manual transaction currency selector");
+assert.equal(quickFormSource.includes("data-account-currency-note"), true, "quick entry must explain that currency follows the selected account");
+assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncQuickEntryAccount(form)'), true, "card region and currency note must update when the account changes");
 
 console.log("finance center regression test OK");

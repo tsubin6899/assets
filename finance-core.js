@@ -608,7 +608,7 @@
     const accountName = values.account || existing.account || ledger.accounts[0]?.name || "";
     const account = ledger.accounts.find(row => row.name === accountName);
     const accountCurrency = normalizeCurrency(account?.currency || existing.accountCurrency || "TWD");
-    const transactionCurrency = normalizeCurrency(values.currency || values.transactionCurrency || existing.transactionCurrency || accountCurrency);
+    const transactionCurrency = normalizeCurrency(values.currency || values.transactionCurrency || accountCurrency);
     const transactionAmount = Math.max(0, number(values.amount ?? values.transactionAmount ?? existing.transactionAmount ?? existing.amount));
     const bookedAmount = transactionAmount * fxRate(assets, transactionCurrency) / fxRate(assets, accountCurrency);
     const purchaseRegion = values.purchaseRegion === "foreign" ? "foreign" : "domestic";
