@@ -96,5 +96,8 @@ const financeCenterHtml = fs.readFileSync("finance-center.html", "utf8");
 assert.equal(financeCenterHtml.includes('event.target.id==='), false, "form handlers must not use a shadowable form.id property");
 assert.equal(financeCenterHtml.includes('event.target.getAttribute("id")'), true, "form handlers must read the form id attribute explicitly");
 assert.equal(financeCenterHtml.includes('[hidden]{display:none!important}'), true, "hidden import inputs must never appear in the page layout");
+assert.equal(financeCenterHtml.includes('<label>幣別<select name="currency">${option("TWD","台幣 TWD"'), true, "manual holding currency must use a TWD and USD select menu");
+assert.equal(financeCenterHtml.includes('data-card-region ${creditAccount?"":"hidden"}'), true, "card region must be hidden unless the selected account is a credit card");
+assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncCardRegion(form)'), true, "card region visibility must update when the account changes");
 
 console.log("finance center regression test OK");
