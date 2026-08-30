@@ -1249,7 +1249,7 @@
       #transferFeeAccount,
       #recurringAccount,
       #accountFilter {
-        font-size: 13px;
+        font-size: 10px;
         line-height: 1.2;
       }
       .toolbar { align-items: stretch; }
@@ -2284,17 +2284,29 @@
       grid-template-columns: minmax(0, 1fr) auto;
       gap: 4px 12px;
       align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--line);
-      border-top: 0;
-      border-right: 0;
-      border-left: 0;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
       color: inherit;
       background: transparent;
       text-align: left;
       cursor: pointer;
     }
-    .mobile-recent-item:last-child { border-bottom: 0; }
+    .mobile-recent-item.recent-income {
+      border-color: #b9dfce;
+      border-left: 4px solid var(--green);
+      background: #f0fbf6;
+    }
+    .mobile-recent-item.recent-expense {
+      border-color: #edc9c5;
+      border-left: 4px solid var(--red);
+      background: #fff6f5;
+    }
+    .mobile-recent-item.recent-fee {
+      border-color: #ead9b3;
+      border-left: 4px solid var(--amber);
+      background: #fffaf0;
+    }
     .mobile-recent-item strong { font-size: 14px; }
     .mobile-recent-item small { color: var(--muted); font-size: 11px; }
     .mobile-recent-item .recent-amount {
@@ -5205,7 +5217,7 @@
         .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")) || String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
         .slice(0, 5);
       target.innerHTML = rows.length
-        ? rows.map(row => `<button class="mobile-recent-item" type="button" data-edit-entry="${escapeHtml(row.id)}">
+        ? rows.map(row => `<button class="mobile-recent-item recent-${row.type === "income" ? "income" : row.isForeignTransactionFee ? "fee" : "expense"}" type="button" data-edit-entry="${escapeHtml(row.id)}">
             <strong>${escapeHtml(row.merchant || row.item || row.category || "未命名交易")}</strong>
             <small>${escapeHtml(row.date)}・${escapeHtml(row.category)}・${escapeHtml(row.account)}</small>
             <span class="recent-amount ${row.type === "income" ? "amount-income" : "amount-expense"}">${row.type === "income" ? "+" : "-"}${money(row.amount)}</span>
