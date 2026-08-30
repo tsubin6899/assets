@@ -76,6 +76,8 @@
   function suggestCategory(row, ledger = {}) {
     if (row.category) return row.category;
     const merchant=String(row.merchant||row.note||"").trim();
+    const custom=(ledger.categoryRules||[]).find(rule=>rule.type===(row.type==="income"?"income":"expense")&&merchant.toLowerCase().includes(String(rule.keyword||"").toLowerCase()));
+    if (custom?.category) return custom.category;
     const learned=(ledger.entries||[]).filter(item=>item.type===row.type&&item.category&&item.merchant).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))).find(item=>merchant&&String(item.merchant).toLowerCase()===merchant.toLowerCase());
     if (learned) return learned.category;
     const keyword=KEYWORDS.find(([pattern])=>pattern.test(merchant));

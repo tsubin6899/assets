@@ -125,6 +125,7 @@
       creditStatementChecks: Array.isArray(value.creditStatementChecks) ? value.creditStatementChecks : [],
       recycleBin: Array.isArray(value.recycleBin) ? value.recycleBin : [],
       monthCloseouts: Array.isArray(value.monthCloseouts) ? value.monthCloseouts : [],
+      categoryRules: Array.isArray(value.categoryRules) ? value.categoryRules : [],
       loans: Array.isArray(value.loans) ? value.loans : [],
       goals: Array.isArray(value.goals) ? value.goals : [],
       annualPlans: Array.isArray(value.annualPlans) ? value.annualPlans : [],
@@ -587,6 +588,25 @@
   function persist(ledger, assets, reason = "資料更新", options = {}) {
     const normalizedLedger = ensureLedger(ledger);
     const normalizedAssets = ensureAssets(assets);
+    const isMonthControl = /月結|還原/.test(reason);
+    if (!isMonthControl) {
+      const monthKey = value => String(value || "").slice(0, 7);
+      const rowSignature = row => JSON.stringify({
+        id: row.id || "", date: row.date || "", type: row.type || "", amount: row.amount ?? row.fromAmount ?? 0,
+        account: row.account || row.fromAccount || "", toAccount: row.toAccount || "", merchant: row.merchant || "",
+        category: row.category || "", item: row.item || "", note: row.note || ""
+      });
+      for (const closeout of normalizedLedger.monthCloseouts || []) {
+        const closedMonth = closeout.month, snapshot = closeout.ledger || {};
+        const currentRows = (normalizedLedger.entries || []).filter(row => monthKey(row.date) === closedMonth).map(rowSignature).sort();
+        const snapshotRows = (snapshot.entries || []).filter(row => monthKey(row.date) === closedMonth).map(rowSignature).sort();
+        const currentTransfers = (normalizedLedger.transfers || []).filter(row => monthKey(row.date) === closedMonth).map(rowSignature).sort();
+        const snapshotTransfers = (snapshot.transfers || []).filter(row => monthKey(row.date) === closedMonth).map(rowSignature).sort();
+        if (JSON.stringify(currentRows) !== JSON.stringify(snapshotRows) || JSON.stringify(currentTransfers) !== JSON.stringify(snapshotTransfers)) {
+          throw new Error(`${closedMonth} 已完成月結，請先重新開啟月份後再修改`);
+        }
+      }
+    }
     if (options.backup !== false) createBackup(reason);
     normalizedLedger.auditJournal.unshift({
       id: uid("journal"), reason, createdAt: nowIso(), deviceId: preferences().deviceId,
@@ -973,6 +993,31 @@
     return persist(ledger, assets, "重新命名支出分類");
   }
 
+  function saveCategoryRule(values) {
+    const { ledger, assets } = load();
+    const keyword = String(values.keyword || "").trim();
+    const category = String(values.category || "").trim();
+    const type = values.type === "income" ? "income" : "expense";
+    if (!keyword || !category) throw new Error("請輸入關鍵字與分類");
+    const existing = ledger.categoryRules.find(row => row.id === values.id);
+    const duplicate = ledger.categoryRules.find(row => row.id !== values.id && row.type === type && String(row.keyword || "").toLowerCase() === keyword.toLowerCase());
+    if (duplicate) throw new Error("此收支類型已有相同關鍵字規則");
+    const rule = { id: existing?.id || uid("category-rule"), keyword, category, type, updatedAt: nowIso() };
+    if (existing) Object.assign(existing, rule); else ledger.categoryRules.unshift(rule);
+    ledger.categoryRules = ledger.categoryRules.slice(0, 100);
+    ledger.categories[type] = unique([...(ledger.categories[type] || []), category]);
+    if (type === "expense") { ledger.items.expense = ledger.items.expense || {}; ledger.items.expense[category] = ledger.items.expense[category] || []; }
+    return persist(ledger, assets, existing ? "更新自動分類規則" : "新增自動分類規則");
+  }
+
+  function removeCategoryRule(id) {
+    const { ledger, assets } = load();
+    const before = ledger.categoryRules.length;
+    ledger.categoryRules = ledger.categoryRules.filter(row => row.id !== id);
+    if (before === ledger.categoryRules.length) throw new Error("找不到自動分類規則");
+    return persist(ledger, assets, "刪除自動分類規則");
+  }
+
   function removeExpenseCategory(nameValue) {
     const { ledger, assets } = load();
     prepareExpenseTaxonomy(ledger);
@@ -1101,6 +1146,10 @@
     ledger.monthCloseouts = ledger.monthCloseouts.filter(row => row.month !== month);
     ledger.monthCloseouts.unshift({ month, closedAt: nowIso(), ledger: snapshot });
     return persist(ledger, assets, `完成 ${month} 月結`);
+  }
+
+  function isMonthClosed(month) {
+    return !!load().ledger.monthCloseouts?.some(row => row.month === month);
   }
 
   function reopenMonth(month = monthOf()) {
@@ -1300,8 +1349,8 @@
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring,
     addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
-    addRecurring, updateRecurring, removeRecurring, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, upsertBudget, removeBudget,
-    addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth,
+    addRecurring, updateRecurring, removeRecurring, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
+    addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
     addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
     marketSymbols, applyMarketSnapshot,
