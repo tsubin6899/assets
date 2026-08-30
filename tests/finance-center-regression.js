@@ -151,13 +151,15 @@ assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncQuic
 assert.equal(financeCenterHtml.includes('state.tab==="reconcile"||state.tab==="statements"'), true, "account inventory and credit card checks must render as separate tabs");
 assert.equal(financeCenterHtml.includes('id="expenseCategoryForm"'), true, "expense category editor must exist");
 assert.equal(financeCenterHtml.includes('id="expenseItemForm"'), true, "expense item editor must exist");
-assert.equal(financeCenterHtml.includes('const accountTypeOrder=["現金","銀行帳戶","外幣銀行帳戶","外幣現金","行動支付","其他","信用卡"]'), true, "account overview must use a stable type order");
+assert.equal(financeCenterHtml.includes('const accountTypeOrder=accountGroupDefinitions.map(row=>row.type)'), true, "account overview and selectors must share one stable type order");
 assert.equal(financeCenterHtml.includes('class="account-group ${groupVisual.cls}"'), true, "accounts of the same type must render inside a shared group");
 assert.equal(financeCenterHtml.includes('localeCompare(String(b.name||""),"zh-TW")'), true, "accounts within each type must be sorted by name");
 assert.equal(financeCenterHtml.includes('id="loanForm"'), true, "loan management form must exist");
 assert.equal(financeCenterHtml.includes('id="goalForm"'), true, "goal management form must exist");
 assert.equal(financeCenterHtml.includes('id="bulkEntryForm"'), true, "entry batch editing form must exist");
 assert.equal(financeCenterHtml.includes('FinanceStorage.init()'), true, "IndexedDB mirror must initialize with the app");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v108"), true, "service worker cache must be bumped for the upgrade");
+assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account selectors must group accounts by type");
+assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v109"), true, "service worker cache must be bumped for the grouped account selectors");
 
 console.log("finance center regression test OK");

@@ -95,6 +95,9 @@
     .exchange-note{grid-column:1/-1;padding:10px 12px;border:1px solid #d6e5f4;border-radius:11px;color:#4f6580;background:#f1f7fd;font-size:12px;font-weight:700}
     label{display:grid;gap:6px;color:#59667a;font-size:12px;font-weight:750}
     input,select,textarea{display:block;width:100%;min-width:0;max-width:100%;min-height:42px;padding:9px 11px;border:1px solid #d5dfe8;border-radius:10px;color:var(--ink);background:#fff;outline:none}
+    select.account-select{--account-select-accent:#8190a2;padding-left:13px;border-left:5px solid var(--account-select-accent);font-weight:800;background-color:#fff;background-image:linear-gradient(90deg,color-mix(in srgb,var(--account-select-accent) 9%,#fff),#fff 42%);transition:border-color .16s,box-shadow .16s,background-color .16s}
+    select.account-select[data-account-tone="cash"]{--account-select-accent:#1eaa7d}select.account-select[data-account-tone="bank"]{--account-select-accent:#3979ed}select.account-select[data-account-tone="foreign"]{--account-select-accent:#8066ce}select.account-select[data-account-tone="payment"]{--account-select-accent:#169b91}select.account-select[data-account-tone="credit"]{--account-select-accent:#d65d57}select.account-select[data-account-tone="other"]{--account-select-accent:#e5a13d}
+    select.account-select optgroup{font-weight:900;color:#263753;background:#f4f7fa}select.account-select option{padding:8px;color:#25344b;background:#fff;font-weight:700}
     textarea{min-height:76px;resize:vertical}
     input:focus,select:focus,textarea:focus{border-color:#6c9bf2;box-shadow:0 0 0 3px rgba(57,121,237,.12)}
     .segmented{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:4px;width:100%;min-width:0;max-width:100%;margin-bottom:13px;padding:4px;border:1px solid #dbe4e8;border-radius:11px;background:#eef4f1}
@@ -268,7 +271,20 @@
     function dateTime(value) { try { return new Intl.DateTimeFormat("zh-TW", { dateStyle:"medium", timeStyle:"short" }).format(new Date(value)); } catch { return value || ""; } }
     function showToast(message) { const node = document.getElementById("toast"); node.textContent = message; node.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => node.classList.remove("show"), 2300); }
     function option(value, label, selected) { return `<option value="${esc(value)}" ${String(value) === String(selected) ? "selected" : ""}>${esc(label)}</option>`; }
-    function accountOptions(selected = "", regularOnly = false) { return current.ledger.accounts.filter(row => (!row.archived || row.name === selected) && (!regularOnly || row.type !== "信用卡")).map(row => option(row.name, `${row.name}｜${row.currency || "TWD"}${row.archived?"｜已封存":""}`, selected)).join(""); }
+    const accountGroupDefinitions=[
+      {type:"現金",label:"🟢 現金",tone:"cash"},{type:"銀行帳戶",label:"🔵 銀行帳戶",tone:"bank"},
+      {type:"外幣銀行帳戶",label:"🟣 外幣銀行帳戶",tone:"foreign"},{type:"外幣現金",label:"🟪 外幣現金",tone:"foreign"},
+      {type:"行動支付",label:"🟦 行動支付",tone:"payment"},{type:"信用卡",label:"🔴 信用卡／負債",tone:"credit"},
+      {type:"其他",label:"🟠 其他帳戶",tone:"other"}
+    ];
+    function accountOptions(selected = "", regularOnly = false) {
+      const rows=current.ledger.accounts.filter(row=>(!row.archived||row.name===selected)&&(!regularOnly||row.type!=="信用卡"));
+      const known=new Set(accountGroupDefinitions.map(row=>row.type)),groups=accountGroupDefinitions.map(group=>({...group,rows:rows.filter(row=>row.type===group.type)}));
+      const otherRows=rows.filter(row=>!known.has(row.type));if(otherRows.length){const other=groups.find(row=>row.type==="其他");other.rows.push(...otherRows)}
+      return groups.filter(group=>group.rows.length).map(group=>`<optgroup label="${esc(group.label)}｜${group.rows.length} 個" data-account-group data-account-type="${esc(group.type)}" data-account-tone="${esc(group.tone)}">${group.rows.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"zh-TW")).map(row=>option(row.name,`${group.tone==="credit"?"信用卡":"帳戶"}　${row.name}　｜　${row.currency||"TWD"}${row.archived?"　｜　已封存":""}`,selected)).join("")}</optgroup>`).join("");
+    }
+    function syncAccountSelectStyle(select){if(!select?.classList.contains("account-select"))return;const group=select.selectedOptions?.[0]?.parentElement,tone=group?.dataset?.accountTone||"other";select.dataset.accountTone=tone;select.dataset.accountType=group?.dataset?.accountType||""}
+    function decorateAccountSelects(root=app){root.querySelectorAll("select").forEach(select=>{if(!select.querySelector("optgroup[data-account-group]"))return;select.classList.add("account-select");syncAccountSelectStyle(select)})}
     function refresh() { current = FinanceCore.insights(); render(); }
     function setRoute(domain, tab = "") {
       if (!routes[domain]) domain = "home";
@@ -394,7 +410,7 @@
       return `${head}<div class="two-col grid"><form id="recurringForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}固定收支</h3><p>規則會先顯示為未實現，到日期當天才自動入帳</p></div></div><div class="form-grid"><label>類型<select name="type">${option("expense","支出",edit?.type||"expense")}${option("income","收入",edit?.type)}</select></label><label>名稱<input name="name" value="${esc(edit?.name||"")}" required></label><label>金額<input name="amount" type="number" min="1" value="${esc(edit?.amount||"")}" required></label><label>分類<select name="category">${uniqueCategories().map(row=>option(row,row,edit?.category)).join("")}</select></label><label>項目<input name="item" value="${esc(edit?.item||"")}"></label><label>帳戶<select name="account">${accountOptions(edit?.account||"")}</select></label><label>週期<select name="cycle">${option("monthly","每月",edit?.cycle||"monthly")}${option("weekly","每週",edit?.cycle)}${option("yearly","每年",edit?.cycle)}</select></label><label>日期<input name="day" type="number" min="1" max="31" value="${esc(edit?.day||1)}"></label><label class="wide">停止日期<input name="endDate" type="date" value="${esc(edit?.endDate||"")}"></label></div><button class="action-btn green" style="width:100%;margin-top:13px" type="submit">${edit?"儲存修改":"新增固定收支"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-recurring>取消編輯</button>`:""}</form><section class="panel"><div class="panel-head"><div><h3>固定收支清單</h3><p>${rules.length} 筆週期規則；未實現項目不計入目前帳務</p></div></div><div class="inline-list">${rules.length?rules.map(recurringCard).join(""):`<div class="empty">尚未建立固定收支。</div>`}</div></section></div>`;
     }
     function accountVisual(type) { if(type==="信用卡")return{cls:"credit",icon:"credit-card",label:"負債｜待繳金額"};if(/外幣/.test(type))return{cls:"foreign",icon:"badge-dollar-sign",label:"外幣資產"};if(type==="現金")return{cls:"cash",icon:"banknote",label:"流動資產"};if(type==="銀行帳戶")return{cls:"bank",icon:"landmark",label:"存款資產"};if(type==="行動支付")return{cls:"payment",icon:"smartphone",label:"支付資產"};return{cls:"other",icon:"wallet-cards",label:"其他資產"}; }
-    const accountTypeOrder=["現金","銀行帳戶","外幣銀行帳戶","外幣現金","行動支付","其他","信用卡"];
+    const accountTypeOrder=accountGroupDefinitions.map(row=>row.type);
     function accountCards() {
       const accountMap=new Map((current.ledger.accounts||[]).map(row=>[row.id,row]));
       const rows=[...current.assetsSummary.accounts].map(row=>({...row,archived:Boolean(accountMap.get(row.id)?.archived)})).sort((a,b)=>Number(a.archived)-Number(b.archived)||(()=>{const aRank=accountTypeOrder.includes(a.type)?accountTypeOrder.indexOf(a.type):accountTypeOrder.length,bRank=accountTypeOrder.includes(b.type)?accountTypeOrder.indexOf(b.type):accountTypeOrder.length;return aRank-bRank||String(a.type||"").localeCompare(String(b.type||""),"zh-TW")||String(a.name||"").localeCompare(String(b.name||""),"zh-TW")})());
@@ -528,6 +544,7 @@
       const renderer = { home:renderHome, daily:renderDaily, accounts:renderAccounts, investments:renderInvestments, analysis:renderAnalysis }[state.domain] || renderHome;
       app.dataset.section = state.domain;
       app.innerHTML = renderer();
+      decorateAccountSelects(app);
       document.querySelectorAll(".primary-nav [data-domain],.mobile-nav [data-domain]").forEach(node=>node.classList.toggle("active",node.dataset.domain===state.domain));
       if(window.lucide) lucide.createIcons();
     }
@@ -616,7 +633,7 @@
       if(event.target.closest("[data-import-csv]")){document.getElementById("importCsvFile").click();return}
       const restore=event.target.closest("[data-restore-backup]")?.dataset.restoreBackup;if(restore&&confirm("確定要還原這個版本嗎？目前資料會先自動備份。")){FinanceCore.restoreBackup(restore);showToast("資料已還原");refresh()}
     });
-    document.addEventListener("change",event=>{if(event.target.matches("[data-select-all-entries]")){document.querySelectorAll("[data-select-entry]").forEach(node=>{node.checked=event.target.checked});const count=document.querySelectorAll("[data-select-entry]:checked").length,node=document.querySelector("[data-selection-count]");if(node)node.textContent=count?`已選取 ${count} 筆`:"尚未選取";return}if(event.target.matches("[data-select-entry]")){const count=document.querySelectorAll("[data-select-entry]:checked").length,node=document.querySelector("[data-selection-count]");if(node)node.textContent=count?`已選取 ${count} 筆`:"尚未選取";return}const form=event.target.closest("#quickEntryForm");if(form&&event.target.name==="account"){syncQuickEntryAccount(form);return}if(form&&(event.target.name==="type"||event.target.name==="category")){refreshEntryTaxonomy(form);return}const trade=event.target.closest("#tradeForm");if(trade&&event.target.name==="market"){const currency=trade.elements.currency;if(currency)currency.value=["US","USD_FUND"].includes(event.target.value)?"USD":"TWD"}});
+    document.addEventListener("change",event=>{if(event.target.matches("select.account-select"))syncAccountSelectStyle(event.target);if(event.target.matches("[data-select-all-entries]")){document.querySelectorAll("[data-select-entry]").forEach(node=>{node.checked=event.target.checked});const count=document.querySelectorAll("[data-select-entry]:checked").length,node=document.querySelector("[data-selection-count]");if(node)node.textContent=count?`已選取 ${count} 筆`:"尚未選取";return}if(event.target.matches("[data-select-entry]")){const count=document.querySelectorAll("[data-select-entry]:checked").length,node=document.querySelector("[data-selection-count]");if(node)node.textContent=count?`已選取 ${count} 筆`:"尚未選取";return}const form=event.target.closest("#quickEntryForm");if(form&&event.target.name==="account"){syncQuickEntryAccount(form);return}if(form&&(event.target.name==="type"||event.target.name==="category")){refreshEntryTaxonomy(form);return}const trade=event.target.closest("#tradeForm");if(trade&&event.target.name==="market"){const currency=trade.elements.currency;if(currency)currency.value=["US","USD_FUND"].includes(event.target.value)?"USD":"TWD"}});
     document.addEventListener("submit", event => {
       const formId=event.target.getAttribute("id")||"";
       const financeForms=["entryFilterForm","bulkEntryForm","quickEntryForm","transferForm","tradeForm","dividendForm","accountForm","creditBillForm","budgetForm","recurringForm","installmentForm","loanForm","goalForm","annualPlanForm","taxYearForm","reconcileForm","statementCheckForm","holdingForm","expenseCategoryForm","expenseItemForm"];
@@ -694,7 +711,7 @@
     FinanceCore.touch("財務中心啟動"); FinanceStorage.init(); loadStorageRevisions(false); readRoute(); initCloud(); armPrivacyTimer();
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=108").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=109").catch(()=>{});
   </script>
 </body>
 </html>
