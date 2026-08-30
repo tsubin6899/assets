@@ -160,6 +160,8 @@ assert.equal(financeCenterHtml.includes('id="bulkEntryForm"'), true, "entry batc
 assert.equal(financeCenterHtml.includes('FinanceStorage.init()'), true, "IndexedDB mirror must initialize with the app");
 assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account selectors must group accounts by type");
 assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v109"), true, "service worker cache must be bumped for the grouped account selectors");
+assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
+assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v110"), true, "service worker cache must be bumped for compact mobile account selectors");
 
 console.log("finance center regression test OK");

@@ -179,6 +179,7 @@
       .two-col,.three-col,.four-col,.home-grid,.hero-metrics,.form-grid,.holding-grid,.filter-bar,.trade-metrics,.audit-detail-grid,.calendar-selected-total,.taxonomy-grid,.bulk-toolbar{grid-template-columns:minmax(0,1fr)}
       .version-row{align-items:stretch;flex-direction:column}.version-row .action-btn{width:100%}
       .panel{padding:15px}.panel-head{align-items:flex-start;flex-direction:column}.panel-head>.action-btn{width:100%}.hero-card{min-height:0;padding:20px 16px}.hero-top{display:block}.net-worth{font-size:42px}.hero-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.hero-actions .action-btn{width:100%}.metric-card strong{font-size:23px;overflow-wrap:anywhere}.form-grid .wide{grid-column:auto}#quickEntryForm,#quickEntryForm>*,#quickEntryForm label{width:100%;min-width:0;max-width:100%}#quickEntryForm{overflow:hidden}.allocation-row{grid-template-columns:52px minmax(0,1fr) 64px}.table-wrap{width:100%;max-width:100%;border:0;overflow-x:hidden}
+      select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px;min-height:36px;padding:6px 25px 6px 9px;border-left-width:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:75%;line-height:1.1}select.account-select optgroup,select.account-select option{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:100%}
       .account-card .account-title{align-items:flex-start;flex-direction:column}.account-identity{min-width:0}.alert-card{grid-template-columns:auto minmax(0,1fr);align-items:start}.alert-card>.status-chip,.alert-card>.money-value,.alert-card>.action-btn{grid-column:2;justify-self:start}.inline-item,.pending-entry,.backup-row{align-items:stretch;flex-direction:column}.inline-item>*,.pending-entry>*,.backup-row>*{min-width:0;max-width:100%}.row-actions{width:100%;justify-content:flex-start;flex-wrap:wrap}.row-actions .action-btn{flex:1 1 auto}.action-btn{white-space:normal}.trade-result{width:100%;min-width:0;text-align:left}
       .market-strip{grid-template-columns:auto minmax(0,1fr);padding:13px}.market-strip>.action-btn{grid-column:1/-1;width:100%}
       .calendar-layout{grid-template-columns:minmax(0,1fr)}.calendar-layout .panel-head{align-items:stretch;flex-direction:column}.calendar-toolbar{width:100%;flex-wrap:wrap;overflow:visible}.calendar-toolbar strong{flex:1 1 104px;min-width:0}.calendar-scroll{margin:0 -4px;padding:0 4px 5px}.calendar-scroll>.calendar-weekdays,.calendar-scroll>.calendar-grid{min-width:560px}.calendar-day{min-height:82px;padding:7px}.calendar-count{display:none}
@@ -281,7 +282,7 @@
       const rows=current.ledger.accounts.filter(row=>(!row.archived||row.name===selected)&&(!regularOnly||row.type!=="信用卡"));
       const known=new Set(accountGroupDefinitions.map(row=>row.type)),groups=accountGroupDefinitions.map(group=>({...group,rows:rows.filter(row=>row.type===group.type)}));
       const otherRows=rows.filter(row=>!known.has(row.type));if(otherRows.length){const other=groups.find(row=>row.type==="其他");other.rows.push(...otherRows)}
-      return groups.filter(group=>group.rows.length).map(group=>`<optgroup label="${esc(group.label)}｜${group.rows.length} 個" data-account-group data-account-type="${esc(group.type)}" data-account-tone="${esc(group.tone)}">${group.rows.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"zh-TW")).map(row=>option(row.name,`${group.tone==="credit"?"信用卡":"帳戶"}　${row.name}　｜　${row.currency||"TWD"}${row.archived?"　｜　已封存":""}`,selected)).join("")}</optgroup>`).join("");
+      return groups.filter(group=>group.rows.length).map(group=>`<optgroup label="${esc(group.label)}｜${group.rows.length} 個" data-account-group data-account-type="${esc(group.type)}" data-account-tone="${esc(group.tone)}">${group.rows.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||""),"zh-TW")).map(row=>option(row.name,`${row.name}　｜　${row.currency||"TWD"}${row.archived?"　｜　已封存":""}`,selected)).join("")}</optgroup>`).join("");
     }
     function syncAccountSelectStyle(select){if(!select?.classList.contains("account-select"))return;const group=select.selectedOptions?.[0]?.parentElement,tone=group?.dataset?.accountTone||"other";select.dataset.accountTone=tone;select.dataset.accountType=group?.dataset?.accountType||""}
     function decorateAccountSelects(root=app){root.querySelectorAll("select").forEach(select=>{if(!select.querySelector("optgroup[data-account-group]"))return;select.classList.add("account-select");syncAccountSelectStyle(select)})}
@@ -711,7 +712,7 @@
     FinanceCore.touch("財務中心啟動"); FinanceStorage.init(); loadStorageRevisions(false); readRoute(); initCloud(); armPrivacyTimer();
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=109").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=110").catch(()=>{});
   </script>
 </body>
 </html>
