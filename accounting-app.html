@@ -1234,6 +1234,24 @@
       #accountLedgerView .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       #accountLedgerView .filters #accountLedgerAccount,
       #accountLedgerView .filters #accountLedgerSearch { grid-column: 1 / -1; }
+      /* Keep the native mobile account picker compact enough for long account names. */
+      #account,
+      #templateAccount,
+      #reconcileAccount,
+      #accountLedgerAccount,
+      #cycleCard,
+      #installmentCard,
+      #billCard,
+      #billPayAccount,
+      #reconcileCreditCard,
+      #transferFrom,
+      #transferTo,
+      #transferFeeAccount,
+      #recurringAccount,
+      #accountFilter {
+        font-size: 13px;
+        line-height: 1.2;
+      }
       .toolbar { align-items: stretch; }
       .filters { width: 100%; }
       .mobile-actions {
