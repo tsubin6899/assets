@@ -16,7 +16,7 @@ const context = {
   console, Date, Intl, JSON, Math, Number, Object, String, Array, Map, Set
 };
 vm.createContext(context);
-["finance-core.js", "finance-sync.js", "finance-search.js", "finance-import.js", "finance-center-routes.js"].forEach(file => vm.runInContext(fs.readFileSync(file, "utf8"), context, { filename: file }));
+["finance-core.js", "finance-upgrades.js", "finance-sync.js", "finance-search.js", "finance-import.js", "finance-center-routes.js"].forEach(file => vm.runInContext(fs.readFileSync(file, "utf8"), context, { filename: file }));
 
 const core = window.FinanceCore;
 const today = core.localDate();
@@ -99,6 +99,27 @@ assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "for
 assert.equal(window.FinanceCenterRoutes.daily.tabs.some(([id]) => id === "taxonomy"), true, "expense taxonomy management route must exist");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "reconcile"), true, "account reconciliation route must exist");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "statements"), true, "credit card statement check route must be separate");
+assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "loans"), true, "loan manager route must exist");
+assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "audit"), true, "data audit route must exist");
+assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "planning"), true, "financial planning route must exist");
+
+const upgrades = window.FinanceUpgrades;
+const livingAccount = core.insights().ledger.accounts.find(row => row.name === "生活帳戶");
+upgrades.setAccountArchived(livingAccount.id, true);
+assert.equal(core.insights().ledger.accounts.find(row => row.id === livingAccount.id).archived, true, "archiving an account must preserve it for history");
+upgrades.setAccountArchived(livingAccount.id, false);
+upgrades.saveLoan({ name:"測試房貸", lender:"測試銀行", principal:1000000, balance:800000, annualRate:2, monthlyPayment:10000, nextDueDate:futureDate, account:"生活帳戶" });
+assert.equal(core.insights().assetsSummary.loanDebt, 800000, "loan balance must be included in liabilities");
+assert.equal(core.insights().assetsSummary.liabilities >= 800000, true, "total liabilities must include loan debt");
+upgrades.saveGoal({ name:"緊急預備金", targetAmount:120000, currentAmount:30000, targetDate:futureDate, linkedAccount:"生活帳戶" });
+upgrades.saveAnnualPlan({ year:String(new Date().getFullYear()), expectedIncome:900000, spendingLimit:600000, emergencyFundTarget:180000, investmentTarget:200000, benchmarkRate:6 });
+assert.equal(core.insights().ledger.goals.length, 1, "saving goal must persist it");
+assert.equal(upgrades.benchmark(String(new Date().getFullYear())).targetRate, 6, "benchmark must use the annual plan target");
+const lunch = core.insights().ledger.entries.find(row => row.merchant === "今日午餐");
+assert.equal(upgrades.bulkUpdateEntries({ ids:[lunch.id], category:"外食" }), 1, "bulk editing must update selected entries");
+assert.equal(core.insights().ledger.entries.find(row => row.id === lunch.id).category, "外食", "bulk category must be persisted");
+assert.equal(Array.isArray(upgrades.audit(core.insights()).issues), true, "data audit must return a list of issues");
+assert.equal(upgrades.taxSummary(String(new Date().getFullYear())).year, String(new Date().getFullYear()), "tax summary must support a selected year");
 
 assert.equal(window.FinanceSync.enqueue({ reason: "財務中心啟動" }).outbox.length, 0);
 assert.equal(window.FinanceSync.enqueue({ reason: "新增支出", updatedAt: new Date().toISOString() }).outbox.length, 1);
@@ -106,6 +127,16 @@ window.FinanceSync.markError(new Error("offline"));
 assert.equal(window.FinanceSync.hasPending(), true);
 window.FinanceSync.markSynced({ remoteUpdatedAt: new Date().toISOString() });
 assert.equal(window.FinanceSync.hasPending(), false);
+const localBundle = core.exportBundle();
+const remoteBundle = JSON.parse(JSON.stringify(localBundle));
+remoteBundle.ledger.entries.push({ id:"remote-only", date:today, type:"income", amount:100, category:"其他收入", account:"生活帳戶", createdAt:new Date().toISOString() });
+const comparison = window.FinanceSync.compareBundles(localBundle, remoteBundle);
+assert.equal(comparison.remoteOnly >= 1, true, "sync comparison must detect remote-only records");
+assert.equal(window.FinanceSync.mergeBundles(localBundle, remoteBundle).ledger.entries.some(row => row.id === "remote-only"), true, "incremental merge must retain remote-only records");
+
+const preview = window.FinanceImport.previewCsv("日期,類型,金額,交易說明\n" + `${today},支出,120,捷運加值`, core.insights().ledger);
+assert.equal(preview.rows[0].category, "交通", "smart CSV import must suggest a category from merchant keywords");
+assert.equal(preview.rows[0].account, "生活帳戶", "smart CSV import must map an active default account");
 
 const financeCenterHtml = fs.readFileSync("finance-center.html", "utf8");
 assert.equal(financeCenterHtml.includes('event.target.id==='), false, "form handlers must not use a shadowable form.id property");
@@ -123,5 +154,10 @@ assert.equal(financeCenterHtml.includes('id="expenseItemForm"'), true, "expense 
 assert.equal(financeCenterHtml.includes('const accountTypeOrder=["現金","銀行帳戶","外幣銀行帳戶","外幣現金","行動支付","其他","信用卡"]'), true, "account overview must use a stable type order");
 assert.equal(financeCenterHtml.includes('class="account-group ${groupVisual.cls}"'), true, "accounts of the same type must render inside a shared group");
 assert.equal(financeCenterHtml.includes('localeCompare(String(b.name||""),"zh-TW")'), true, "accounts within each type must be sorted by name");
+assert.equal(financeCenterHtml.includes('id="loanForm"'), true, "loan management form must exist");
+assert.equal(financeCenterHtml.includes('id="goalForm"'), true, "goal management form must exist");
+assert.equal(financeCenterHtml.includes('id="bulkEntryForm"'), true, "entry batch editing form must exist");
+assert.equal(financeCenterHtml.includes('FinanceStorage.init()'), true, "IndexedDB mirror must initialize with the app");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v108"), true, "service worker cache must be bumped for the upgrade");
 
 console.log("finance center regression test OK");

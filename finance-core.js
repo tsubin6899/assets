@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = 5;
+  const VERSION = 6;
   const KEYS = {
     ledger: "personal-accounting-tsubin-v1",
     assets: "personal-assets-dashboard-tsubin-v2",
@@ -13,6 +13,7 @@
   const emptyLedger = {
     entries: [], transfers: [], creditBills: [], creditInstallments: [], templates: [], recurringRules: [],
     budgets: [], reconciliations: [], creditStatementChecks: [], recycleBin: [], monthCloseouts: [],
+    loans: [], goals: [], annualPlans: [], auditJournal: [],
     budgetRollovers: {}, categories: { income: [], expense: [] }, items: { income: {}, expense: {} },
     accounts: [], methods: []
   };
@@ -124,6 +125,10 @@
       creditStatementChecks: Array.isArray(value.creditStatementChecks) ? value.creditStatementChecks : [],
       recycleBin: Array.isArray(value.recycleBin) ? value.recycleBin : [],
       monthCloseouts: Array.isArray(value.monthCloseouts) ? value.monthCloseouts : [],
+      loans: Array.isArray(value.loans) ? value.loans : [],
+      goals: Array.isArray(value.goals) ? value.goals : [],
+      annualPlans: Array.isArray(value.annualPlans) ? value.annualPlans : [],
+      auditJournal: Array.isArray(value.auditJournal) ? value.auditJournal : [],
       budgetRollovers: value.budgetRollovers && typeof value.budgetRollovers === "object" ? value.budgetRollovers : {},
       categories: value.categories && typeof value.categories === "object" ? value.categories : { income: [], expense: [] },
       items: value.items && typeof value.items === "object" ? value.items : { income: {}, expense: {} },
@@ -405,9 +410,10 @@
     const silver = (assets.silver || []).reduce((sum, row) => sum + (holdingValue(row, assets, "TWD") || number(row.ounces ?? row.quantity) * number(assets.rates?.silverOz)), 0);
     const cash = regularCash + manualCash;
     const investment = tw + us + funds + gold + silver;
-    const liabilities = creditDebt + legacyCards;
+    const loanDebt = (ledger.loans || []).filter(row => !row.closed).reduce((sum, row) => sum + Math.max(0, number(row.balance)), 0);
+    const liabilities = creditDebt + legacyCards + loanDebt;
     const totalAssets = cash + investment;
-    return { accounts, cash, investment, totalAssets, liabilities, netWorth: totalAssets - liabilities, allocation: { tw, us, funds, gold: gold + silver, cash } };
+    return { accounts, cash, investment, totalAssets, liabilities, creditDebt: creditDebt + legacyCards, loanDebt, netWorth: totalAssets - liabilities, allocation: { tw, us, funds, gold: gold + silver, cash } };
   }
 
   function monthSummary(ledger, assets, month = monthOf()) {
@@ -445,6 +451,13 @@
     });
     (ledger.creditBills || []).filter(row => !row.paid && row.dueDate && row.dueDate <= seven).forEach(row => {
       result.push({ level: row.dueDate < today ? "danger" : "warning", title: `${row.card}帳單${row.dueDate < today ? "已逾期" : "即將到期"}`, detail: `${row.dueDate}｜${Math.round(number(row.amount)).toLocaleString("zh-TW")} 元` });
+    });
+    (ledger.loans || []).filter(row => !row.closed && row.nextDueDate && row.nextDueDate <= seven).forEach(row => {
+      result.push({ level: row.nextDueDate < today ? "danger" : "warning", title: `${row.name || "貸款"}${row.nextDueDate < today ? "已逾期" : "即將繳款"}`, detail: `${row.nextDueDate}｜每期 ${Math.round(number(row.monthlyPayment)).toLocaleString("zh-TW")} 元` });
+    });
+    (ledger.goals || []).filter(row => !row.completed && row.targetDate && row.targetDate <= seven).forEach(row => {
+      const progress = number(row.targetAmount) ? number(row.currentAmount) / number(row.targetAmount) : 0;
+      result.push({ level: row.targetDate < today ? "danger" : "warning", title: `${row.name || "儲蓄目標"}${row.targetDate < today ? "已到期" : "即將到期"}`, detail: `目前完成 ${Math.round(progress * 100)}%｜目標日 ${row.targetDate}` });
     });
     const summaryAssets = assetSummary(ledger, assets);
     const avgExpense = averageMonthlyExpense(ledger, assets);
@@ -575,6 +588,11 @@
     const normalizedLedger = ensureLedger(ledger);
     const normalizedAssets = ensureAssets(assets);
     if (options.backup !== false) createBackup(reason);
+    normalizedLedger.auditJournal.unshift({
+      id: uid("journal"), reason, createdAt: nowIso(), deviceId: preferences().deviceId,
+      counts: { entries: normalizedLedger.entries.length, accounts: normalizedLedger.accounts.length, trades: normalizedAssets.purchaseRecords.length }
+    });
+    normalizedLedger.auditJournal = normalizedLedger.auditJournal.slice(0, 500);
     writeJson(KEYS.ledger, normalizedLedger);
     writeJson(KEYS.assets, normalizedAssets);
     const envelope = {
@@ -805,7 +823,7 @@
   function addAccount(values) {
     const { ledger, assets } = load();
     if (!values.name || ledger.accounts.some(row => row.name === values.name)) throw new Error("帳戶名稱不可空白或重複");
-    ledger.accounts.push({ id: uid("account"), name: values.name, type: values.type || "銀行帳戶", currency: normalizeCurrency(values.currency || "TWD"), openingBalance: number(values.openingBalance), statementDay: number(values.statementDay), paymentDay: number(values.paymentDay) });
+    ledger.accounts.push({ id: uid("account"), name: values.name, type: values.type || "銀行帳戶", currency: normalizeCurrency(values.currency || "TWD"), openingBalance: number(values.openingBalance), statementDay: number(values.statementDay), paymentDay: number(values.paymentDay), archived: false, createdAt: nowIso() });
     return persist(ledger, assets, "新增財務帳戶");
   }
 
@@ -819,6 +837,7 @@
     ledger.recurringRules.forEach(row => { if (row.account === from) row.account = to; });
     ledger.reconciliations.forEach(row => { if (row.account === from) row.account = to; });
     ledger.creditStatementChecks.forEach(row => { if (row.card === from) row.card = to; });
+    ledger.loans.forEach(row => { if (row.account === from) row.account = to; });
     assets.purchaseRecords.forEach(row => { if (row.cashAccount === from) row.cashAccount = to; });
     assets.dividends.forEach(row => { if (row.cashAccount === from) row.cashAccount = to; });
     assets.cash.forEach(row => { if (row.bank === from) row.bank = to; });

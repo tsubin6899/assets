@@ -29,7 +29,7 @@ vm.createContext(context);
 vm.runInContext(fs.readFileSync("finance-core.js", "utf8"), context, { filename: "finance-core.js" });
 
 const core = window.FinanceCore;
-assert.equal(core.VERSION, 5);
+assert.equal(core.VERSION, 6);
 core.addPurchase({ date: "2026-08-01", type: "buy", market: "US", code: "ABC", name: "Example", shares: 10, price: 100, currency: "USD" });
 const applied = core.applyMarketSnapshot({
   prices: { generatedAt: "2026-08-29T00:00:00Z", prices: { "US:ABC": { market: "US", symbol: "ABC", price: 120, currency: "USD", source: "test" } } },
