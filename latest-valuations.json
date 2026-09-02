@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-09-02T00:22:50+00:00",
+  "generatedAt": "2026-09-02T09:50:37+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -17,7 +17,8 @@
     {
       "name": "CMoney 美股ETF QQQ",
       "url": "https://www.cmoney.tw/etf/us/QQQ",
-      "status": "available"
+      "status": "unavailable",
+      "error": "CMoney overview returned no usable premium for QQQ"
     },
     {
       "name": "CMoney 美股ETF VT",
@@ -607,14 +608,14 @@
     "US:VT": {
       "assetType": "etf",
       "metric": "premium",
-      "value": 0.07,
-      "premium": 0.07,
+      "value": 0.04,
+      "premium": 0.04,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/VT",
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-09-02",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-09-02T00:22:42+00:00",
+      "fetchedAt": "2026-09-02T09:50:31+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -629,8 +630,8 @@
       "asOf": "2026-09-02",
       "asOfBasis": "fetch-date",
       "fetchedAt": "2026-09-02T00:22:41+00:00",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "US:SKHY": {
       "assetType": "stock",
