@@ -55,7 +55,8 @@
     .primary-nav svg{width:18px;height:18px}
     .secondary-nav{position:sticky;top:157px;z-index:80;border-bottom:1px solid rgba(210,222,232,.9);background:rgba(248,251,252,.90);backdrop-filter:blur(14px)}
     .secondary-track{display:flex;align-items:center;gap:7px;width:min(1500px,calc(100% - 40px));min-height:54px;margin:auto;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity}
-    .secondary-track button,.secondary-track a{flex:0 0 auto;scroll-snap-align:center;min-height:34px;padding:7px 13px;border:1px solid transparent;border-radius:10px;color:#59687d;background:transparent;font-size:13px;font-weight:750;white-space:nowrap}
+    .secondary-track button,.secondary-track a{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:0 0 auto;scroll-snap-align:center;min-height:34px;padding:7px 13px;border:1px solid transparent;border-radius:10px;color:#59687d;background:transparent;font-size:13px;font-weight:750;white-space:nowrap}
+    .secondary-track button svg{width:15px;height:15px;flex:0 0 15px}
     .secondary-track button:hover,.secondary-track button.active{color:#285dca;border-color:#cfe0f7;background:#eaf2ff}
     .secondary-track a{margin-left:auto;color:#53627b;border-color:#d8e1ea;background:#fff}
     .page{width:min(1500px,calc(100% - 40px));margin:0 auto;padding:24px 0 112px}
@@ -255,6 +256,13 @@
     const app = document.getElementById("app");
     const secondaryNav = document.getElementById("secondaryNav");
     const routes = window.FinanceCenterRoutes;
+    const tabIcons = {
+      home:{overview:"layout-dashboard",actions:"list-checks"},
+      daily:{quick:"notebook-pen",lookup:"search",calendar:"calendar-days",records:"receipt-text",taxonomy:"tags",budgets:"wallet",recurring:"repeat-2",closeout:"circle-check"},
+      accounts:{accounts:"landmark",transfer:"arrow-left-right",credit:"credit-card",installments:"calendar-range",loans:"hand-coins",reconcile:"scale",statements:"file-check"},
+      investments:{portfolio:"pie-chart",holdings:"briefcase",trades:"arrow-left-right",dividends:"banknote"},
+      analysis:{trends:"chart-no-axes-combined",forecast:"calendar-clock",spending:"pie-chart",planning:"target",tax:"file-text",audit:"shield-check",events:"activity",data:"database"}
+    };
     let state = { domain: "home", tab: "overview", privacy: false };
     const ui = { editingEntryId:"", editingAccountId:"", editingTransferId:"", editingBillId:"", editingBudgetId:"", editingRecurringId:"", editingInstallmentId:"", editingLoanId:"", editingGoalId:"", editingTradeId:"", editingDividendId:"", editingHoldingKey:"", editingExpenseCategory:"", editingExpenseItem:null, viewingStatementId:"", calendarMonth:FinanceCore.monthOf(), selectedDate:FinanceCore.localDate(), taxYear:String(new Date().getFullYear()), importPreview:null, storageRevisions:[], cloudVersions:[], filters:{ month:FinanceCore.monthOf(), type:"all", category:"all", account:"all", query:"" }, lookup:{ query:"", type:"expense", account:"all", startDate:"", endDate:"" } };
     const recentAccountsKey = "tsubin-finance-recent-accounts-v1";
@@ -312,7 +320,7 @@
     function renderSecondary() {
       const route = routes[state.domain];
       secondaryNav.dataset.section = state.domain;
-      secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id === state.tab ? "active" : ""}" data-tab="${id}">${label}</button>`).join("");
+      secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id === state.tab ? "active" : ""}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||"circle"}"></i>${label}</button>`).join("");
       requestAnimationFrame(() => { const active=secondaryNav.querySelector("button.active");if(!active)return;const left=Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2);secondaryNav.scrollTo({left,behavior:"smooth"}) });
     }
     function pageHeading(kicker, title, note, action = "") { return `<header class="page-heading"><div><span class="eyebrow">${esc(kicker)}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`; }
