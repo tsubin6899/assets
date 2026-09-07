@@ -58,6 +58,23 @@
     const date = new Date(year, monthNumber - 1 + number(offset), 1);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
   }
+  function statementMonthForEntry(entry, cardAccount) {
+    if (entry?.statementMonthOverride) return normalizeLedgerMonth(entry.statementMonthOverride);
+    if (entry?.billMonth) return normalizeLedgerMonth(entry.billMonth);
+    const date = normalizeLedgerDate(entry?.postedDate || entry?.date || "");
+    const month = date.slice(0, 7), day = number(date.slice(8, 10)), statementDay = Math.min(31, Math.max(1, number(cardAccount?.statementDay) || 5));
+    return month && statementDay && day > statementDay ? shiftMonthValue(month, 1) : month;
+  }
+  function creditBillEntriesForPeriod(ledger, card, billMonth) {
+    const cardAccount = (ledger.accounts || []).find(row => row.name === card), previousMonth = shiftMonthValue(billMonth, -1);
+    const previousBill = (ledger.creditBills || []).find(row => row.card === card && row.billMonth === previousMonth);
+    return (ledger.entries || []).filter(row => {
+      if (row.account !== card) return false;
+      const entryMonth = statementMonthForEntry(row, cardAccount);
+      if (entryMonth === billMonth) return true;
+      return entryMonth === previousMonth && previousBill && !previousBill.reconciled && !row.statementChecks?.[previousBill.id];
+    });
+  }
   function daysInMonth(month = monthOf()) {
     const [year, monthNumber] = String(month).split("-").map(Number);
     return new Date(year, monthNumber, 0).getDate();
@@ -1111,6 +1128,14 @@
     return persist(ledger, assets, checked ? "核對信用卡帳目" : "取消核對信用卡帳目");
   }
 
+  function setCreditBillReconciled(id, reconciled = true) {
+    const { ledger, assets } = load();
+    const bill = ledger.creditBills.find(row => row.id === id);
+    if (!bill) throw new Error("找不到這筆信用卡帳單");
+    Object.assign(bill, { reconciled: Boolean(reconciled), reconciledAt: reconciled ? nowIso() : "" });
+    return persist(ledger, assets, reconciled ? "完成信用卡帳單對帳" : "取消信用卡帳單對帳完成");
+  }
+
   function moveCreditStatementEntryToNextPeriod(entryId, billId) {
     const { ledger, assets } = load();
     const entry = ledger.entries.find(row => row.id === entryId), bill = ledger.creditBills.find(row => row.id === billId);
@@ -1385,7 +1410,7 @@
 
   function upsertCreditStatementCheck(ledger, values) {
     const billMonth = String(values.billMonth || monthOf()).slice(0, 7), card = values.card || "";
-    const entries = ledger.entries.filter(row => row.account === card && String(row.billMonth || row.statementMonthOverride || row.date || "").startsWith(billMonth)).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.id || "").localeCompare(String(b.id || "")));
+    const entries = creditBillEntriesForPeriod(ledger, card, billMonth).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.id || "").localeCompare(String(b.id || "")));
     const appAmount = entries.reduce((sum, row) => sum + (row.type === "expense" ? number(row.amount) : -number(row.amount)), 0);
     const statementAmount = number(values.statementAmount), existing = ledger.creditStatementChecks.find(row => row.creditBillId === values.creditBillId || (!values.creditBillId && row.card === card && row.billMonth === billMonth));
     const matchedEntries = entries.map(row => ({ id: row.id || "", date: row.date || "", type: row.type === "income" ? "income" : "expense", category: row.category || "未分類", item: row.item || "", merchant: row.merchant || "", amount: number(row.amount), note: row.note || "" }));
@@ -1579,7 +1604,7 @@
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
-    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, moveCreditStatementEntryToNextPeriod,
+    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, moveCreditStatementEntryToNextPeriod,
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,

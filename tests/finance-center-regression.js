@@ -49,7 +49,7 @@ malformedDateSeed.ledger.entries.push({ id:"legacy-date-aug-30", type:"expense",
 malformedDateSeed.ledger.entries.push({ id:"legacy-date-aug-16", type:"expense", date:"115年8月16日", amount:200, category:"保險", account:"日期格式測試卡", merchant:"媽媽小額終身壽險" });
 core.persist(malformedDateSeed.ledger, malformedDateSeed.assets, "seed legacy date formats", { backup:false });
 assert.equal(core.insights().ledger.entries.find(row => row.id === "legacy-date-aug-30").date, "2026-08-30", "legacy ROC dates must be normalized for calendar and statement matching");
-core.addCreditBill({ card:"日期格式測試卡", payAccount:"生活帳戶", billMonth:"2026-08", amount:300, dueDate:"2026-09-01" });
+core.addCreditBill({ card:"日期格式測試卡", payAccount:"生活帳戶", billMonth:"2026-09", amount:300, dueDate:"2026-09-01" });
 assert.equal(core.insights().ledger.creditStatementChecks.find(row => row.card === "日期格式測試卡").appAmount, 300, "normalized August card entries must be included in the credit-card statement");
 
 core.addCreditBill({ card: "測試信用卡", payAccount: "生活帳戶", billMonth: today.slice(0, 7), amount: 300, dueDate: today });
@@ -271,8 +271,9 @@ assert.equal(financeCenterHtml.includes("select.account-select{display:block;wid
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
 assert.equal(financeCenterHtml.includes('if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}'), false, "background cloud save must not overwrite current local data");
 assert.equal(financeCenterHtml.includes("async function applyNewerCloudSnapshot()"), true, "a device must load a newer cloud snapshot before saving stale local data");
-assert.equal(financeCenterHtml.includes('function creditBillEntries(bill) { return (current.ledger.entries||[]).filter(row=>row.account===bill.card'), true, "credit card bill entries must be derived from the matching card account");
+assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credit card bill entries must be derived from the matching card account");
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v126"), true, "service worker cache must be bumped for statement date ordering");
+assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v128"), true, "service worker cache must be bumped for unfinished statement carryover");
 
 console.log("finance center regression test OK");
