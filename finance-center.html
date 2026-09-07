@@ -764,7 +764,9 @@
         const history=[...(existing?.data?.financeCenterCloudHistory||[])];if(remoteBundle)history.unshift({id:`cloud-${Date.now()}`,updatedAt:existing.data.financeCenterMeta?.updatedAt||existing.updated_at,reason:`同步前版本｜衝突 ${comparison.conflicts} 筆`,data:remoteBundle});history.splice(5);
         const data={...bundle.assets,accountingLedger:bundle.ledger,financeCenterCloudHistory:history,financeCenterMeta:{schemaVersion:FinanceCore.VERSION,updatedAt:syncedAt,deviceId:localBundle.deviceId,lastSyncedAt:syncedAt,mergeSummary:comparison}};
         const {error}=await supabaseClient.from("asset_dashboard_profiles").upsert({user_id:cloudUser.id,data,updated_at:syncedAt});if(error)throw error;
-        if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}
+        // Saving must never overwrite the active local ledger with an older cloud
+        // copy. Cloud data is merged for upload; loading cloud data remains an
+        // explicit user action through「載入雲端資料」.
         ui.cloudVersions=history;FinanceSync.setRemoteVersions(history);FinanceSync.markSynced({remoteUpdatedAt:syncedAt});updateAuthenticatedSyncUi();if(!silent)showToast(comparison.conflicts?`已逐筆合併並同步；處理 ${comparison.conflicts} 筆衝突`:"完整財務資料已同步到雲端");return true;
       }catch(error){FinanceSync.markError(error);updateAuthenticatedSyncUi();if(!silent)showToast(`雲端同步失敗：${error.message||"請稍後再試"}`);return false}
     }
@@ -780,7 +782,7 @@
     if(startupCardRepair.changed||startupRecurringRepair.changed)showToast(`已自動修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄`);
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=118").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=119").catch(()=>{});
   </script>
 </body>
 </html>

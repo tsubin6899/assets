@@ -219,6 +219,9 @@ remoteBundle.ledger.entries.push({ id:"remote-only", date:today, type:"income", 
 const comparison = window.FinanceSync.compareBundles(localBundle, remoteBundle);
 assert.equal(comparison.remoteOnly >= 1, true, "sync comparison must detect remote-only records");
 assert.equal(window.FinanceSync.mergeBundles(localBundle, remoteBundle).ledger.entries.some(row => row.id === "remote-only"), true, "incremental merge must retain remote-only records");
+const deletionAwareBundle = JSON.parse(JSON.stringify(localBundle));
+deletionAwareBundle.ledger.recycleBin = [{ id:"trash-sync-entry", kind:"entry", removedAt:new Date().toISOString(), row:{ id:"remote-only" } }];
+assert.equal(window.FinanceSync.mergeBundles(deletionAwareBundle, remoteBundle).ledger.entries.some(row => row.id === "remote-only"), false, "a deleted local entry must not be resurrected by an older cloud bundle");
 
 const preview = window.FinanceImport.previewCsv("日期,類型,金額,交易說明\n" + `${today},支出,120,捷運加值`, core.insights().ledger);
 assert.equal(preview.rows[0].category, "交通", "smart CSV import must suggest a category from merchant keywords");
@@ -250,6 +253,7 @@ assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account sele
 assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
 assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v118"), true, "service worker cache must be bumped for credit-card debt presentation");
+assert.equal(financeCenterHtml.includes('if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}'), false, "background cloud save must not overwrite current local data");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v119"), true, "service worker cache must be bumped for cloud overwrite protection");
 
 console.log("finance center regression test OK");

@@ -37,6 +37,7 @@
 
   const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","goals","annualPlans"];
   const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots"];
+  const RECYCLE_KIND_BY_COLLECTION = { entries:"entry", transfers:"transfer", accounts:"account", creditBills:"creditBill", creditInstallments:"installment", templates:"template", recurringRules:"recurring", budgets:"budget", reconciliations:"reconciliation", creditStatementChecks:"creditStatementCheck" };
   function clone(value) { return JSON.parse(JSON.stringify(value || {})); }
   function recordKey(row, index) { return String(row?.id || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
   function recordTime(row) { return new Date(row?.updatedAt || row?.createdAt || row?.checkedAt || row?.date || 0).getTime() || 0; }
@@ -62,7 +63,14 @@
   function mergeBundles(localBundle = {}, remoteBundle = {}) {
     const localLedger=clone(localBundle.ledger||localBundle.accountingLedger||{}),remoteLedger=clone(remoteBundle.ledger||remoteBundle.accountingLedger||{}),localAssets=clone(localBundle.assets||localBundle),remoteAssets=clone(remoteBundle.assets||remoteBundle);
     const ledger={...remoteLedger,...localLedger},assets={...remoteAssets,...localAssets};
-    LEDGER_COLLECTIONS.forEach(key=>{ledger[key]=mergeCollection(localLedger[key],remoteLedger[key])});
+    // Deletions are data too. Without these tombstones, an older cloud copy can
+    // resurrect a transfer or entry that was deliberately removed on this device.
+    ledger.recycleBin=mergeCollection(localLedger.recycleBin,remoteLedger.recycleBin);
+    const deletedIds=new Set(ledger.recycleBin.map(row=>`${row.kind}:${row.row?.id||""}`).filter(value=>!value.endsWith(":")));
+    LEDGER_COLLECTIONS.forEach(key=>{
+      const kind=RECYCLE_KIND_BY_COLLECTION[key];
+      ledger[key]=mergeCollection(localLedger[key],remoteLedger[key]).filter(row=>!kind||!deletedIds.has(`${kind}:${row.id||""}`));
+    });
     ASSET_COLLECTIONS.forEach(key=>{assets[key]=mergeCollection(localAssets[key],remoteAssets[key])});
     ledger.categories={income:[...new Set([...(remoteLedger.categories?.income||[]),...(localLedger.categories?.income||[])])],expense:[...new Set([...(remoteLedger.categories?.expense||[]),...(localLedger.categories?.expense||[])])]};
     ledger.items={...(remoteLedger.items||{}),...(localLedger.items||{})};
