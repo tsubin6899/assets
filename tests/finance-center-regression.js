@@ -254,6 +254,7 @@ assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "a
 assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
 assert.equal(financeCenterHtml.includes('if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}'), false, "background cloud save must not overwrite current local data");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v119"), true, "service worker cache must be bumped for cloud overwrite protection");
+assert.equal(financeCenterHtml.includes("async function applyNewerCloudSnapshot()"), true, "a device must load a newer cloud snapshot before saving stale local data");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v120"), true, "service worker cache must be bumped for cross-device sync correction");
 
 console.log("finance center regression test OK");
