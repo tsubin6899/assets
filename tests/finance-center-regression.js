@@ -271,6 +271,8 @@ assert.equal(financeCenterHtml.includes("select.account-select{display:block;wid
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
 assert.equal(financeCenterHtml.includes('if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}'), false, "background cloud save must not overwrite current local data");
 assert.equal(financeCenterHtml.includes("async function applyNewerCloudSnapshot()"), true, "a device must load a newer cloud snapshot before saving stale local data");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v125"), true, "service worker cache must be bumped for ROC date normalization");
+assert.equal(financeCenterHtml.includes('function creditBillEntries(bill) { return (current.ledger.entries||[]).filter(row=>row.account===bill.card'), true, "credit card bill entries must be derived from the matching card account");
+assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v126"), true, "service worker cache must be bumped for statement date ordering");
 
 console.log("finance center regression test OK");
