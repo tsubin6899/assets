@@ -43,9 +43,17 @@ core.persist(legacyCashSeed.ledger, legacyCashSeed.assets, "seed legacy cash tha
 assert.equal(core.insights().assetsSummary.cash, cashBeforeLegacySeed, "legacy cash rows must not inflate usable funds after formal accounts exist");
 core.addAccount({ name:"舊版負號信用卡", type:"信用卡", currency:"TWD", openingBalance:-19826 });
 assert.equal(core.insights().assetsSummary.accounts.find(row => row.name === "舊版負號信用卡").balance, 19826, "a legacy negative credit-card opening balance must be presented as debt");
+core.addAccount({ name:"日期格式測試卡", type:"信用卡", currency:"TWD", openingBalance:0 });
+const malformedDateSeed = core.load();
+malformedDateSeed.ledger.entries.push({ id:"legacy-date-aug-30", type:"expense", date:"2026/8/30", amount:100, category:"保險", account:"日期格式測試卡", merchant:"爸爸小額終身壽險" });
+malformedDateSeed.ledger.entries.push({ id:"legacy-date-aug-16", type:"expense", date:"2026-8-16", amount:200, category:"保險", account:"日期格式測試卡", merchant:"媽媽小額終身壽險" });
+core.persist(malformedDateSeed.ledger, malformedDateSeed.assets, "seed legacy date formats", { backup:false });
+assert.equal(core.insights().ledger.entries.find(row => row.id === "legacy-date-aug-30").date, "2026-08-30", "legacy slash dates must be normalized for calendar and statement matching");
+core.addCreditBill({ card:"日期格式測試卡", payAccount:"生活帳戶", billMonth:"2026-08", amount:300, dueDate:"2026-09-01" });
+assert.equal(core.insights().ledger.creditStatementChecks.find(row => row.card === "日期格式測試卡").appAmount, 300, "normalized August card entries must be included in the credit-card statement");
 
 core.addCreditBill({ card: "測試信用卡", payAccount: "生活帳戶", billMonth: today.slice(0, 7), amount: 300, dueDate: today });
-let bill = core.insights().ledger.creditBills[0];
+let bill = core.insights().ledger.creditBills.find(row => row.card === "測試信用卡");
 core.setCreditBillPaid(bill.id, true);
 snapshot = core.insights();
 assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "測試信用卡").balance, 0, "paying a card bill must clear the matching card debt");
@@ -263,6 +271,6 @@ assert.equal(financeCenterHtml.includes("select.account-select{display:block;wid
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
 assert.equal(financeCenterHtml.includes('if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}'), false, "background cloud save must not overwrite current local data");
 assert.equal(financeCenterHtml.includes("async function applyNewerCloudSnapshot()"), true, "a device must load a newer cloud snapshot before saving stale local data");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v122"), true, "service worker cache must be bumped for legacy credit-card debt normalization");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v124"), true, "service worker cache must be bumped for statement refresh after date normalization");
 
 console.log("finance center regression test OK");

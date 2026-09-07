@@ -247,7 +247,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
   <script src="finance-center-routes.js?v=2"></script>
-  <script src="finance-core.js?v=17"></script>
+  <script src="finance-core.js?v=19"></script>
   <script src="finance-upgrades.js?v=1"></script>
   <script src="finance-storage.js?v=1"></script>
   <script src="finance-market.js?v=1"></script>
@@ -800,7 +800,7 @@
     if(startupCardRepair.changed||startupRecurringRepair.changed)showToast(`已自動修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄`);
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=122").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=124").catch(()=>{});
   </script>
 </body>
 </html>

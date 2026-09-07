@@ -39,6 +39,16 @@
   function localDate(date = new Date()) {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
   }
+  function normalizeLedgerDate(value) {
+    const source = String(value || "").trim();
+    const match = source.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})(?:[T\s].*)?$/);
+    return match ? `${match[1]}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}` : source;
+  }
+  function normalizeLedgerMonth(value) {
+    const source = String(value || "").trim();
+    const match = source.match(/^(\d{4})[\/.\-](\d{1,2})(?:[\/.\-]\d{1,2})?$/);
+    return match ? `${match[1]}-${String(match[2]).padStart(2, "0")}` : source;
+  }
   function monthOf(date = localDate()) { return String(date).slice(0, 7); }
   function shiftMonthValue(month = monthOf(), offset = 0) {
     const [year, monthNumber] = String(month).split("-").map(Number);
@@ -178,6 +188,17 @@
     result.marketDataMeta = value.marketDataMeta && typeof value.marketDataMeta === "object" ? value.marketDataMeta : {};
     result.valuationCache = value.valuationCache && typeof value.valuationCache === "object" ? value.valuationCache : {};
     return result;
+  }
+
+  function normalizeLedgerDates(ledger) {
+    let changed = false;
+    const setDate = (row, key) => { const next = normalizeLedgerDate(row?.[key]); if (next && next !== row?.[key]) { row[key] = next; changed = true; } };
+    const setMonth = (row, key) => { const next = normalizeLedgerMonth(row?.[key]); if (next && next !== row?.[key]) { row[key] = next; changed = true; } };
+    (ledger.entries || []).forEach(row => { setDate(row, "date"); setDate(row, "postedDate"); setDate(row, "scheduledDate"); setMonth(row, "statementMonthOverride"); setMonth(row, "billMonth"); });
+    (ledger.transfers || []).forEach(row => setDate(row, "date"));
+    (ledger.creditBills || []).forEach(row => { setMonth(row, "billMonth"); setDate(row, "dueDate"); });
+    (ledger.creditStatementChecks || []).forEach(row => setMonth(row, "billMonth"));
+    return changed;
   }
 
   function preferences() {
@@ -589,15 +610,17 @@
     const previous = readJson(KEYS.unified, {});
     const ledger = ensureLedger(readJson(KEYS.ledger, emptyLedger));
     const assets = ensureAssets(readJson(KEYS.assets, emptyAssets));
+    const datesNormalized = normalizeLedgerDates(ledger);
+    if (datesNormalized) (ledger.creditStatementChecks || []).forEach(check => upsertCreditStatementCheck(ledger, { card: check.card, billMonth: check.billMonth, statementAmount: check.statementAmount, note: check.note || "", creditBillId: check.creditBillId || "" }));
     const materialized = materializeDueRecurring(ledger);
-    if (materialized) writeJson(KEYS.ledger, ledger);
+    if (materialized || datesNormalized) writeJson(KEYS.ledger, ledger);
     return {
       schemaVersion: VERSION,
-      updatedAt: materialized ? nowIso() : (previous.updatedAt || nowIso()),
+      updatedAt: materialized || datesNormalized ? nowIso() : (previous.updatedAt || nowIso()),
       deviceId: preferences().deviceId,
       ledger, assets,
       events: buildEvents(ledger, assets),
-      ...(materialized ? { lastMutation: `固定收支到期自動入帳 ${materialized} 筆` } : {})
+      ...(materialized ? { lastMutation: `固定收支到期自動入帳 ${materialized} 筆` } : datesNormalized ? { lastMutation: "修正舊版收支日期格式" } : {})
     };
   }
 
