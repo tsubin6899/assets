@@ -54,6 +54,17 @@ core.removeExpenseItem("更新分類", "更新項目");
 assert.equal(core.insights().ledger.entries.find(row => row.merchant === "分類編輯測試").item, "", "deleting an expense item must preserve the entry and clear only its item field");
 core.removeExpenseCategory("更新分類");
 assert.equal(core.insights().ledger.entries.find(row => row.merchant === "分類編輯測試").category, "未分類", "deleting an expense category must preserve the entry under 未分類");
+core.saveCategory({ type: "income", name: "測試收入分類" });
+core.saveItem({ type: "income", category: "測試收入分類", name: "測試收入項目" });
+core.addEntry({ type: "income", date: today, amount: 100, category: "測試收入分類", item: "測試收入項目", account: "生活帳戶", merchant: "收入分類編輯測試" });
+core.saveCategory({ type: "income", originalName: "測試收入分類", name: "更新收入分類" });
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "收入分類編輯測試").category, "更新收入分類", "renaming an income category must update linked entries");
+core.saveItem({ type: "income", originalCategory: "更新收入分類", originalName: "測試收入項目", category: "更新收入分類", name: "更新收入項目" });
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "收入分類編輯測試").item, "更新收入項目", "renaming an income item must update linked entries");
+core.removeItem("income", "更新收入分類", "更新收入項目");
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "收入分類編輯測試").item, "", "deleting an income item must preserve the entry and clear only its item field");
+core.removeCategory("income", "更新收入分類");
+assert.equal(core.insights().ledger.entries.find(row => row.merchant === "收入分類編輯測試").category, "未分類", "deleting an income category must preserve the entry under 未分類");
 core.addEntry({ type: "expense", date: today, amount: 300, currency: "TWD", purchaseRegion: "domestic", category: "旅遊", item: "換匯支出", account: "美元帳戶", merchant: "台幣扣款" });
 assert.equal(core.insights().assetsSummary.accounts.find(row => row.name === "美元帳戶").balance, 60, "TWD transaction on a USD account must convert to the account currency");
 
@@ -96,7 +107,7 @@ assert.equal(snapshot.health.score >= 0 && snapshot.health.score <= 100, true);
 const searchResults = window.FinanceSearch.search(snapshot, "午餐");
 assert.equal(searchResults.some(row => row.title === "今日午餐"), true, "global search must find ledger entries");
 assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "forecast"), true, "forecast route must exist");
-assert.equal(window.FinanceCenterRoutes.daily.tabs.some(([id]) => id === "taxonomy"), true, "expense taxonomy management route must exist");
+assert.equal(window.FinanceCenterRoutes.daily.tabs.some(([id]) => id === "taxonomy"), true, "income and expense taxonomy management route must exist");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "reconcile"), true, "account reconciliation route must exist");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "statements"), true, "credit card statement check route must be separate");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "loans"), true, "loan manager route must exist");
@@ -149,8 +160,9 @@ assert.equal(quickFormSource.includes('name="currency"'), false, "quick entry mu
 assert.equal(quickFormSource.includes("data-account-currency-note"), true, "quick entry must explain that currency follows the selected account");
 assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncQuickEntryAccount(form)'), true, "card region and currency note must update when the account changes");
 assert.equal(financeCenterHtml.includes('state.tab==="reconcile"||state.tab==="statements"'), true, "account inventory and credit card checks must render as separate tabs");
-assert.equal(financeCenterHtml.includes('id="expenseCategoryForm"'), true, "expense category editor must exist");
-assert.equal(financeCenterHtml.includes('id="expenseItemForm"'), true, "expense item editor must exist");
+assert.equal(financeCenterHtml.includes('id="categoryForm"'), true, "shared income and expense category editor must exist");
+assert.equal(financeCenterHtml.includes('id="itemForm"'), true, "shared income and expense item editor must exist");
+assert.equal(financeCenterHtml.includes('data-taxonomy-type'), true, "taxonomy editor must provide an income and expense switch");
 assert.equal(financeCenterHtml.includes('const accountTypeOrder=accountGroupDefinitions.map(row=>row.type)'), true, "account overview and selectors must share one stable type order");
 assert.equal(financeCenterHtml.includes('class="account-group ${groupVisual.cls}"'), true, "accounts of the same type must render inside a shared group");
 assert.equal(financeCenterHtml.includes('localeCompare(String(b.name||""),"zh-TW")'), true, "accounts within each type must be sorted by name");
@@ -162,6 +174,6 @@ assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account sele
 assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
 assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v110"), true, "service worker cache must be bumped for compact mobile account selectors");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v111"), true, "service worker cache must be bumped for income taxonomy editing");
 
 console.log("finance center regression test OK");

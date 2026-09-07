@@ -983,42 +983,53 @@
     return persist(ledger, assets, "刪除固定收支");
   }
 
-  function prepareExpenseTaxonomy(ledger) {
+  function prepareTaxonomy(ledger) {
     ledger.categories = ledger.categories && typeof ledger.categories === "object" ? ledger.categories : { income: [], expense: [] };
+    ledger.categories.income = Array.isArray(ledger.categories.income) ? ledger.categories.income : [];
     ledger.categories.expense = Array.isArray(ledger.categories.expense) ? ledger.categories.expense : [];
     ledger.items = ledger.items && typeof ledger.items === "object" ? ledger.items : { income: {}, expense: {} };
+    ledger.items.income = ledger.items.income && typeof ledger.items.income === "object" ? ledger.items.income : {};
     ledger.items.expense = ledger.items.expense && typeof ledger.items.expense === "object" ? ledger.items.expense : {};
+  }
+
+  function taxonomyType(value) {
+    return value === "income" ? "income" : "expense";
   }
 
   function refreshTemplateSignature(row) {
     row.signature = [row.type, row.amount, row.category, row.item, row.account, row.merchant].join("|");
   }
 
-  function saveExpenseCategory(values) {
+  function saveCategory(values) {
     const { ledger, assets } = load();
-    prepareExpenseTaxonomy(ledger);
+    prepareTaxonomy(ledger);
+    const type = taxonomyType(values.type);
+    const typeLabel = type === "income" ? "收入" : "支出";
     const originalName = String(values.originalName || "").trim();
     const name = String(values.name || "").trim();
-    if (!name) throw new Error("請輸入支出分類名稱");
+    if (!name) throw new Error(`請輸入${typeLabel}分類名稱`);
     if (originalName === "未分類" && name !== originalName) throw new Error("系統保留的「未分類」不能重新命名");
-    const knownCategories = unique([...(ledger.categories.expense || []), ...Object.keys(ledger.items.expense || {}), ...ledger.entries.filter(row => row.type === "expense").map(row => row.category), ...ledger.recurringRules.filter(row => row.type === "expense").map(row => row.category), ...ledger.creditInstallments.map(row => row.category), ...ledger.templates.filter(row => row.type === "expense").map(row => row.category), ...ledger.budgets.map(row => row.category)]);
-    if (name !== originalName && knownCategories.includes(name)) throw new Error("已有相同的支出分類");
+    const expenseOnlyCategories = type === "expense" ? [...ledger.creditInstallments.map(row => row.category), ...ledger.budgets.map(row => row.category)] : [];
+    const knownCategories = unique([...(ledger.categories[type] || []), ...Object.keys(ledger.items[type] || {}), ...ledger.entries.filter(row => row.type === type).map(row => row.category), ...ledger.recurringRules.filter(row => row.type === type).map(row => row.category), ...ledger.templates.filter(row => row.type === type).map(row => row.category), ...expenseOnlyCategories]);
+    if (name !== originalName && knownCategories.includes(name)) throw new Error(`已有相同的${typeLabel}分類`);
     if (!originalName) {
-      ledger.categories.expense = unique([...ledger.categories.expense, name]);
-      ledger.items.expense[name] = ledger.items.expense[name] || [];
-      return persist(ledger, assets, "新增支出分類");
+      ledger.categories[type] = unique([...ledger.categories[type], name]);
+      ledger.items[type][name] = ledger.items[type][name] || [];
+      return persist(ledger, assets, `新增${typeLabel}分類`);
     }
-    if (!knownCategories.includes(originalName)) throw new Error("找不到要修改的支出分類");
-    if (name === originalName) return persist(ledger, assets, "更新支出分類");
-    ledger.categories.expense = unique(ledger.categories.expense.map(row => row === originalName ? name : row).concat(name));
-    ledger.items.expense[name] = unique([...(ledger.items.expense[name] || []), ...(ledger.items.expense[originalName] || [])]);
-    delete ledger.items.expense[originalName];
-    ledger.entries.filter(row => row.type === "expense" && row.category === originalName).forEach(row => { row.category = name; });
-    ledger.recurringRules.filter(row => row.type === "expense" && row.category === originalName).forEach(row => { row.category = name; });
-    ledger.creditInstallments.filter(row => row.category === originalName).forEach(row => { row.category = name; });
-    ledger.budgets.filter(row => row.category === originalName).forEach(row => { row.category = name; });
-    ledger.templates.filter(row => row.type === "expense" && row.category === originalName).forEach(row => { row.category = name; refreshTemplateSignature(row); });
-    return persist(ledger, assets, "重新命名支出分類");
+    if (!knownCategories.includes(originalName)) throw new Error(`找不到要修改的${typeLabel}分類`);
+    if (name === originalName) return persist(ledger, assets, `更新${typeLabel}分類`);
+    ledger.categories[type] = unique(ledger.categories[type].map(row => row === originalName ? name : row).concat(name));
+    ledger.items[type][name] = unique([...(ledger.items[type][name] || []), ...(ledger.items[type][originalName] || [])]);
+    delete ledger.items[type][originalName];
+    ledger.entries.filter(row => row.type === type && row.category === originalName).forEach(row => { row.category = name; });
+    ledger.recurringRules.filter(row => row.type === type && row.category === originalName).forEach(row => { row.category = name; });
+    if (type === "expense") {
+      ledger.creditInstallments.filter(row => row.category === originalName).forEach(row => { row.category = name; });
+      ledger.budgets.filter(row => row.category === originalName).forEach(row => { row.category = name; });
+    }
+    ledger.templates.filter(row => row.type === type && row.category === originalName).forEach(row => { row.category = name; refreshTemplateSignature(row); });
+    return persist(ledger, assets, `重新命名${typeLabel}分類`);
   }
 
   function saveCategoryRule(values) {
@@ -1046,61 +1057,75 @@
     return persist(ledger, assets, "刪除自動分類規則");
   }
 
-  function removeExpenseCategory(nameValue) {
+  function removeCategory(typeValue, nameValue) {
     const { ledger, assets } = load();
-    prepareExpenseTaxonomy(ledger);
+    prepareTaxonomy(ledger);
+    const type = taxonomyType(typeValue);
+    const typeLabel = type === "income" ? "收入" : "支出";
     const name = String(nameValue || "").trim();
     if (!name || name === "未分類") throw new Error("「未分類」是系統保留分類，不能刪除");
-    const items = ledger.items.expense[name] || [];
-    ledger.categories.expense = unique(ledger.categories.expense.filter(row => row !== name).concat("未分類"));
-    ledger.items.expense["未分類"] = unique([...(ledger.items.expense["未分類"] || []), ...items]);
-    delete ledger.items.expense[name];
-    ledger.entries.filter(row => row.type === "expense" && row.category === name).forEach(row => { row.category = "未分類"; });
-    ledger.recurringRules.filter(row => row.type === "expense" && row.category === name).forEach(row => { row.category = "未分類"; });
-    ledger.creditInstallments.filter(row => row.category === name).forEach(row => { row.category = "未分類"; });
-    ledger.templates.filter(row => row.type === "expense" && row.category === name).forEach(row => { row.category = "未分類"; refreshTemplateSignature(row); });
-    const removedBudgets = ledger.budgets.filter(row => row.category === name);
-    removedBudgets.forEach(row => recycle(ledger, "budget", row));
-    ledger.budgets = ledger.budgets.filter(row => row.category !== name);
-    return persist(ledger, assets, "刪除支出分類");
+    const items = ledger.items[type][name] || [];
+    ledger.categories[type] = unique(ledger.categories[type].filter(row => row !== name).concat("未分類"));
+    ledger.items[type]["未分類"] = unique([...(ledger.items[type]["未分類"] || []), ...items]);
+    delete ledger.items[type][name];
+    ledger.entries.filter(row => row.type === type && row.category === name).forEach(row => { row.category = "未分類"; });
+    ledger.recurringRules.filter(row => row.type === type && row.category === name).forEach(row => { row.category = "未分類"; });
+    ledger.templates.filter(row => row.type === type && row.category === name).forEach(row => { row.category = "未分類"; refreshTemplateSignature(row); });
+    if (type === "expense") {
+      ledger.creditInstallments.filter(row => row.category === name).forEach(row => { row.category = "未分類"; });
+      const removedBudgets = ledger.budgets.filter(row => row.category === name);
+      removedBudgets.forEach(row => recycle(ledger, "budget", row));
+      ledger.budgets = ledger.budgets.filter(row => row.category !== name);
+    }
+    return persist(ledger, assets, `刪除${typeLabel}分類`);
   }
 
-  function saveExpenseItem(values) {
+  function saveItem(values) {
     const { ledger, assets } = load();
-    prepareExpenseTaxonomy(ledger);
+    prepareTaxonomy(ledger);
+    const type = taxonomyType(values.type);
+    const typeLabel = type === "income" ? "收入" : "支出";
     const originalCategory = String(values.originalCategory || "").trim();
     const originalName = String(values.originalName || "").trim();
     const category = String(values.category || "未分類").trim() || "未分類";
     const name = String(values.name || "").trim();
-    if (!name) throw new Error("請輸入支出項目名稱");
-    const destinationItems = unique([...(ledger.items.expense[category] || []), ...ledger.entries.filter(row => row.type === "expense" && row.category === category).map(row => row.item), ...ledger.recurringRules.filter(row => row.type === "expense" && row.category === category).map(row => row.item), ...ledger.creditInstallments.filter(row => row.category === category).map(row => row.item), ...ledger.templates.filter(row => row.type === "expense" && row.category === category).map(row => row.item)]);
-    if ((category !== originalCategory || name !== originalName) && destinationItems.includes(name)) throw new Error("此分類已有相同的支出項目");
-    ledger.categories.expense = unique([...ledger.categories.expense, category]);
+    if (!name) throw new Error(`請輸入${typeLabel}項目名稱`);
+    const expenseOnlyItems = type === "expense" ? ledger.creditInstallments.filter(row => row.category === category).map(row => row.item) : [];
+    const destinationItems = unique([...(ledger.items[type][category] || []), ...ledger.entries.filter(row => row.type === type && row.category === category).map(row => row.item), ...ledger.recurringRules.filter(row => row.type === type && row.category === category).map(row => row.item), ...ledger.templates.filter(row => row.type === type && row.category === category).map(row => row.item), ...expenseOnlyItems]);
+    if ((category !== originalCategory || name !== originalName) && destinationItems.includes(name)) throw new Error(`此分類已有相同的${typeLabel}項目`);
+    ledger.categories[type] = unique([...ledger.categories[type], category]);
     if (originalName) {
-      ledger.items.expense[originalCategory] = (ledger.items.expense[originalCategory] || []).filter(row => row !== originalName);
-      if (!ledger.items.expense[originalCategory].length) delete ledger.items.expense[originalCategory];
-      ledger.entries.filter(row => row.type === "expense" && row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; });
-      ledger.recurringRules.filter(row => row.type === "expense" && row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; });
-      ledger.creditInstallments.filter(row => row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; });
-      ledger.templates.filter(row => row.type === "expense" && row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; refreshTemplateSignature(row); });
+      ledger.items[type][originalCategory] = (ledger.items[type][originalCategory] || []).filter(row => row !== originalName);
+      if (!ledger.items[type][originalCategory].length) delete ledger.items[type][originalCategory];
+      ledger.entries.filter(row => row.type === type && row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; });
+      ledger.recurringRules.filter(row => row.type === type && row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; });
+      if (type === "expense") ledger.creditInstallments.filter(row => row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; });
+      ledger.templates.filter(row => row.type === type && row.category === originalCategory && row.item === originalName).forEach(row => { row.category = category; row.item = name; refreshTemplateSignature(row); });
     }
-    ledger.items.expense[category] = unique([...(ledger.items.expense[category] || []), name]);
-    return persist(ledger, assets, originalName ? "修改支出項目" : "新增支出項目");
+    ledger.items[type][category] = unique([...(ledger.items[type][category] || []), name]);
+    return persist(ledger, assets, `${originalName ? "修改" : "新增"}${typeLabel}項目`);
   }
 
-  function removeExpenseItem(categoryValue, nameValue) {
+  function removeItem(typeValue, categoryValue, nameValue) {
     const { ledger, assets } = load();
-    prepareExpenseTaxonomy(ledger);
+    prepareTaxonomy(ledger);
+    const type = taxonomyType(typeValue);
+    const typeLabel = type === "income" ? "收入" : "支出";
     const category = String(categoryValue || "").trim();
     const name = String(nameValue || "").trim();
-    if (!category || !name) throw new Error("找不到要刪除的支出項目");
-    ledger.items.expense[category] = (ledger.items.expense[category] || []).filter(row => row !== name);
-    ledger.entries.filter(row => row.type === "expense" && row.category === category && row.item === name).forEach(row => { row.item = ""; });
-    ledger.recurringRules.filter(row => row.type === "expense" && row.category === category && row.item === name).forEach(row => { row.item = ""; });
-    ledger.creditInstallments.filter(row => row.category === category && row.item === name).forEach(row => { row.item = ""; });
-    ledger.templates.filter(row => row.type === "expense" && row.category === category && row.item === name).forEach(row => { row.item = ""; refreshTemplateSignature(row); });
-    return persist(ledger, assets, "刪除支出項目");
+    if (!category || !name) throw new Error(`找不到要刪除的${typeLabel}項目`);
+    ledger.items[type][category] = (ledger.items[type][category] || []).filter(row => row !== name);
+    ledger.entries.filter(row => row.type === type && row.category === category && row.item === name).forEach(row => { row.item = ""; });
+    ledger.recurringRules.filter(row => row.type === type && row.category === category && row.item === name).forEach(row => { row.item = ""; });
+    if (type === "expense") ledger.creditInstallments.filter(row => row.category === category && row.item === name).forEach(row => { row.item = ""; });
+    ledger.templates.filter(row => row.type === type && row.category === category && row.item === name).forEach(row => { row.item = ""; refreshTemplateSignature(row); });
+    return persist(ledger, assets, `刪除${typeLabel}項目`);
   }
+
+  function saveExpenseCategory(values) { return saveCategory({ ...values, type: "expense" }); }
+  function removeExpenseCategory(name) { return removeCategory("expense", name); }
+  function saveExpenseItem(values) { return saveItem({ ...values, type: "expense" }); }
+  function removeExpenseItem(category, name) { return removeItem("expense", category, name); }
 
   function upsertBudget(values) {
     const { ledger, assets } = load();
@@ -1377,7 +1402,7 @@
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring,
     addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
-    addRecurring, updateRecurring, removeRecurring, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
+    addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
     addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
