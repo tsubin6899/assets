@@ -70,6 +70,7 @@
     const previousBill = (ledger.creditBills || []).find(row => row.card === card && row.billMonth === previousMonth);
     return (ledger.entries || []).filter(row => {
       if (row.account !== card) return false;
+      if (row.statementExclusions?.[billMonth]) return false;
       const entryMonth = statementMonthForEntry(row, cardAccount);
       if (entryMonth === billMonth) return true;
       return entryMonth === previousMonth && previousBill && !previousBill.reconciled && !row.statementChecks?.[previousBill.id];
@@ -1136,6 +1137,17 @@
     return persist(ledger, assets, reconciled ? "完成信用卡帳單對帳" : "取消信用卡帳單對帳完成");
   }
 
+  function excludeCreditStatementEntryFromBill(entryId, billId, excluded = true) {
+    const { ledger, assets } = load();
+    const entry = ledger.entries.find(row => row.id === entryId), bill = ledger.creditBills.find(row => row.id === billId);
+    if (!entry || !bill || entry.account !== bill.card) throw new Error("找不到要排除的信用卡帳目");
+    entry.statementExclusions = entry.statementExclusions && typeof entry.statementExclusions === "object" ? entry.statementExclusions : {};
+    if (excluded) entry.statementExclusions[bill.billMonth] = { excludedAt: nowIso(), billId };
+    else delete entry.statementExclusions[bill.billMonth];
+    refreshCreditStatementCheckForBill(ledger, bill);
+    return persist(ledger, assets, excluded ? "信用卡帳目不列入本期帳單" : "恢復列入本期信用卡帳單");
+  }
+
   function moveCreditStatementEntryToNextPeriod(entryId, billId) {
     const { ledger, assets } = load();
     const entry = ledger.entries.find(row => row.id === entryId), bill = ledger.creditBills.find(row => row.id === billId);
@@ -1604,7 +1616,7 @@
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
-    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, moveCreditStatementEntryToNextPeriod,
+    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,

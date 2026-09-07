@@ -274,6 +274,7 @@ assert.equal(financeCenterHtml.includes("async function applyNewerCloudSnapshot(
 assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credit card bill entries must be derived from the matching card account");
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
 assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v128"), true, "service worker cache must be bumped for unfinished statement carryover");
+assert.equal(financeCenterHtml.includes('data-exclude-bill-entry'), true, "credit-card statement entries must support excluding historical paid items from this bill");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v129"), true, "service worker cache must be bumped for checked-amount reconciliation");
 
 console.log("finance center regression test OK");
