@@ -36,6 +36,12 @@ let snapshot = core.insights();
 assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "生活帳戶").balance, 9500);
 assert.equal(snapshot.assetsSummary.liabilities, 300, "credit liability must be a positive debt value");
 
+const cashBeforeLegacySeed = snapshot.assetsSummary.cash;
+const legacyCashSeed = core.load();
+legacyCashSeed.assets.cash.push({ bank:"舊版資產殘留", amount:2000000, currency:"TWD" });
+core.persist(legacyCashSeed.ledger, legacyCashSeed.assets, "seed legacy cash that must not double count", { backup:false });
+assert.equal(core.insights().assetsSummary.cash, cashBeforeLegacySeed, "legacy cash rows must not inflate usable funds after formal accounts exist");
+
 core.addCreditBill({ card: "測試信用卡", payAccount: "生活帳戶", billMonth: today.slice(0, 7), amount: 300, dueDate: today });
 let bill = core.insights().ledger.creditBills[0];
 core.setCreditBillPaid(bill.id, true);
@@ -255,6 +261,6 @@ assert.equal(financeCenterHtml.includes("select.account-select{display:block;wid
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
 assert.equal(financeCenterHtml.includes('if(remoteBundle&&(comparison.remoteOnly||comparison.conflicts)){cloudApplying=true;try{FinanceCore.importBundle(bundle)}finally{cloudApplying=false}}'), false, "background cloud save must not overwrite current local data");
 assert.equal(financeCenterHtml.includes("async function applyNewerCloudSnapshot()"), true, "a device must load a newer cloud snapshot before saving stale local data");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v120"), true, "service worker cache must be bumped for cross-device sync correction");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v121"), true, "service worker cache must be bumped for legacy cash de-duplication");
 
 console.log("finance center regression test OK");

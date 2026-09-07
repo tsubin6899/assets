@@ -427,7 +427,9 @@
     const accounts = accountBalances(ledger, assets);
     const regularCash = accounts.filter(row => row.type !== "信用卡").reduce((sum, row) => sum + row.twdBalance, 0);
     const knownNames = new Set(accounts.map(row => row.name));
-    const manualCash = (assets.cash || []).filter(row => !knownNames.has(row.bank)).reduce((sum, row) => sum + number(row.amount) * fxRate(assets, row.currency), 0);
+    // The legacy cash array predates the account ledger. Once formal accounts
+    // exist, adding its unmatched rows would count old balances a second time.
+    const manualCash = accounts.length ? 0 : (assets.cash || []).filter(row => !knownNames.has(row.bank)).reduce((sum, row) => sum + number(row.amount) * fxRate(assets, row.currency), 0);
     const creditDebt = accounts.filter(row => row.type === "信用卡").reduce((sum, row) => sum + Math.max(0, row.twdBalance), 0);
     const legacyCards = (assets.cards || []).filter(row => !knownNames.has(row.card)).reduce((sum, row) => sum + Math.max(0, number(row.amount)), 0);
     const stockPositions = stockPositionSummary(assets);
