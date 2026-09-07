@@ -1385,7 +1385,7 @@
 
   function upsertCreditStatementCheck(ledger, values) {
     const billMonth = String(values.billMonth || monthOf()).slice(0, 7), card = values.card || "";
-    const entries = ledger.entries.filter(row => row.account === card && String(row.billMonth || row.statementMonthOverride || row.date || "").startsWith(billMonth));
+    const entries = ledger.entries.filter(row => row.account === card && String(row.billMonth || row.statementMonthOverride || row.date || "").startsWith(billMonth)).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.id || "").localeCompare(String(b.id || "")));
     const appAmount = entries.reduce((sum, row) => sum + (row.type === "expense" ? number(row.amount) : -number(row.amount)), 0);
     const statementAmount = number(values.statementAmount), existing = ledger.creditStatementChecks.find(row => row.creditBillId === values.creditBillId || (!values.creditBillId && row.card === card && row.billMonth === billMonth));
     const matchedEntries = entries.map(row => ({ id: row.id || "", date: row.date || "", type: row.type === "income" ? "income" : "expense", category: row.category || "未分類", item: row.item || "", merchant: row.merchant || "", amount: number(row.amount), note: row.note || "" }));
