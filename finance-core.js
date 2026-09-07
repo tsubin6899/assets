@@ -41,8 +41,11 @@
   }
   function normalizeLedgerDate(value) {
     const source = String(value || "").trim();
-    const match = source.match(/^(\d{4})[\/.\-](\d{1,2})[\/.\-](\d{1,2})(?:[T\s].*)?$/);
-    return match ? `${match[1]}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}` : source;
+    const match = source.match(/^(\d{2,4})[\/.\-年](\d{1,2})[\/.\-月](\d{1,2})(?:日)?(?:[T\s].*)?$/);
+    if (!match) return source;
+    const year = number(match[1]);
+    const westernYear = year < 1911 ? year + 1911 : year;
+    return `${westernYear}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}`;
   }
   function normalizeLedgerMonth(value) {
     const source = String(value || "").trim();
