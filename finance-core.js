@@ -258,7 +258,9 @@
     const accountMap = new Map();
     (ledger.accounts || []).forEach(account => {
       accountMap.set(account.name, account);
-      balances.set(account.name, number(account.openingBalance));
+      // Legacy screens stored credit-card debt as a negative opening balance,
+      // while the unified ledger uses a positive amount for a liability.
+      balances.set(account.name, account.type === "信用卡" ? Math.abs(number(account.openingBalance)) : number(account.openingBalance));
     });
     (ledger.entries || []).filter(row => !row.recurringSkipped && (!row.date || String(row.date) <= asOf)).forEach(row => {
       if (!balances.has(row.account)) return;
