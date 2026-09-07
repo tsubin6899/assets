@@ -831,6 +831,34 @@
     return persist(ledger, assets, values.type === "sell" ? "新增投資賣出" : "新增投資買入");
   }
 
+  function importBrokerFills(payload) {
+    const fills = Array.isArray(payload) ? payload : (Array.isArray(payload?.fills) ? payload.fills : []);
+    const { ledger, assets } = load();
+    const existing = new Set((assets.purchaseRecords || []).map(row => String(row.brokerFillId || "")).filter(Boolean));
+    let imported = 0, duplicates = 0, invalid = 0;
+    fills.forEach(fill => {
+      const brokerFillId = String(fill?.brokerFillId || "").trim();
+      const shares = Math.max(0, number(fill?.shares));
+      const price = Math.max(0, number(fill?.price));
+      const code = String(fill?.code || "").trim().toUpperCase();
+      if (!brokerFillId || !code || shares <= 0 || price <= 0) { invalid += 1; return; }
+      if (existing.has(brokerFillId)) { duplicates += 1; return; }
+      const market = normalizeInvestmentMarket(fill.market);
+      assets.purchaseRecords.push({
+        id: uid("trade"), date: fill.date || localDate(), type: fill.type === "sell" ? "sell" : "buy",
+        market, code, name: fill.name || "", shares, price,
+        fee: Math.max(0, number(fill.fee)), tax: Math.max(0, number(fill.tax)),
+        currency: normalizeCurrency(fill.currency || marketCurrency(market)), cashAccount: fill.cashAccount || "",
+        note: fill.note || "券商成交自動匯入", brokerFillId,
+        brokerOrderId: String(fill.brokerOrderId || ""), externalSource: fill.source || "broker",
+        brokerFilledAt: fill.filledAt || "", syncedAt: nowIso(), createdAt: nowIso()
+      });
+      existing.add(brokerFillId); imported += 1;
+    });
+    if (imported) persist(ledger, assets, `匯入 ${imported} 筆券商成交`);
+    return { imported, duplicates, invalid, total: fills.length };
+  }
+
   function addDividend(values) {
     const { ledger, assets } = load();
     assets.dividends.push({
@@ -1347,7 +1375,7 @@
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring,
-    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, addDividend,
+    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid,
     addRecurring, updateRecurring, removeRecurring, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,

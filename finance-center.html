@@ -252,6 +252,7 @@
   <script src="finance-notifications.js?v=1"></script>
   <script src="finance-search.js?v=1"></script>
   <script src="finance-import.js?v=1"></script>
+  <script src="finance-trade-sync.js?v=1"></script>
   <script>
     const app = document.getElementById("app");
     const secondaryNav = document.getElementById("secondaryNav");
@@ -715,6 +716,7 @@
     window.addEventListener("finance-storage-status",()=>loadStorageRevisions(state.domain==="analysis"&&state.tab==="data"));
     window.addEventListener("online",()=>{if(cloudUser&&FinanceSync.hasPending())saveCloud(true)});
     window.addEventListener("storage",event=>{if([FinanceCore.KEYS.ledger,FinanceCore.KEYS.assets].includes(event.key))refresh();if(event.key==="tsubin-assets-auth")refreshCloudSession({force:true})});
+    window.addEventListener("finance-broker-fills-imported",event=>{showToast(`已從自動交易中心匯入 ${event.detail?.imported||0} 筆成交`);refresh()});
     window.addEventListener("hashchange",readRoute);
     document.addEventListener("visibilitychange",()=>{if(document.hidden&&!state.privacy)setPrivacy(true,false);if(!document.hidden)refreshCloudSession({force:true})});
     async function publicConfig(){const fallback={supabaseUrl:window.SUPABASE_URL||window.PUBLIC_CONFIG?.supabaseUrl||window.APP_CONFIG?.supabaseUrl||"",supabaseAnonKey:window.SUPABASE_ANON_KEY||window.PUBLIC_CONFIG?.supabaseAnonKey||window.APP_CONFIG?.supabaseAnonKey||""};if(!location.protocol.startsWith("http"))return fallback;try{const response=await fetch(`/api/public-config?ts=${Date.now()}`,{cache:"no-store"});if(!response.ok)return fallback;const config=await response.json();return{supabaseUrl:fallback.supabaseUrl||config.supabaseUrl||config.SUPABASE_URL||"",supabaseAnonKey:fallback.supabaseAnonKey||config.supabaseAnonKey||config.SUPABASE_ANON_KEY||""}}catch{return fallback}}
