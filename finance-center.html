@@ -246,7 +246,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
   <script src="finance-center-routes.js?v=2"></script>
-  <script src="finance-core.js?v=14"></script>
+  <script src="finance-core.js?v=15"></script>
   <script src="finance-upgrades.js?v=1"></script>
   <script src="finance-storage.js?v=1"></script>
   <script src="finance-market.js?v=1"></script>
@@ -764,7 +764,7 @@
     FinanceCore.touch("財務中心啟動"); FinanceStorage.init(); loadStorageRevisions(false); readRoute(); initCloud(); armPrivacyTimer();
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=115").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=116").catch(()=>{});
   </script>
 </body>
 </html>

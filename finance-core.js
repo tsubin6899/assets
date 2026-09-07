@@ -126,10 +126,11 @@
       const key = `${rule.id}|${entry.date}`;
       const rows = groups.get(key) || []; rows.push(entry); groups.set(key, rows);
     });
-    const duplicateIds = new Set();
-    groups.forEach(rows => rows.sort((a,b)=>String(a.createdAt||a.recurringRealizedAt||"").localeCompare(String(b.createdAt||b.recurringRealizedAt||"")) || String(a.id).localeCompare(String(b.id))).slice(1).forEach(row => { duplicateIds.add(row.id); recycle(ledger, "entry", row); removed += 1; }));
+    const duplicateIds = new Set(), correctedDates = [];
+    groups.forEach(rows => rows.sort((a,b)=>String(a.createdAt||a.recurringRealizedAt||"").localeCompare(String(b.createdAt||b.recurringRealizedAt||"")) || String(a.id).localeCompare(String(b.id))).slice(1).forEach(row => { duplicateIds.add(row.id); correctedDates.push(row.date); recycle(ledger, "entry", row); removed += 1; }));
     if (!linked && !removed) return { linked, removed, changed: false };
     ledger.entries = ledger.entries.filter(row => !duplicateIds.has(row.id));
+    amendClosedMonthSnapshots(ledger, correctedDates);
     persist(ledger, assets, "修復重複固定收支入帳");
     return { linked, removed, changed: true };
   }
@@ -742,6 +743,28 @@
     ledger.recycleBin = ledger.recycleBin.slice(0, 100);
   }
 
+  // A deliberate correction must also amend the locked month's comparison snapshot.
+  // Otherwise the protection layer rejects the correction before it can be saved.
+  function amendClosedMonthSnapshots(ledger, months = []) {
+    const affected = new Set(months.map(value => String(value || "").slice(0, 7)).filter(Boolean));
+    if (!affected.size) return;
+    (ledger.monthCloseouts || []).forEach(closeout => {
+      const month = String(closeout.month || "").slice(0, 7);
+      if (!affected.has(month)) return;
+      const snapshot = ensureLedger(closeout.ledger || emptyLedger);
+      snapshot.entries = [
+        ...snapshot.entries.filter(row => String(row.date || "").slice(0, 7) !== month),
+        ...ledger.entries.filter(row => String(row.date || "").slice(0, 7) === month).map(clone)
+      ];
+      snapshot.transfers = [
+        ...snapshot.transfers.filter(row => String(row.date || "").slice(0, 7) !== month),
+        ...ledger.transfers.filter(row => String(row.date || "").slice(0, 7) === month).map(clone)
+      ];
+      closeout.ledger = snapshot;
+      closeout.correctedAt = nowIso();
+    });
+  }
+
   function removeEntry(id) {
     const { ledger, assets } = load();
     const index = ledger.entries.findIndex(item => item.id === id);
@@ -752,7 +775,8 @@
     linked.forEach(row => recycle(ledger, "entry", row));
     const ids = new Set([id, ...linked.map(row => row.id)]);
     ledger.entries = ledger.entries.filter(row => !ids.has(row.id));
-    return persist(ledger, assets, "刪除收支紀錄");
+    amendClosedMonthSnapshots(ledger, [target.date, ...linked.map(row => row.date)]);
+    return persist(ledger, assets, "刪除收支紀錄（同步修正月結快照）");
   }
 
   function saveEntryTemplate(id) {
@@ -842,7 +866,8 @@
     ledger.creditBills.forEach(bill => {
       if (bill.transferId === id || row.creditBillId === bill.id) Object.assign(bill, { paid: false, paidAt: "", transferId: "" });
     });
-    return persist(ledger, assets, "刪除帳戶轉帳");
+    amendClosedMonthSnapshots(ledger, [row.date]);
+    return persist(ledger, assets, "刪除帳戶轉帳（同步修正月結快照）");
   }
 
   function addPurchase(values) {
@@ -1013,18 +1038,20 @@
   function repairCreditBillPayments() {
     const { ledger, assets } = load();
     let removed = 0, relinked = 0, reopened = 0;
+    const correctedDates = [];
     (ledger.creditBills || []).forEach(bill => {
       const linked = paymentTransfersForBill(ledger, bill);
       const preferred = linked.find(row => row.id === bill.transferId) || linked[0];
       if (preferred) {
         if (bill.transferId !== preferred.id || !bill.paid) { Object.assign(bill, { paid: true, paidAt: bill.paidAt || nowIso(), transferId: preferred.id }); relinked += 1; }
-        linked.filter(row => row.id !== preferred.id && isGeneratedCreditBillPayment(row)).forEach(row => { recycle(ledger, "transfer", row); ledger.transfers = ledger.transfers.filter(item => item.id !== row.id); removed += 1; });
+        linked.filter(row => row.id !== preferred.id && isGeneratedCreditBillPayment(row)).forEach(row => { correctedDates.push(row.date); recycle(ledger, "transfer", row); ledger.transfers = ledger.transfers.filter(item => item.id !== row.id); removed += 1; });
       } else if (bill.paid) {
         Object.assign(bill, { paid: false, paidAt: "", transferId: "" });
         reopened += 1;
       }
     });
     if (!removed && !relinked && !reopened) return { removed, relinked, reopened, changed: false };
+    amendClosedMonthSnapshots(ledger, correctedDates);
     persist(ledger, assets, "修復信用卡繳款連動");
     return { removed, relinked, reopened, changed: true };
   }
