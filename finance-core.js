@@ -72,10 +72,17 @@
     return (!startDate || date >= startDate) && (!endDate || date <= endDate) ? [date] : [];
   }
   function recurringScheduledDate(entry) { return String(entry?.scheduledDate || entry?.date || ""); }
+  function matchesRecurringRule(entry, rule, scheduledDate) {
+    if (!entry || !rule || String(entry.date || "") !== scheduledDate) return false;
+    if (entry.recurringId === rule.id) return true;
+    return !entry.recurringId && String(entry.merchant || "") === String(rule.name || "") && String(entry.note || "").includes("固定收支") &&
+      (entry.type === "income" ? "income" : "expense") === (rule.type === "income" ? "income" : "expense") &&
+      String(entry.account || "") === String(rule.account || "") && number(entry.amount) === number(rule.amount);
+  }
   function recurringOccurrences(ledger, month = monthOf(), asOf = localDate()) {
     const entries = Array.isArray(ledger?.entries) ? ledger.entries : [];
     return (ledger?.recurringRules || []).flatMap(rule => recurringDatesForMonth(rule, month).map(scheduledDate => {
-      const existing = entries.find(row => row.recurringId === rule.id && recurringScheduledDate(row) === scheduledDate);
+      const existing = entries.find(row => matchesRecurringRule(row, rule, scheduledDate));
       if (existing?.recurringSkipped) return null;
       const date = String(existing?.date || scheduledDate);
       return {
@@ -94,8 +101,8 @@
     let created = 0;
     (ledger.recurringRules || []).forEach(rule => recurringDatesForMonth(rule, month).forEach(scheduledDate => {
       if (scheduledDate > asOf) return;
-      const exists = ledger.entries.some(row => row.recurringId === rule.id && recurringScheduledDate(row) === scheduledDate);
-      if (exists) return;
+      const existing = ledger.entries.find(row => matchesRecurringRule(row, rule, scheduledDate));
+      if (existing) { if (!existing.recurringId) Object.assign(existing, { id: existing.id || uid("entry"), recurringId: rule.id, scheduledDate, recurringRealizedAt: existing.recurringRealizedAt || nowIso() }); return; }
       ledger.entries.push({
         id: uid("entry"), type: rule.type === "income" ? "income" : "expense", date: scheduledDate,
         amount: Math.max(0, number(rule.amount)), category: rule.category || "未分類", item: rule.item || "",
@@ -105,6 +112,26 @@
       created += 1;
     }));
     return created;
+  }
+
+  function repairRecurringEntries() {
+    const { ledger, assets } = load();
+    let linked = 0, removed = 0;
+    const groups = new Map();
+    (ledger.entries || []).forEach(entry => {
+      const rule = (ledger.recurringRules || []).find(item => matchesRecurringRule(entry, item, String(entry.date || "")));
+      if (!rule) return;
+      if (!entry.id) { entry.id = uid("entry"); linked += 1; }
+      if (entry.recurringId !== rule.id || entry.scheduledDate !== entry.date) { Object.assign(entry, { recurringId: rule.id, scheduledDate: entry.date, recurringRealizedAt: entry.recurringRealizedAt || nowIso() }); linked += 1; }
+      const key = `${rule.id}|${entry.date}`;
+      const rows = groups.get(key) || []; rows.push(entry); groups.set(key, rows);
+    });
+    const duplicateIds = new Set();
+    groups.forEach(rows => rows.sort((a,b)=>String(a.createdAt||a.recurringRealizedAt||"").localeCompare(String(b.createdAt||b.recurringRealizedAt||"")) || String(a.id).localeCompare(String(b.id))).slice(1).forEach(row => { duplicateIds.add(row.id); recycle(ledger, "entry", row); removed += 1; }));
+    if (!linked && !removed) return { linked, removed, changed: false };
+    ledger.entries = ledger.entries.filter(row => !duplicateIds.has(row.id));
+    persist(ledger, assets, "修復重複固定收支入帳");
+    return { linked, removed, changed: true };
   }
   function number(value) { const result = Number(value); return Number.isFinite(result) ? result : 0; }
   function normalizeCurrency(value) { return String(value || "TWD").trim().toUpperCase() || "TWD"; }
@@ -813,7 +840,7 @@
     recycle(ledger, "transfer", row);
     ledger.transfers.splice(index, 1);
     ledger.creditBills.forEach(bill => {
-      if (bill.transferId === id) Object.assign(bill, { paid: false, paidAt: "", transferId: "" });
+      if (bill.transferId === id || row.creditBillId === bill.id) Object.assign(bill, { paid: false, paidAt: "", transferId: "" });
     });
     return persist(ledger, assets, "刪除帳戶轉帳");
   }
@@ -1000,6 +1027,37 @@
     if (!removed && !relinked && !reopened) return { removed, relinked, reopened, changed: false };
     persist(ledger, assets, "修復信用卡繳款連動");
     return { removed, relinked, reopened, changed: true };
+  }
+
+  function refreshCreditStatementCheckForBill(ledger, bill) {
+    if (!bill) return;
+    const existing = (ledger.creditStatementChecks || []).find(row => row.creditBillId === bill.id);
+    if (existing) upsertCreditStatementCheck(ledger, { card: bill.card, billMonth: bill.billMonth, statementAmount: bill.amount, note: existing.note || "", creditBillId: bill.id });
+  }
+
+  function setCreditStatementEntryChecked(entryId, billId, checked = true) {
+    const { ledger, assets } = load();
+    const entry = ledger.entries.find(row => row.id === entryId), bill = ledger.creditBills.find(row => row.id === billId);
+    if (!entry || !bill || entry.account !== bill.card) throw new Error("找不到要核對的信用卡帳目");
+    entry.statementChecks = entry.statementChecks && typeof entry.statementChecks === "object" ? entry.statementChecks : {};
+    if (checked) entry.statementChecks[bill.id] = { checkedAt: nowIso() };
+    else delete entry.statementChecks[bill.id];
+    refreshCreditStatementCheckForBill(ledger, bill);
+    return persist(ledger, assets, checked ? "核對信用卡帳目" : "取消核對信用卡帳目");
+  }
+
+  function moveCreditStatementEntryToNextPeriod(entryId, billId) {
+    const { ledger, assets } = load();
+    const entry = ledger.entries.find(row => row.id === entryId), bill = ledger.creditBills.find(row => row.id === billId);
+    if (!entry || !bill || entry.account !== bill.card) throw new Error("找不到要移入下期的信用卡帳目");
+    const nextMonth = shiftMonthValue(bill.billMonth, 1);
+    entry.statementMonthOverride = nextMonth;
+    entry.statementStatus = "deferred";
+    if (entry.statementChecks && typeof entry.statementChecks === "object") delete entry.statementChecks[bill.id];
+    refreshCreditStatementCheckForBill(ledger, bill);
+    const nextBill = ledger.creditBills.find(row => row.card === bill.card && row.billMonth === nextMonth);
+    refreshCreditStatementCheckForBill(ledger, nextBill);
+    return persist(ledger, assets, "信用卡帳目移入下期帳單");
   }
 
   function addRecurring(values) {
@@ -1454,9 +1512,9 @@
 
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
-    recurringDatesForMonth, recurringOccurrences, materializeDueRecurring,
+    recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
-    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments,
+    addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, moveCreditStatementEntryToNextPeriod,
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,

@@ -66,6 +66,16 @@ assert.equal(snapshot.ledger.transfers.filter(row => row.fromAccount === "繳款
 assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "繳款測試銀行").balance, 800, "linking an existing payment must not deduct the bank twice");
 core.setCreditBillPaid(bill.id, false);
 assert.equal(core.insights().ledger.transfers.some(row => row.fromAccount === "繳款測試銀行" && row.toAccount === "繳款測試卡"), true, "cancelling a linked manual payment must preserve the original transfer");
+const billEntry = core.insights().ledger.entries.find(row => row.merchant === "手動繳款測試");
+core.setCreditStatementEntryChecked(billEntry.id, bill.id, true);
+assert.equal(Boolean(core.insights().ledger.entries.find(row => row.id === billEntry.id).statementChecks[bill.id]), true, "checking a card statement row must persist on that entry");
+const expectedNextStatement = new Date(`${today.slice(0, 7)}-01T00:00:00`); expectedNextStatement.setMonth(expectedNextStatement.getMonth() + 1);
+core.moveCreditStatementEntryToNextPeriod(billEntry.id, bill.id);
+assert.equal(core.insights().ledger.entries.find(row => row.id === billEntry.id).statementMonthOverride, `${expectedNextStatement.getFullYear()}-${String(expectedNextStatement.getMonth() + 1).padStart(2, "0")}`, "moving a card row must assign it to the next statement period");
+core.setCreditBillPaid(bill.id, true);
+const linkedPayment = core.insights().ledger.transfers.find(row => row.creditBillId === bill.id);
+core.removeTransfer(linkedPayment.id);
+assert.equal(core.insights().ledger.creditBills.find(row => row.id === bill.id).paid, false, "deleting a linked payment transfer must reopen the bill");
 
 core.applyMarketSnapshot({ rates: { rates: { USD: 30 }, generatedAt: new Date().toISOString(), source: "regression" } });
 core.addAccount({ name: "美元帳戶", type: "外幣銀行帳戶", currency: "USD", openingBalance: 100 });
@@ -129,7 +139,12 @@ const csvResult = core.importEntries(csvRows);
 assert.equal(csvResult.imported, 1, "CSV row should import");
 assert.equal(core.importEntries(csvRows).duplicates, 1, "same CSV row should be skipped as duplicate");
 
-core.addRecurring({ type: "income", name: "固定收入", amount: 2000, category: "薪資", account: "生活帳戶", cycle: "monthly", day: 1 });
+core.addRecurring({ type: "income", name: "固定收入", amount: 2000, category: "薪資", account: "生活帳戶", cycle: "monthly", day: Number(today.slice(8, 10)) });
+let recurringSeed = core.load();
+const recurringEntry = recurringSeed.ledger.entries.find(row => row.recurringId && row.merchant === "固定收入");
+recurringSeed.ledger.entries.push({ ...recurringEntry, id: "duplicate-recurring-entry" });
+core.persist(recurringSeed.ledger, recurringSeed.assets, "seed duplicate recurring entry", { backup: false });
+assert.equal(core.repairRecurringEntries().removed, 1, "recurring repair must remove duplicate entries for the same rule and date");
 snapshot = core.insights();
 assert.equal(snapshot.forecast.rows.length, 3);
 assert.equal(snapshot.forecast.rows.every(row => Number.isFinite(row.projectedCash)), true);
@@ -206,6 +221,6 @@ assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account sele
 assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
 assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v112"), true, "service worker cache must be bumped for the integrated card bill workflow");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v114"), true, "service worker cache must be bumped for recurring-entry repair");
 
 console.log("finance center regression test OK");
