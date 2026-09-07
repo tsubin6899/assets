@@ -250,6 +250,6 @@ assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account sele
 assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
 assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v116"), true, "service worker cache must be bumped for closed-month correction support");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v117"), true, "service worker cache must be bumped for automatic duplicate repair");
 
 console.log("finance center regression test OK");

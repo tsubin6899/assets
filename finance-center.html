@@ -761,10 +761,13 @@
     async function loadCloudVersions(){try{const row=await fetchCloudRow();ui.cloudVersions=row?.data?.financeCenterCloudHistory||[];FinanceSync.setRemoteVersions(ui.cloudVersions);showToast(`已讀取 ${ui.cloudVersions.length} 個雲端歷史版本`);render()}catch(error){showToast(error.message||"無法讀取雲端版本")}}
     async function restoreCloudVersion(index){try{const row=await fetchCloudRow(),version=(row?.data?.financeCenterCloudHistory||[])[index];if(!version?.data)throw new Error("找不到這個雲端歷史版本");cloudApplying=true;try{FinanceCore.importBundle(version.data)}finally{cloudApplying=false}showToast("雲端歷史版本已還原至本機，確認後可再同步");refresh()}catch(error){showToast(error.message||"雲端版本還原失敗")}}
     document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");cloudStatus.addEventListener("click",()=>refreshCloudSession({notify:true,force:true}));cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();refreshCloudSession({notify:true,force:true})}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
+    const startupCardRepair=FinanceCore.repairCreditBillPayments(),startupRecurringRepair=FinanceCore.repairRecurringEntries();
+    if(startupCardRepair.changed||startupRecurringRepair.changed)current=FinanceCore.insights();
     FinanceCore.touch("財務中心啟動"); FinanceStorage.init(); loadStorageRevisions(false); readRoute(); initCloud(); armPrivacyTimer();
+    if(startupCardRepair.changed||startupRecurringRepair.changed)showToast(`已自動修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄`);
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=116").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=117").catch(()=>{});
   </script>
 </body>
 </html>

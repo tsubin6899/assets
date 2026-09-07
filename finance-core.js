@@ -1004,7 +1004,15 @@
   }
 
   function paymentTransfersForBill(ledger, bill) {
-    return (ledger.transfers || []).filter(row => row.creditBillId === bill.id);
+    return (ledger.transfers || []).filter(row => {
+      if (row.creditBillId === bill.id) return true;
+      // Older releases did not store creditBillId. Recognize their generated
+      // payment by the immutable bill signature so duplicates can be repaired.
+      return isGeneratedCreditBillPayment(row) &&
+        row.fromAccount === bill.payAccount && row.toAccount === bill.card &&
+        number(row.fromAmount) === number(bill.amount) &&
+        String(row.note || "").includes(String(bill.billMonth || ""));
+    });
   }
 
   function setCreditBillPaid(id, paid = true) {
