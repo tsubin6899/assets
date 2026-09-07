@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-07T10:38:30+00:00",
+  "generatedAt": "2026-09-07T14:27:47+00:00",
   "prices": {
     "TW:0050": {
       "symbol": "0050",
@@ -12,7 +12,7 @@
       "change": 2.0,
       "changePercent": 1.8536,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:37:57+00:00"
+      "fetchedAt": "2026-09-07T14:27:09+00:00"
     },
     "TW:009816": {
       "symbol": "009816",
@@ -25,7 +25,7 @@
       "change": 0.27,
       "changePercent": 1.6981,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:37:57+00:00"
+      "fetchedAt": "2026-09-07T14:27:10+00:00"
     },
     "TW:00981A": {
       "symbol": "00981A",
@@ -38,7 +38,7 @@
       "change": 0.35,
       "changePercent": 1.1757,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:37:58+00:00"
+      "fetchedAt": "2026-09-07T14:27:11+00:00"
     },
     "TW:00988A": {
       "symbol": "00988A",
@@ -51,7 +51,7 @@
       "change": 0.27,
       "changePercent": 1.6886,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:37:59+00:00"
+      "fetchedAt": "2026-09-07T14:27:12+00:00"
     },
     "TW:00991A": {
       "symbol": "00991A",
@@ -64,7 +64,7 @@
       "change": 0.27,
       "changePercent": 1.5228,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:00+00:00"
+      "fetchedAt": "2026-09-07T14:27:13+00:00"
     },
     "TW:2330": {
       "symbol": "2330",
@@ -77,7 +77,7 @@
       "change": 50.0,
       "changePercent": 2.0747,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:01+00:00"
+      "fetchedAt": "2026-09-07T14:27:14+00:00"
     },
     "TW:00919": {
       "symbol": "00919",
@@ -90,7 +90,7 @@
       "change": -0.11,
       "changePercent": -0.3331,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:02+00:00"
+      "fetchedAt": "2026-09-07T14:27:15+00:00"
     },
     "TW:00937B": {
       "symbol": "00937B",
@@ -103,7 +103,7 @@
       "change": -0.07,
       "changePercent": -0.4895,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:04+00:00"
+      "fetchedAt": "2026-09-07T14:27:16+00:00"
     },
     "TW:00940": {
       "symbol": "00940",
@@ -116,7 +116,7 @@
       "change": -0.02,
       "changePercent": -0.1537,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:05+00:00"
+      "fetchedAt": "2026-09-07T14:27:17+00:00"
     },
     "TW:00878": {
       "symbol": "00878",
@@ -129,7 +129,7 @@
       "change": 0.28,
       "changePercent": 0.8209,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:06+00:00"
+      "fetchedAt": "2026-09-07T14:27:18+00:00"
     },
     "TW:2603": {
       "symbol": "2603",
@@ -142,7 +142,7 @@
       "change": 0.0,
       "changePercent": 0.0,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:07+00:00"
+      "fetchedAt": "2026-09-07T14:27:19+00:00"
     },
     "TW:2617": {
       "symbol": "2617",
@@ -155,7 +155,7 @@
       "change": 0.45,
       "changePercent": 1.3867,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:07+00:00"
+      "fetchedAt": "2026-09-07T14:27:20+00:00"
     },
     "TW:3013": {
       "symbol": "3013",
@@ -168,7 +168,7 @@
       "change": -1.7,
       "changePercent": -1.9318,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:09+00:00"
+      "fetchedAt": "2026-09-07T14:27:21+00:00"
     },
     "TW:2344": {
       "symbol": "2344",
@@ -181,7 +181,7 @@
       "change": 6.0,
       "changePercent": 3.4483,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:09+00:00"
+      "fetchedAt": "2026-09-07T14:27:22+00:00"
     },
     "TW:1799": {
       "symbol": "1799",
@@ -194,7 +194,7 @@
       "change": 0.25,
       "changePercent": 0.8418,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:11+00:00"
+      "fetchedAt": "2026-09-07T14:27:24+00:00"
     },
     "TW:00999A": {
       "symbol": "00999A",
@@ -207,7 +207,7 @@
       "change": 0.09,
       "changePercent": 0.7799,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:12+00:00"
+      "fetchedAt": "2026-09-07T14:27:25+00:00"
     },
     "TW:00403A": {
       "symbol": "00403A",
@@ -220,7 +220,7 @@
       "change": 0.13,
       "changePercent": 1.2671,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:13+00:00"
+      "fetchedAt": "2026-09-07T14:27:26+00:00"
     },
     "TW:00993A": {
       "symbol": "00993A",
@@ -233,7 +233,7 @@
       "change": 0.2,
       "changePercent": 1.4993,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:15+00:00"
+      "fetchedAt": "2026-09-07T14:27:27+00:00"
     },
     "TW:2317": {
       "symbol": "2317",
@@ -246,7 +246,7 @@
       "change": 0.0,
       "changePercent": 0.0,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:15+00:00"
+      "fetchedAt": "2026-09-07T14:27:28+00:00"
     },
     "TW:2454": {
       "symbol": "2454",
@@ -259,7 +259,7 @@
       "change": 345.0,
       "changePercent": 7.8143,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:16+00:00"
+      "fetchedAt": "2026-09-07T14:27:29+00:00"
     },
     "TW:2382": {
       "symbol": "2382",
@@ -272,7 +272,7 @@
       "change": 2.5,
       "changePercent": 0.7246,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:17+00:00"
+      "fetchedAt": "2026-09-07T14:27:30+00:00"
     },
     "TW:2408": {
       "symbol": "2408",
@@ -285,7 +285,7 @@
       "change": 21.0,
       "changePercent": 4.2339,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:18+00:00"
+      "fetchedAt": "2026-09-07T14:27:31+00:00"
     },
     "TW:2337": {
       "symbol": "2337",
@@ -298,7 +298,7 @@
       "change": 3.0,
       "changePercent": 2.4691,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:18+00:00"
+      "fetchedAt": "2026-09-07T14:27:32+00:00"
     },
     "TW:3376": {
       "symbol": "3376",
@@ -311,7 +311,7 @@
       "change": -4.5,
       "changePercent": -2.1327,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:19+00:00"
+      "fetchedAt": "2026-09-07T14:27:32+00:00"
     },
     "TW:2303": {
       "symbol": "2303",
@@ -324,7 +324,7 @@
       "change": 13.0,
       "changePercent": 10.0,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:20+00:00"
+      "fetchedAt": "2026-09-07T14:27:33+00:00"
     },
     "TW:3231": {
       "symbol": "3231",
@@ -337,7 +337,7 @@
       "change": -1.0,
       "changePercent": -0.5051,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:21+00:00"
+      "fetchedAt": "2026-09-07T14:27:34+00:00"
     },
     "TW:2308": {
       "symbol": "2308",
@@ -350,7 +350,7 @@
       "change": 25.0,
       "changePercent": 1.3699,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:22+00:00"
+      "fetchedAt": "2026-09-07T14:27:35+00:00"
     },
     "TW:2327": {
       "symbol": "2327",
@@ -363,7 +363,7 @@
       "change": 27.0,
       "changePercent": 4.8043,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:22+00:00"
+      "fetchedAt": "2026-09-07T14:27:36+00:00"
     },
     "TW:3037": {
       "symbol": "3037",
@@ -376,7 +376,7 @@
       "change": 47.0,
       "changePercent": 5.2106,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:23+00:00"
+      "fetchedAt": "2026-09-07T14:27:37+00:00"
     },
     "TW:1802": {
       "symbol": "1802",
@@ -389,7 +389,7 @@
       "change": 1.6,
       "changePercent": 2.7073,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:24+00:00"
+      "fetchedAt": "2026-09-07T14:27:38+00:00"
     },
     "TW:4958": {
       "symbol": "4958",
@@ -402,7 +402,7 @@
       "change": 38.0,
       "changePercent": 8.2073,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-09-07T10:38:24+00:00"
+      "fetchedAt": "2026-09-07T14:27:39+00:00"
     },
     "US:AMAT": {
       "symbol": "AMAT",
@@ -415,7 +415,7 @@
       "change": 18.8,
       "changePercent": 4.3128,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:25+00:00"
+      "fetchedAt": "2026-09-07T14:27:39+00:00"
     },
     "US:SPCX": {
       "symbol": "SPCX",
@@ -428,7 +428,7 @@
       "change": -1.79,
       "changePercent": -1.1954,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:25+00:00"
+      "fetchedAt": "2026-09-07T14:27:39+00:00"
     },
     "US:TSM": {
       "symbol": "TSM",
@@ -441,7 +441,7 @@
       "change": 11.9,
       "changePercent": 2.8536,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:25+00:00"
+      "fetchedAt": "2026-09-07T14:27:40+00:00"
     },
     "US:UMC": {
       "symbol": "UMC",
@@ -454,7 +454,7 @@
       "change": 0.91,
       "changePercent": 4.5821,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:26+00:00"
+      "fetchedAt": "2026-09-07T14:27:40+00:00"
     },
     "US:NVDA": {
       "symbol": "NVDA",
@@ -467,7 +467,7 @@
       "change": 1.91,
       "changePercent": 0.8361,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:26+00:00"
+      "fetchedAt": "2026-09-07T14:27:41+00:00"
     },
     "US:AAPL": {
       "symbol": "AAPL",
@@ -480,7 +480,7 @@
       "change": -8.24,
       "changePercent": -2.5106,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:26+00:00"
+      "fetchedAt": "2026-09-07T14:27:41+00:00"
     },
     "US:GOOG": {
       "symbol": "GOOG",
@@ -493,7 +493,7 @@
       "change": -3.77,
       "changePercent": -1.1118,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:27+00:00"
+      "fetchedAt": "2026-09-07T14:27:42+00:00"
     },
     "US:MSFT": {
       "symbol": "MSFT",
@@ -506,7 +506,7 @@
       "change": -10.42,
       "changePercent": -2.0427,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:27+00:00"
+      "fetchedAt": "2026-09-07T14:27:42+00:00"
     },
     "US:INTC": {
       "symbol": "INTC",
@@ -519,7 +519,7 @@
       "change": 4.13,
       "changePercent": 4.5053,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:27+00:00"
+      "fetchedAt": "2026-09-07T14:27:43+00:00"
     },
     "US:MU": {
       "symbol": "MU",
@@ -532,7 +532,7 @@
       "change": 58.43,
       "changePercent": 6.0981,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:28+00:00"
+      "fetchedAt": "2026-09-07T14:27:43+00:00"
     },
     "US:SNDK": {
       "symbol": "SNDK",
@@ -545,7 +545,7 @@
       "change": 185.01,
       "changePercent": 11.8978,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:28+00:00"
+      "fetchedAt": "2026-09-07T14:27:43+00:00"
     },
     "US:META": {
       "symbol": "META",
@@ -558,7 +558,7 @@
       "change": 6.09,
       "changePercent": 0.9972,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:28+00:00"
+      "fetchedAt": "2026-09-07T14:27:44+00:00"
     },
     "US:TSLA": {
       "symbol": "TSLA",
@@ -571,7 +571,7 @@
       "change": -22.285,
       "changePercent": -5.9211,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:29+00:00"
+      "fetchedAt": "2026-09-07T14:27:44+00:00"
     },
     "US:AMZN": {
       "symbol": "AMZN",
@@ -584,7 +584,7 @@
       "change": -0.39,
       "changePercent": -0.1506,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:29+00:00"
+      "fetchedAt": "2026-09-07T14:27:45+00:00"
     },
     "US:AMD": {
       "symbol": "AMD",
@@ -597,7 +597,7 @@
       "change": 21.41,
       "changePercent": 4.6935,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:29+00:00"
+      "fetchedAt": "2026-09-07T14:27:45+00:00"
     },
     "US:VT": {
       "symbol": "VT",
@@ -610,7 +610,7 @@
       "change": -0.03,
       "changePercent": -0.0185,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:29+00:00"
+      "fetchedAt": "2026-09-07T14:27:46+00:00"
     },
     "US:QQQ": {
       "symbol": "QQQ",
@@ -623,7 +623,7 @@
       "change": 1.29,
       "changePercent": 0.1797,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:30+00:00"
+      "fetchedAt": "2026-09-07T14:27:46+00:00"
     },
     "US:SKHY": {
       "symbol": "SKHY",
@@ -636,7 +636,7 @@
       "change": 13.32,
       "changePercent": 8.1378,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-09-07T10:38:30+00:00"
+      "fetchedAt": "2026-09-07T14:27:46+00:00"
     }
   },
   "errors": []
