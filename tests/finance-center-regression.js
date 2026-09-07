@@ -36,6 +36,37 @@ let snapshot = core.insights();
 assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "生活帳戶").balance, 9500);
 assert.equal(snapshot.assetsSummary.liabilities, 300, "credit liability must be a positive debt value");
 
+core.addCreditBill({ card: "測試信用卡", payAccount: "生活帳戶", billMonth: today.slice(0, 7), amount: 300, dueDate: today });
+let bill = core.insights().ledger.creditBills[0];
+core.setCreditBillPaid(bill.id, true);
+snapshot = core.insights();
+assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "測試信用卡").balance, 0, "paying a card bill must clear the matching card debt");
+assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "生活帳戶").balance, 9200, "paying a card bill must deduct the payment account exactly once");
+assert.equal(snapshot.ledger.transfers.filter(row => row.creditBillId === bill.id).length, 1, "paying a bill must create exactly one linked transfer");
+core.setCreditBillPaid(bill.id, true);
+assert.equal(core.insights().ledger.transfers.filter(row => row.creditBillId === bill.id).length, 1, "repeating a paid action must not duplicate the payment transfer");
+let repairSeed = core.load();
+const paymentTransfer = repairSeed.ledger.transfers.find(row => row.creditBillId === bill.id);
+repairSeed.ledger.transfers.push({ ...paymentTransfer, id: "legacy-duplicate-card-payment" });
+core.persist(repairSeed.ledger, repairSeed.assets, "seed duplicate card payment", { backup: false });
+assert.equal(core.repairCreditBillPayments().removed, 1, "repair must remove duplicate automatic card-payment transfers");
+assert.equal(core.insights().ledger.transfers.filter(row => row.creditBillId === bill.id).length, 1, "repair must keep one linked card payment");
+core.setCreditBillPaid(bill.id, false);
+assert.equal(core.insights().ledger.transfers.filter(row => row.creditBillId === bill.id).length, 0, "cancelling an automatic payment must remove its linked transfer");
+
+core.addAccount({ name: "繳款測試銀行", type: "銀行帳戶", currency: "TWD", openingBalance: 1000 });
+core.addAccount({ name: "繳款測試卡", type: "信用卡", currency: "TWD", openingBalance: 0 });
+core.addEntry({ type: "expense", date: today, amount: 200, category: "餐飲", account: "繳款測試卡", merchant: "手動繳款測試" });
+core.addTransfer({ date: today, amount: 200, fromAccount: "繳款測試銀行", toAccount: "繳款測試卡", note: "已由銀行實際繳款" });
+core.addCreditBill({ card: "繳款測試卡", payAccount: "繳款測試銀行", billMonth: today.slice(0, 7), amount: 200, dueDate: today });
+bill = core.insights().ledger.creditBills.find(row => row.card === "繳款測試卡");
+core.setCreditBillPaid(bill.id, true);
+snapshot = core.insights();
+assert.equal(snapshot.ledger.transfers.filter(row => row.fromAccount === "繳款測試銀行" && row.toAccount === "繳款測試卡").length, 1, "an existing matching payment must be linked instead of duplicated");
+assert.equal(snapshot.assetsSummary.accounts.find(row => row.name === "繳款測試銀行").balance, 800, "linking an existing payment must not deduct the bank twice");
+core.setCreditBillPaid(bill.id, false);
+assert.equal(core.insights().ledger.transfers.some(row => row.fromAccount === "繳款測試銀行" && row.toAccount === "繳款測試卡"), true, "cancelling a linked manual payment must preserve the original transfer");
+
 core.applyMarketSnapshot({ rates: { rates: { USD: 30 }, generatedAt: new Date().toISOString(), source: "regression" } });
 core.addAccount({ name: "美元帳戶", type: "外幣銀行帳戶", currency: "USD", openingBalance: 100 });
 core.addEntry({ type: "expense", date: today, amount: 30, purchaseRegion: "domestic", category: "旅遊", item: "交通", account: "美元帳戶", merchant: "美國交通" });
@@ -109,7 +140,7 @@ assert.equal(searchResults.some(row => row.title === "今日午餐"), true, "glo
 assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "forecast"), true, "forecast route must exist");
 assert.equal(window.FinanceCenterRoutes.daily.tabs.some(([id]) => id === "taxonomy"), true, "income and expense taxonomy management route must exist");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "reconcile"), true, "account reconciliation route must exist");
-assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "statements"), true, "credit card statement check route must be separate");
+assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "statements"), false, "credit card statement checks must be merged into the bill route");
 assert.equal(window.FinanceCenterRoutes.accounts.tabs.some(([id]) => id === "loans"), true, "loan manager route must exist");
 assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "audit"), true, "data audit route must exist");
 assert.equal(window.FinanceCenterRoutes.analysis.tabs.some(([id]) => id === "planning"), true, "financial planning route must exist");
@@ -159,7 +190,8 @@ const quickFormSource = financeCenterHtml.slice(financeCenterHtml.indexOf("funct
 assert.equal(quickFormSource.includes('name="currency"'), false, "quick entry must not expose a manual transaction currency selector");
 assert.equal(quickFormSource.includes("data-account-currency-note"), true, "quick entry must explain that currency follows the selected account");
 assert.equal(financeCenterHtml.includes('event.target.name==="account"){syncQuickEntryAccount(form)'), true, "card region and currency note must update when the account changes");
-assert.equal(financeCenterHtml.includes('state.tab==="reconcile"||state.tab==="statements"'), true, "account inventory and credit card checks must render as separate tabs");
+assert.equal(financeCenterHtml.includes('data-view-bill'), true, "credit card bills must expose their matched transaction details inline");
+assert.equal(financeCenterHtml.includes('data-repair-credit-bill-payments'), true, "credit card bills must provide a safe duplicate-payment repair action");
 assert.equal(financeCenterHtml.includes('id="categoryForm"'), true, "shared income and expense category editor must exist");
 assert.equal(financeCenterHtml.includes('id="itemForm"'), true, "shared income and expense item editor must exist");
 assert.equal(financeCenterHtml.includes('data-taxonomy-type'), true, "taxonomy editor must provide an income and expense switch");
@@ -174,6 +206,6 @@ assert.equal(financeCenterHtml.includes("<optgroup label="), true, "account sele
 assert.equal(financeCenterHtml.includes("decorateAccountSelects(app)"), true, "account selectors must receive their visual type treatment after render");
 assert.equal(financeCenterHtml.includes("select.account-select{display:block;width:100%;min-width:0;max-width:100%;height:36px"), true, "mobile account selectors must stay on one compact row");
 assert.equal(financeCenterHtml.includes("font-size:75%"), true, "mobile account selector text must be reduced by 25 percent");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v111"), true, "service worker cache must be bumped for income taxonomy editing");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v112"), true, "service worker cache must be bumped for the integrated card bill workflow");
 
 console.log("finance center regression test OK");
