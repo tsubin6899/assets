@@ -70,7 +70,7 @@
     const previousBill = (ledger.creditBills || []).find(row => row.card === card && row.billMonth === previousMonth);
     return (ledger.entries || []).filter(row => {
       if (row.account !== card) return false;
-      if (row.statementExclusions?.[billMonth]) return false;
+      if (row.manualPaymentComplete || row.statementExclusions?.[billMonth]) return false;
       const entryMonth = statementMonthForEntry(row, cardAccount);
       if (entryMonth === billMonth) return true;
       return entryMonth === previousMonth && previousBill && !previousBill.reconciled && !row.statementChecks?.[previousBill.id];
@@ -1129,6 +1129,16 @@
     return persist(ledger, assets, checked ? "核對信用卡帳目" : "取消核對信用卡帳目");
   }
 
+  function setCreditEntryManualPaymentComplete(id, complete = true) {
+    const { ledger, assets } = load();
+    const entry = ledger.entries.find(row => row.id === id);
+    if (!entry || !ledger.accounts.some(account => account.name === entry.account && account.type === "信用卡")) throw new Error("找不到信用卡交易");
+    entry.manualPaymentComplete = Boolean(complete);
+    entry.manualPaymentCompletedAt = complete ? nowIso() : "";
+    entry.updatedAt = nowIso();
+    ledger.creditBills.filter(bill => bill.card === entry.account && !bill.paid && !bill.reconciled).forEach(bill => refreshCreditStatementCheckForBill(ledger, bill));
+    return persist(ledger, assets, complete ? "手動確認舊交易已付款（不異動餘額）" : "撤銷舊交易已付款標記");
+  }
   function setCreditBillReconciled(id, reconciled = true) {
     const { ledger, assets } = load();
     const bill = ledger.creditBills.find(row => row.id === id);
@@ -1613,7 +1623,7 @@
   }
 
   window.FinanceCore = {
-    VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts,
+    VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
