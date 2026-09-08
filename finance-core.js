@@ -1405,12 +1405,13 @@
     const account = accountBalances(ledger, assets, values.date || localDate()).find(row => row.name === values.account);
     if (!account) throw new Error("找不到盤點帳戶");
     const actual = number(values.actualBalance), book = number(account.balance), diff = actual - book, date = values.date || localDate();
+    const reconciliationId = uid("reconcile");
     let entryId = "";
     if (diff) {
       const credit = account.type === "信用卡";
-      entryId = uid("entry"); ledger.entries.push({ id: entryId, type: (credit ? diff < 0 : diff > 0) ? "income" : "expense", date, amount: Math.abs(diff), category: credit ? "信用卡負債盤點調整" : "現金盤點調整", item: credit ? (diff > 0 ? "增加負債" : "沖減負債") : (diff > 0 ? "現金多出" : "現金短少"), isReconciliationAdjustment: true, account: account.name, merchant: "帳戶盤點", note: `盤點調整：帳面 ${book}，實際 ${actual}`, createdAt: nowIso() });
+      entryId = uid("entry"); ledger.entries.push({ id: entryId, reconciliationId, type: (credit ? diff < 0 : diff > 0) ? "income" : "expense", date, amount: Math.abs(diff), category: credit ? "信用卡負債盤點調整" : "現金盤點調整", item: credit ? (diff > 0 ? "增加負債" : "沖減負債") : (diff > 0 ? "現金多出" : "現金短少"), isReconciliationAdjustment: true, account: account.name, merchant: "帳戶盤點", note: `盤點調整：帳面 ${book}，實際 ${actual}`, createdAt: nowIso() });
     }
-    ledger.reconciliations.push({ id: uid("reconcile"), date, account: account.name, bookBalance: book, actualBalance: actual, diff, entryId, createdAt: nowIso() });
+    ledger.reconciliations.push({ id: reconciliationId, date, account: account.name, bookBalance: book, actualBalance: actual, diff, entryId, createdAt: nowIso() });
     return persist(ledger, assets, "建立帳戶盤點");
   }
 
@@ -1419,11 +1420,14 @@
     const index = ledger.reconciliations.findIndex(item => item.id === id);
     if (index < 0) throw new Error("找不到這筆盤點");
     const row = ledger.reconciliations[index];
-    const adjustment = row.entryId ? ledger.entries.find(item => item.id === row.entryId) : null;
-    if (adjustment) recycle(ledger, "entry", adjustment);
-    if (row.entryId) ledger.entries = ledger.entries.filter(item => item.id !== row.entryId);
+    // New records carry a two-way link.  The entry-id condition preserves
+    // compatibility with records created before that link existed.
+    const adjustments = ledger.entries.filter(item => item.id === row.entryId || item.reconciliationId === row.id);
+    adjustments.forEach(item => recycle(ledger, "entry", item));
+    const adjustmentIds = new Set(adjustments.map(item => item.id));
+    ledger.entries = ledger.entries.filter(item => !adjustmentIds.has(item.id));
     recycle(ledger, "reconciliation", row); ledger.reconciliations.splice(index, 1);
-    amendClosedMonthSnapshots(ledger, adjustment ? [adjustment.date] : []);
+    amendClosedMonthSnapshots(ledger, adjustments.map(item => item.date));
     return persist(ledger, assets, "刪除帳戶盤點（同步撤回差額調整）");
   }
 

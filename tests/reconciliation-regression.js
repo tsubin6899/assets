@@ -18,6 +18,7 @@ let data = core.load();
 const adjustment = data.ledger.entries.find(row => row.isReconciliationAdjustment);
 assert.equal(adjustment.type, 'income');
 assert.equal(adjustment.amount, 31531);
+assert.equal(adjustment.reconciliationId, data.ledger.reconciliations[0].id, 'adjustment must link back to its reconciliation');
 assert.equal(core.insights().month.expense, 0, 'a reconciliation adjustment must not count as monthly spending');
 reconcile(15615);
 assert.equal(balance('Card'), 15615);
