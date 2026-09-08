@@ -208,6 +208,7 @@
     .lookup-payment-table th,.lookup-payment-table td{white-space:normal!important;overflow-wrap:anywhere;padding:10px 8px}
     .lookup-payment-table th:nth-child(1){width:9%}.lookup-payment-table th:nth-child(2){width:17%}.lookup-payment-table th:nth-child(3){width:7%}.lookup-payment-table th:nth-child(4){width:15%}.lookup-payment-table th:nth-child(5){width:9%}.lookup-payment-table th:nth-child(6){width:12%}.lookup-payment-table th:nth-child(7){width:6%}.lookup-payment-table th:nth-child(8){width:25%}
     .lookup-payment-table td:nth-child(6){font-size:12px}.lookup-payment-table td small{display:block;margin-top:4px}.lookup-payment-table .action-btn{font-size:12px;padding:6px 8px;min-height:30px}.lookup-payment-table td:last-child button{display:block;margin-top:6px}
+    .category-stat-row{padding:14px 0;border-bottom:1px solid #e1e7ed}.category-stat-label{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px}.category-stat-label span{font-variant-numeric:tabular-nums}.category-stat-row progress{display:block;width:100%;height:12px;border:0;background:#edf1f5;accent-color:#3979ed}.category-stat-row progress::-webkit-progress-bar{background:#edf1f5}.category-stat-row progress::-webkit-progress-value{background:#3979ed}.category-stat-row.income progress{accent-color:#b78928}.category-stat-row.income progress::-webkit-progress-value{background:#b78928}.stats-charts{align-items:start;margin-top:16px}.stats-charts .panel{min-width:0}
   </style>
 </head>
 <body>
@@ -475,12 +476,36 @@
       const rules=current.ledger.categoryRules||[],type=ui.taxonomyType==="income"?"income":"expense",categories=categoriesForType(type);
       return `<section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>自動分類規則</h3><p>匯入 CSV 時，商家或備註包含關鍵字就會自動套用分類</p></div></div><form id="categoryRuleForm" class="form-grid"><label>關鍵字<input name="keyword" placeholder="例如：Netflix、全聯" required></label><label>收支類型<select name="type">${option("expense","支出",type)}${option("income","收入",type)}</select></label><label>套用分類<select name="category">${categories.map(row=>option(row,row)).join("")}</select></label><button class="action-btn blue" type="submit">新增規則</button></form><div class="inline-list" style="margin-top:12px">${rules.length?rules.map(row=>`<article class="inline-item"><div><strong>${esc(row.keyword)}</strong><small>${row.type==="income"?"收入":"支出"} → ${esc(row.category)}</small></div><button class="action-btn danger" data-delete-category-rule="${esc(row.id)}">刪除</button></article>`).join(""):`<div class="empty">尚未建立自訂規則；系統仍會使用內建關鍵字與歷史商家學習。</div>`}</div></section>`;
     }
+    function monthlyCategoryStatistics(ledger, month, currency, today) {
+      const accounts=new Map((ledger.accounts||[]).map(row=>[row.name,row]));
+      const adjustments=new Set((ledger.reconciliations||[]).map(row=>row.entryId).filter(Boolean));
+      const result={income:{total:0,rows:[]},expense:{total:0,rows:[]}};
+      const groups={income:new Map(),expense:new Map()};
+      for(const row of ledger.entries||[]){
+        if(!groups[row.type]||row.recurringSkipped||row.pending||row.isReconciliationAdjustment||adjustments.has(row.id))continue;
+        if(!String(row.date||'').startsWith(month+'-')||row.date>today)continue;
+        if((accounts.get(row.account)?.currency||row.accountCurrency||'TWD')!==currency)continue;
+        const amount=Number(row.amount);if(!Number.isFinite(amount)||amount<=0)continue;
+        const name=row.category||'未分類',group=groups[row.type].get(name)||{name,amount:0,count:0};
+        group.amount+=amount;group.count++;groups[row.type].set(name,group);result[row.type].total+=amount;
+      }
+      for(const type of ['income','expense'])result[type].rows=[...groups[type].values()].sort((a,b)=>b.amount-a.amount||a.name.localeCompare(b.name)).map(row=>({...row,share:row.amount/result[type].total*100}));
+      return result;
+    }
+    function renderDailyStatistics(head) {
+      const month=ui.statisticsMonth||FinanceCore.monthOf(),currency=ui.statisticsCurrency||'TWD';
+      const data=monthlyCategoryStatistics(current.ledger,month,currency,FinanceCore.localDate());
+      const currencies=[...new Set(['TWD',...current.ledger.accounts.map(row=>row.currency||'TWD')])];
+      const chart=(type,title)=>{const group=data[type];return `<section class="panel"><h3>${title}分類金額與占比</h3><p>${esc(month)}｜${esc(currency)}｜占比＝分類金額 ÷ 本月${title}總額；橫條刻度 0–100%</p>${group.rows.length?group.rows.map(row=>`<div class="category-stat-row ${type}"><div class="category-stat-label"><strong>${esc(row.name)}</strong><span class="money-value">${money(row.amount,currency)} · ${row.share.toFixed(1)}% · ${row.count} 筆</span></div><progress max="100" value="${row.share}" aria-label="${esc(row.name)}，${row.share.toFixed(1)}%">${row.share.toFixed(1)}%</progress></div>`).join(''):`<div class="empty">此月份與幣別尚無${title}紀錄。</div>`}</section>`};
+      return `${head}<section class="panel"><form id="dailyStatisticsForm" class="filter-bar"><label>統計月份<input type="month" name="month" required value="${esc(month)}"></label><label>幣別<select name="currency">${currencies.map(value=>option(value,value,currency)).join('')}</select></label><button class="action-btn blue" type="submit">查看統計</button></form><p>來源：收支明細，按交易日期統計至今日。含信用卡消費；不含轉帳、繳卡費、盤點調整與未來帳目。退款依原登帳類型列入收入或支出，不另抵銷；投資股息未登在收支明細者不包含。百分比四捨五入後可能不恰為 100%。</p></section><div class="three-col grid" style="margin-top:16px">${metric('本月收入',money(data.income.total,currency),'收支明細收入合計','tone-green')}${metric('本月支出',money(data.expense.total,currency),'收支明細支出合計','tone-coral')}${metric('本月收支差額',money(data.income.total-data.expense.total,currency),'收入－支出；非帳戶餘額','tone-blue')}</div><div class="two-col grid stats-charts">${chart('expense','支出')}${chart('income','收入')}</div>`;
+    }
     function renderDaily() {
       const m=current.month;
       const titles={quick:"快速記帳",lookup:"查帳",calendar:"月份行事曆",records:"收支明細",taxonomy:"分類與項目",budgets:"分類預算",recurring:"固定收支",closeout:"月結"};
       const head=pageHeading("Daily Ledger",titles[state.tab]||"日常記帳","收支、預算與固定項目都可直接在財務中心完成，不必再切換舊頁面。");
       if(state.tab==="quick") return `${head}<div class="two-col grid"><section>${quickEntryForm(false)}</section><section class="grid"><div class="three-col grid">${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}</div><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>只顯示已入帳項目；未來收支請至月份行事曆查看</p></div></div>${eventRows(current.events.filter(row=>!row.pending&&["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
       if(state.tab==="lookup") return renderLedgerLookup(head);
+      if(state.tab==="statistics") return renderDailyStatistics(pageHeading('Daily Ledger','收支統計','依月份查看每個分類的金額與占比。'));
       if(state.tab==="calendar") return renderDailyCalendar(head);
       if(state.tab==="records") { const edit=current.ledger.entries.find(row=>row.id===ui.editingEntryId); const f=ui.filters; return `${head}${edit?`<section style="margin-bottom:16px">${quickEntryForm(false,edit)}</section>`:""}<section class="panel"><form id="entryFilterForm" class="filter-bar"><label>月份<input name="month" type="month" value="${esc(f.month)}"></label><label>類型<select name="type">${option("all","全部",f.type)}${option("expense","支出",f.type)}${option("income","收入",f.type)}</select></label><label>分類<select name="category">${option("all","全部",f.category)}${uniqueCategories().map(row=>option(row,row,f.category)).join("")}</select></label><label>帳戶<select name="account">${option("all","全部",f.account)}${accountOptions(f.account)}</select></label><label>搜尋<input name="query" value="${esc(f.query)}" placeholder="項目、商家或備註"></label><button class="action-btn blue" type="submit">套用篩選</button></form><form id="bulkEntryForm" class="bulk-toolbar"><span data-selection-count>尚未選取</span><label>分類<select name="category"><option value="">不變更</option>${uniqueCategories().map(row=>option(row,row)).join("")}</select></label><label>項目<input name="item" placeholder="留空不變更"></label><label>帳戶<select name="account"><option value="">不變更</option>${accountOptions()}</select></label><button class="action-btn blue" type="submit">批次套用</button></form>${entryTable(filteredEntries())}</section>`; }
       if(state.tab==="taxonomy") return renderTaxonomy(head)+renderCategoryRulesPanel();
@@ -744,7 +769,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     document.addEventListener("input",event=>{const form=event.target.closest("#quickEntryForm");if(form)saveQuickDraft(form)});
     document.addEventListener("submit", event => {
       const formId=event.target.getAttribute("id")||"";
-      const financeForms=["entryFilterForm","ledgerLookupForm","bulkEntryForm","quickEntryForm","transferForm","tradeForm","dividendForm","accountForm","creditBillForm","budgetForm","recurringForm","installmentForm","loanForm","goalForm","annualPlanForm","taxYearForm","reconcileForm","statementCheckForm","holdingForm","categoryForm","itemForm","categoryRuleForm"];
+const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","bulkEntryForm","quickEntryForm","transferForm","tradeForm","dividendForm","accountForm","creditBillForm","budgetForm","recurringForm","installmentForm","loanForm","goalForm","annualPlanForm","taxYearForm","reconcileForm","statementCheckForm","holdingForm","categoryForm","itemForm","categoryRuleForm"];
       if(!financeForms.includes(formId)) return;
       event.preventDefault(); const values=formValues(event.target);
       try {
@@ -764,6 +789,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
         if(formId==="loanForm") { FinanceUpgrades.saveLoan(values); ui.editingLoanId=""; }
         if(formId==="goalForm") { FinanceUpgrades.saveGoal(values); ui.editingGoalId=""; }
         if(formId==="annualPlanForm") FinanceUpgrades.saveAnnualPlan(values);
+        if(formId==="dailyStatisticsForm"){ui.statisticsMonth=values.month;ui.statisticsCurrency=values.currency;render();return}
         if(formId==="reconcileForm") FinanceCore.addReconciliation(values);
         if(formId==="statementCheckForm") FinanceCore.saveCreditStatementCheck(values);
         if(formId==="holdingForm") { values.id?FinanceCore.updateHolding(values.originalClass,values.id,values):FinanceCore.addHolding(values); ui.editingHoldingKey=""; }
