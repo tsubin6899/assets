@@ -41,6 +41,10 @@ const legacyCashSeed = core.load();
 legacyCashSeed.assets.cash.push({ bank:"舊版資產殘留", amount:2000000, currency:"TWD" });
 core.persist(legacyCashSeed.ledger, legacyCashSeed.assets, "seed legacy cash that must not double count", { backup:false });
 assert.equal(core.insights().assetsSummary.cash, cashBeforeLegacySeed, "legacy cash rows must not inflate usable funds after formal accounts exist");
+let legacyCardSeed = core.load();
+legacyCardSeed.assets.cards.push({ card:"舊版信用卡快照", amount:30000, currency:"TWD" });
+core.persist(legacyCardSeed.ledger, legacyCardSeed.assets, "seed legacy card that must not double count", { backup:false });
+assert.equal(core.insights().assetsSummary.creditDebt, 300, "legacy card snapshots must not inflate debt when formal credit-card accounts exist");
 core.addAccount({ name:"舊版負號信用卡", type:"信用卡", currency:"TWD", openingBalance:-19826 });
 assert.equal(core.insights().assetsSummary.accounts.find(row => row.name === "舊版負號信用卡").balance, 19826, "a legacy negative credit-card opening balance must be presented as debt");
 core.addAccount({ name:"日期格式測試卡", type:"信用卡", currency:"TWD", openingBalance:0 });
@@ -275,6 +279,6 @@ assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credi
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
 assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
 assert.equal(financeCenterHtml.includes('data-exclude-bill-entry'), true, "credit-card statement entries must support excluding historical paid items from this bill");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v129"), true, "service worker cache must be bumped for checked-amount reconciliation");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v130"), true, "service worker cache must be bumped for reconciliation fixes");
 
 console.log("finance center regression test OK");

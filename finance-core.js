@@ -253,6 +253,10 @@
 
   function buildEvents(ledger, assets) {
     const accountMap = new Map((ledger.accounts || []).map(row => [row.name, row]));
+    // A reconciliation creates a balancing entry so account balances remain
+    // correct.  It is not income or spending, however, and must never affect
+    // cash-flow, budgets, or category statistics.
+    const reconciliationEntryIds = new Set((ledger.reconciliations || []).map(row => row.entryId).filter(Boolean));
     const entries = (ledger.entries || []).filter(row => !row.recurringSkipped).map(row => {
       const account = accountMap.get(row.account);
       const currency = normalizeCurrency(account?.currency || row.currency || "TWD");
@@ -262,7 +266,8 @@
         date: row.date || "", title: row.merchant || row.item || row.category || (row.type === "income" ? "收入" : "支出"),
         category: row.category || "未分類", account: row.account || "", currency, amount,
         twdAmount: amount * fxRate(assets, currency), direction: row.type === "income" ? 1 : -1,
-        pending: Boolean(row.date && String(row.date) > localDate()), note: row.note || "", raw: row
+        pending: Boolean(row.date && String(row.date) > localDate()), note: row.note || "",
+        isReconciliationAdjustment: Boolean(row.isReconciliationAdjustment || reconciliationEntryIds.has(row.id)), raw: row
       };
     });
     const transfers = (ledger.transfers || []).map(row => ({
@@ -475,7 +480,11 @@
     // exist, adding its unmatched rows would count old balances a second time.
     const manualCash = accounts.length ? 0 : (assets.cash || []).filter(row => !knownNames.has(row.bank)).reduce((sum, row) => sum + number(row.amount) * fxRate(assets, row.currency), 0);
     const creditDebt = accounts.filter(row => row.type === "信用卡").reduce((sum, row) => sum + Math.max(0, row.twdBalance), 0);
-    const legacyCards = (assets.cards || []).filter(row => !knownNames.has(row.card)).reduce((sum, row) => sum + Math.max(0, number(row.amount)), 0);
+    // `assets.cards` is the pre-unified-card store.  Its rows are historical
+    // snapshots, often named differently from the new account, so mixing it
+    // with any formal credit-card account double-counts debt.
+    const hasFormalCreditCards = accounts.some(row => row.type === "信用卡");
+    const legacyCards = hasFormalCreditCards ? 0 : (assets.cards || []).filter(row => !knownNames.has(row.card)).reduce((sum, row) => sum + Math.max(0, number(row.amount)), 0);
     const stockPositions = stockPositionSummary(assets);
     const activeStocks = [...stockPositions.active, ...stockPositions.manualOnly];
     const tw = activeStocks.filter(row => row.market === "TW").reduce((sum, row) => sum + number(row.value), 0);
@@ -492,7 +501,7 @@
   }
 
   function monthSummary(ledger, assets, month = monthOf()) {
-    const rows = buildEvents(ledger, assets).filter(row => String(row.date || "").startsWith(month) && !row.pending);
+    const rows = buildEvents(ledger, assets).filter(row => String(row.date || "").startsWith(month) && !row.pending && !row.isReconciliationAdjustment);
     const income = rows.filter(row => ["income", "dividend"].includes(row.kind)).reduce((sum, row) => sum + row.twdAmount, 0);
     const expense = rows.filter(row => row.kind === "expense").reduce((sum, row) => sum + row.twdAmount, 0);
     const investmentNet = rows.filter(row => row.kind.startsWith("investment_")).reduce((sum, row) => sum + row.twdAmount * row.direction, 0);
@@ -1409,9 +1418,13 @@
     const { ledger, assets } = load();
     const index = ledger.reconciliations.findIndex(item => item.id === id);
     if (index < 0) throw new Error("找不到這筆盤點");
-    const row = ledger.reconciliations[index]; if (row.entryId) ledger.entries = ledger.entries.filter(item => item.id !== row.entryId);
+    const row = ledger.reconciliations[index];
+    const adjustment = row.entryId ? ledger.entries.find(item => item.id === row.entryId) : null;
+    if (adjustment) recycle(ledger, "entry", adjustment);
+    if (row.entryId) ledger.entries = ledger.entries.filter(item => item.id !== row.entryId);
     recycle(ledger, "reconciliation", row); ledger.reconciliations.splice(index, 1);
-    return persist(ledger, assets, "刪除帳戶盤點");
+    amendClosedMonthSnapshots(ledger, adjustment ? [adjustment.date] : []);
+    return persist(ledger, assets, "刪除帳戶盤點（同步撤回差額調整）");
   }
 
   function closeMonth(month = monthOf()) {
