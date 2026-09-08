@@ -395,6 +395,26 @@
     function entryTable(rows) {
       return rows.length?`<div class="table-wrap"><table><thead><tr><th class="selection-cell"><input type="checkbox" data-select-all-entries aria-label="全選目前帳目"></th><th>日期</th><th>類型</th><th>項目</th><th>分類／帳戶</th><th>金額</th><th>操作</th></tr></thead><tbody>${rows.map(row=>{const typeClass=row.type==="income"?"income":"expense",foreign=row.purchaseRegion==="foreign",original=row.transactionCurrency&&row.transactionCurrency!==row.accountCurrency?`${money(row.transactionAmount,row.transactionCurrency)}｜`:"";return `<tr class="entry-row ${typeClass}"><td class="selection-cell" data-label="選取"><input type="checkbox" data-select-entry="${esc(row.id)}" aria-label="選取 ${esc(row.merchant||row.item||row.category)}"></td><td data-label="日期">${esc(row.date)}</td><td data-label="類型"><span class="entry-type-chip ${typeClass}">${row.type==="income"?"收入":"支出"}</span>${foreign?`<small>${row.isForeignTransactionFee?"自動手續費":"國外刷卡"}</small>`:""}</td><td data-label="項目"><strong>${esc(row.merchant||row.item||row.category)}</strong><small>${esc(row.note||"")}</small></td><td data-label="分類／帳戶">${esc(row.category)}<small>${esc(row.account||"—")}</small></td><td data-label="金額" class="money-value ${row.type==="income"?"positive":"negative"}">${original}${signed((row.type==="income"?1:-1)*Number(row.amount||0))}</td><td data-label="操作"><div class="row-actions">${row.isForeignTransactionFee?`<span class="status-chip">隨原交易管理</span>`:`<button class="action-btn" data-save-template="${esc(row.id)}">存為範本</button><button class="action-btn" data-edit-entry="${esc(row.id)}">編輯</button><button class="action-btn danger" data-delete-entry="${esc(row.id)}">刪除</button>`}</div></td></tr>`}).join("")}</tbody></table></div>`:`<div class="empty">目前沒有符合條件的收支紀錄。</div>`;
     }
+    function creditEntryPaymentStatus(row, ledger) {
+      if (!(ledger.accounts||[]).some(account=>account.name===row.account&&account.type==="信用卡")) return null;
+      const bills=(ledger.creditBills||[]).filter(bill=>bill.card===row.account&&row.statementChecks?.[bill.id]&&!row.statementExclusions?.[bill.billMonth]);
+      const complete=bills.find(bill=>bill.paid&&bill.reconciled);
+      if(complete) return {text:"已繳費・對帳完成",detail:complete.billMonth,tone:"positive"};
+      const paid=bills.find(bill=>bill.paid);
+      if(paid) return {text:"已繳費・帳單尚未完成對帳",detail:paid.billMonth,tone:"muted"};
+      if(bills.length) return {text:"已核對・尚未繳費",detail:bills.map(bill=>bill.billMonth).join("、"),tone:"negative"};
+      return {text:"尚未確認繳費",detail:"未連結已核對帳單；不代表一定未繳款",tone:"muted"};
+    }
+    function decorateLookupPaymentStatus() {
+      if(state.domain!=="daily"||state.tab!=="lookup")return;
+      const table=app.querySelector('[data-edit-entry]')?.closest('table');
+      if(!table)return;
+      const records=new Map((current.ledger.entries||[]).map(row=>[row.id,row]));
+      const buttons=[...table.querySelectorAll('[data-edit-entry]')];
+      if(!buttons.some(button=>creditEntryPaymentStatus(records.get(button.dataset.editEntry)||{},current.ledger)))return;
+      const heading=document.createElement('th');heading.textContent='繳款／對帳狀態';table.querySelector('thead tr').append(heading);
+      buttons.forEach(button=>{const status=creditEntryPaymentStatus(records.get(button.dataset.editEntry)||{},current.ledger),cell=document.createElement('td');cell.dataset.label='繳款／對帳狀態';if(status){cell.className=status.tone;const label=document.createElement('strong'),detail=document.createElement('small');label.textContent=status.text;detail.textContent=status.detail;cell.append(label,detail)}else cell.textContent='—';button.closest('tr').append(cell)});
+    }
     function ledgerLookupRows() {
       const f=ui.lookup,query=String(f.query||"").trim().toLocaleLowerCase("zh-TW");
       return [...(current.ledger.entries||[])].filter(row=>!row.recurringSkipped).filter(row=>f.type==="all"||row.type===f.type).filter(row=>f.account==="all"||row.account===f.account).filter(row=>!f.startDate||String(row.date||"")>=f.startDate).filter(row=>!f.endDate||String(row.date||"")<=f.endDate).filter(row=>!query||[row.category,row.item,row.merchant,row.note,row.account].some(value=>String(value||"").toLocaleLowerCase("zh-TW").includes(query))).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||""))||String(b.id||"").localeCompare(String(a.id||"")));
@@ -607,6 +627,7 @@
       const renderer = { home:renderHome, daily:renderDaily, accounts:renderAccounts, investments:renderInvestments, analysis:renderAnalysis }[state.domain] || renderHome;
       app.dataset.section = state.domain;
       app.innerHTML = renderer();
+      decorateLookupPaymentStatus();
       app.querySelectorAll('.account-card [data-edit-account]').forEach(button=>{const action=document.createElement('button');action.type='button';action.className='action-btn';action.dataset.accountHistory=button.dataset.editAccount;action.textContent='查看消費紀錄';button.before(action)});
       app.querySelector('#transferForm')?.parentElement.classList.add('transfer-layout');
       app.querySelectorAll('[data-view-bill]').forEach(button=>{const card=button.closest('.audit-record');if(card){card.parentElement.classList.add('credit-bill-grid');card.classList.toggle('is-expanded',button.getAttribute('aria-expanded')==='true')}});
