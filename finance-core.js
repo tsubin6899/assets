@@ -70,7 +70,7 @@
     const previousBill = (ledger.creditBills || []).find(row => row.card === card && row.billMonth === previousMonth);
     return (ledger.entries || []).filter(row => {
       if (row.account !== card) return false;
-      if (row.manualPaymentComplete || row.statementExclusions?.[billMonth]) return false;
+      if (row.isReconciliationAdjustment || row.manualPaymentComplete || row.statementExclusions?.[billMonth]) return false;
       const entryMonth = statementMonthForEntry(row, cardAccount);
       if (entryMonth === billMonth) return true;
       return entryMonth === previousMonth && previousBill && !previousBill.reconciled && !row.statementChecks?.[previousBill.id];
@@ -1398,7 +1398,8 @@
     const actual = number(values.actualBalance), book = number(account.balance), diff = actual - book, date = values.date || localDate();
     let entryId = "";
     if (diff) {
-      entryId = uid("entry"); ledger.entries.push({ id: entryId, type: diff > 0 ? "income" : "expense", date, amount: Math.abs(diff), category: "現金盤點調整", item: diff > 0 ? "現金多出" : "現金短少", account: account.name, merchant: "帳戶盤點", note: `盤點調整：帳面 ${book}，實際 ${actual}`, createdAt: nowIso() });
+      const credit = account.type === "信用卡";
+      entryId = uid("entry"); ledger.entries.push({ id: entryId, type: (credit ? diff < 0 : diff > 0) ? "income" : "expense", date, amount: Math.abs(diff), category: credit ? "信用卡負債盤點調整" : "現金盤點調整", item: credit ? (diff > 0 ? "增加負債" : "沖減負債") : (diff > 0 ? "現金多出" : "現金短少"), isReconciliationAdjustment: true, account: account.name, merchant: "帳戶盤點", note: `盤點調整：帳面 ${book}，實際 ${actual}`, createdAt: nowIso() });
     }
     ledger.reconciliations.push({ id: uid("reconcile"), date, account: account.name, bookBalance: book, actualBalance: actual, diff, entryId, createdAt: nowIso() });
     return persist(ledger, assets, "建立帳戶盤點");
