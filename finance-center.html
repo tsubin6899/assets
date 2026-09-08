@@ -482,7 +482,7 @@
       const result={income:{total:0,rows:[]},expense:{total:0,rows:[]}};
       const groups={income:new Map(),expense:new Map()};
       for(const row of ledger.entries||[]){
-        if(!groups[row.type]||row.recurringSkipped||row.pending||row.isReconciliationAdjustment||adjustments.has(row.id))continue;
+        if(!groups[row.type]||row.recurringSkipped||row.pending||row.isReconciliationAdjustment||adjustments.has(row.id)||String(row.category||'').trim()==='現金盤點調整')continue;
         if(!String(row.date||'').startsWith(month+'-')||row.date>today)continue;
         if((accounts.get(row.account)?.currency||row.accountCurrency||'TWD')!==currency)continue;
         const amount=Number(row.amount);if(!Number.isFinite(amount)||amount<=0)continue;

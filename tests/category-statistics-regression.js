@@ -4,6 +4,8 @@ const source=html.slice(html.indexOf('    function monthlyCategoryStatistics('),
 const ctx={};vm.createContext(ctx);vm.runInContext(source,ctx);
 const entry=(id,amount,extra={})=>({id,date:'2026-09-01',type:'expense',category:'餐飲',account:'Card',amount,...extra});
 const ledger={accounts:[{name:'Card',currency:'TWD'},{name:'USD',currency:'USD'}],reconciliations:[{entryId:'old-adjust'}],entries:[entry('a',300),entry('b',100,{category:'交通'}),entry('c',500,{type:'income',category:'薪資'}),entry('future',900,{date:'2026-09-09'}),entry('adjust',300,{isReconciliationAdjustment:true}),entry('old-adjust',100),entry('skip',100,{recurringSkipped:true}),entry('usd',10,{account:'USD'}),entry('aug',90,{date:'2026-08-01'})]};
+ledger.entries.push(entry('legacy-cash-adjustment',2000,{category:'現金盤點調整'}));
+ledger.entries.push(entry('legacy-cash-income-adjustment',3000,{category:' 現金盤點調整 ',type:'income'}));
 const result=ctx.monthlyCategoryStatistics(ledger,'2026-09','TWD','2026-09-08');
 assert.equal(result.expense.total,400);assert.equal(result.income.total,500);assert.equal(result.expense.rows[0].share,75);assert.equal(result.expense.rows[1].share,25);
 assert.equal(ctx.monthlyCategoryStatistics(ledger,'2026-09','USD','2026-09-08').expense.total,10);
