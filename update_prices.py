@@ -21,7 +21,7 @@ INVEST_OUTPUT_FILE = ROOT / "invest" / "latest-prices.json"
 RATES_OUTPUT_FILE = ROOT / "latest-rates.json"
 INVEST_RATES_OUTPUT_FILE = ROOT / "invest" / "latest-rates.json"
 VALUATIONS_OUTPUT_FILE = ROOT / "latest-valuations.json"
-RATE_CURRENCIES = ("USD", "JPY", "EUR", "CNY", "HKD", "THB", "KRW", "GBP", "AUD", "CAD", "SGD")
+RATE_CURRENCIES = ("USD", "JPY", "EUR", "CNY", "HKD", "THB", "KRW", "GBP", "AUD", "CAD", "SGD", "IDR", "MYR", "MOP")
 SEC_USER_AGENT = "PersonalAssetDashboard/2.0 contact=dashboard-maintainer@example.com"
 WANTGOO_ETF_PAGE_URL = "https://www.wantgoo.com/stock/etf/net-value"
 WANTGOO_ETF_DATA_URL = "https://www.wantgoo.com/stock/etf/daily-value-data"
@@ -260,23 +260,35 @@ def open_exchange_rates() -> dict[str, float]:
 
 def update_exchange_rates() -> dict:
     errors: list[dict[str, str]] = []
-    for source, fetcher in (
-        ("Bank of Taiwan daily CSV", bot_exchange_rates),
-        ("open.er-api.com TWD base", open_exchange_rates),
-    ):
+    rates: dict[str, float] = {}
+    sources: list[str] = []
+    try:
+        rates = bot_exchange_rates()
+        sources.append("Bank of Taiwan daily CSV")
+    except Exception as exc:  # noqa: BLE001 - use the public backup source.
+        errors.append({"source": "Bank of Taiwan daily CSV", "error": str(exc)})
+        print(f"FAIL exchange rates from Bank of Taiwan daily CSV - {exc}", file=sys.stderr)
+
+    # Bank of Taiwan does not publish every travel currency in its daily CSV.
+    # Supplement only the missing codes; BOT remains the preferred source.
+    if not rates or any(currency not in rates for currency in RATE_CURRENCIES):
         try:
-            rates = fetcher()
-            output = {"generatedAt": now_iso(), "source": source, "rates": rates, "errors": errors}
-            rendered = json.dumps(output, ensure_ascii=False, indent=2)
-            RATES_OUTPUT_FILE.write_text(rendered, encoding="utf-8")
-            if INVEST_RATES_OUTPUT_FILE.parent.exists():
-                INVEST_RATES_OUTPUT_FILE.write_text(rendered, encoding="utf-8")
-                print(f"Wrote {INVEST_RATES_OUTPUT_FILE}")
-            print(f"Wrote {RATES_OUTPUT_FILE} ({len(rates)} currencies, source: {source})")
-            return output
-        except Exception as exc:  # noqa: BLE001 - try fallback source before giving up.
-            errors.append({"source": source, "error": str(exc)})
-            print(f"FAIL exchange rates from {source} - {exc}", file=sys.stderr)
+            fallback = open_exchange_rates()
+            rates = {**fallback, **rates}
+            sources.append("open.er-api.com TWD base（補齊缺少幣別）")
+        except Exception as exc:  # noqa: BLE001 - retain any official rates we received.
+            errors.append({"source": "open.er-api.com TWD base", "error": str(exc)})
+            print(f"FAIL exchange rates from open.er-api.com TWD base - {exc}", file=sys.stderr)
+
+    if rates:
+        output = {"generatedAt": now_iso(), "source": "＋".join(sources), "rates": rates, "errors": errors}
+        rendered = json.dumps(output, ensure_ascii=False, indent=2)
+        RATES_OUTPUT_FILE.write_text(rendered, encoding="utf-8")
+        if INVEST_RATES_OUTPUT_FILE.parent.exists():
+            INVEST_RATES_OUTPUT_FILE.write_text(rendered, encoding="utf-8")
+            print(f"Wrote {INVEST_RATES_OUTPUT_FILE}")
+        print(f"Wrote {RATES_OUTPUT_FILE} ({len(rates)} currencies, source: {output['source']})")
+        return output
 
     output = {"generatedAt": now_iso(), "source": None, "rates": {}, "errors": errors}
     print("No exchange rates fetched; kept existing latest-rates.json", file=sys.stderr)

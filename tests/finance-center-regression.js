@@ -26,6 +26,8 @@ const futureDate = core.localDate(future);
 
 core.addAccount({ name: "生活帳戶", type: "銀行帳戶", currency: "TWD", openingBalance: 10000 });
 core.addAccount({ name: "測試信用卡", type: "信用卡", currency: "TWD", openingBalance: 0 });
+core.addAccount({ name: "印尼盾匯率保護測試", type: "外幣現金", currency: "IDR", openingBalance: 1937500 });
+assert.equal(Math.round(core.insights().assetsSummary.accounts.find(row => row.name === "印尼盾匯率保護測試").twdBalance), 3449, "an unsupported IDR rate must not be treated as NT$1");
 core.addEntry({ type: "expense", date: futureDate, amount: 1000, category: "餐飲", account: "生活帳戶", merchant: "未來支出" });
 assert.equal(core.insights().assetsSummary.accounts.find(row => row.name === "生活帳戶").balance, 10000, "future expense must not reduce current balance");
 assert.equal(core.insights().events.find(row => row.title === "未來支出").pending, true, "future expense must be pending");
@@ -279,6 +281,6 @@ assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credi
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
 assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
 assert.equal(financeCenterHtml.includes('data-exclude-bill-entry'), true, "credit-card statement entries must support excluding historical paid items from this bill");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v131"), true, "service worker cache must be bumped for reconciliation fixes");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v132"), true, "service worker cache must be bumped for currency conversion fixes");
 
 console.log("finance center regression test OK");

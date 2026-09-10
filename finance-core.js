@@ -18,7 +18,10 @@
     accounts: [], methods: []
   };
   const emptyAssets = {
-    rates: { usd: 1, goldGram: 0, silverOz: 0, reserve: 0 }, fxRates: { TWD: 1 },
+    rates: { usd: 1, goldGram: 0, silverOz: 0, reserve: 0 },
+    // Backup reference rates prevent an unsupported currency from being
+    // mistakenly valued at NT$1 per unit. Live market rates override these.
+    fxRates: { TWD: 1, IDR: 0.00178, MYR: 7.48, MOP: 4.03 },
     marketPrices: {}, marketDataMeta: {}, valuationCache: {},
     tw: [], us: [], cash: [], cards: [], gold: [], silver: [], funds: [], usdFunds: [], dca: [],
     dcaTargets: [], dcaSchedules: [], purchaseRecords: [], dividends: [], assetSnapshots: [], budget: [],
@@ -203,7 +206,7 @@
     ["tw", "us", "cash", "cards", "gold", "silver", "funds", "usdFunds", "dca", "dcaTargets", "dcaSchedules", "purchaseRecords", "dividends", "assetSnapshots", "budget", "pnlCalendar"].forEach(key => {
       if (!Array.isArray(result[key])) result[key] = [];
     });
-    result.fxRates = { TWD: 1, ...(value.fxRates || {}) };
+    result.fxRates = { ...emptyAssets.fxRates, ...(value.fxRates || {}), TWD: 1 };
     result.rates = { ...emptyAssets.rates, ...(value.rates || {}) };
     result.marketPrices = value.marketPrices && typeof value.marketPrices === "object" ? value.marketPrices : {};
     result.marketDataMeta = value.marketDataMeta && typeof value.marketDataMeta === "object" ? value.marketDataMeta : {};
