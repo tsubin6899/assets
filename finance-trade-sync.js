@@ -18,6 +18,14 @@
         return null;
       }
       const payload = await response.json();
+      if (payload.mode === 'PAPER' || payload.schemaVersion === 1) {
+        localStorage.setItem('tsubin-paper-trading-preview', JSON.stringify(payload));
+        writeState({ phase: 'paper-preview', message: '模擬成交僅供預覽，不計入真實資產', generatedAt: payload.generatedAt });
+        let preview = document.getElementById('paperTradingPreview');
+        if (!preview) { preview = document.createElement('p'); preview.id = 'paperTradingPreview'; document.body.append(preview); }
+        preview.textContent = `PAPER 模擬成交 ${(payload.paperFills || payload.fills || []).length} 筆｜獨立預覽，不計入真實資產`;
+        return { imported: 0, paper: true };
+      }
       const result = window.FinanceCore.importBrokerFills(payload);
       writeState({ phase: "synced", generatedAt: payload.generatedAt || "", ...result });
       if (result.imported) window.dispatchEvent(new CustomEvent("finance-broker-fills-imported", { detail: result }));

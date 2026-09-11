@@ -211,6 +211,9 @@
     result.marketPrices = value.marketPrices && typeof value.marketPrices === "object" ? value.marketPrices : {};
     result.marketDataMeta = value.marketDataMeta && typeof value.marketDataMeta === "object" ? value.marketDataMeta : {};
     result.valuationCache = value.valuationCache && typeof value.valuationCache === "object" ? value.valuationCache : {};
+    const paper = result.purchaseRecords.filter(row => /^(AI-)?PAPER-/.test(row.brokerFillId || '') || row.externalSource === 'auto-trading-center');
+    result.paperPurchaseRecords = [...new Map([...(Array.isArray(value.paperPurchaseRecords) ? value.paperPurchaseRecords : []), ...paper].map(row => [row.brokerFillId || row.id, row])).values()];
+    result.purchaseRecords = result.purchaseRecords.filter(row => !paper.includes(row));
     return result;
   }
 
@@ -944,12 +947,14 @@
   }
 
   function importBrokerFills(payload) {
+    if (payload?.mode === 'PAPER') return { imported: 0, duplicates: 0, invalid: 0, paper: true, total: 0 };
     const fills = Array.isArray(payload) ? payload : (Array.isArray(payload?.fills) ? payload.fills : []);
     const { ledger, assets } = load();
     const existing = new Set((assets.purchaseRecords || []).map(row => String(row.brokerFillId || "")).filter(Boolean));
     let imported = 0, duplicates = 0, invalid = 0;
     fills.forEach(fill => {
       const brokerFillId = String(fill?.brokerFillId || "").trim();
+      if (fill?.mode === 'PAPER' || /^(AI-)?PAPER-/.test(brokerFillId) || fill?.source === 'auto-trading-center') { invalid += 1; return; }
       const shares = Math.max(0, number(fill?.shares));
       const price = Math.max(0, number(fill?.price));
       const code = String(fill?.code || "").trim().toUpperCase();
