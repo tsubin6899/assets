@@ -874,12 +874,13 @@
 
   function importEntries(rows = []) {
     const { ledger, assets } = load();
+    const importBatchId = uid("import");
     const existing = new Set(ledger.entries.map(entrySignature));
     let imported = 0;
     let duplicates = 0;
     let invalid = 0;
     rows.forEach(source => {
-      const row = { id: uid("entry"), ...entryFields({ ...source, date: String(source.date || "").slice(0, 10) }, ledger, assets), createdAt: nowIso(), importedAt: nowIso(), importSource: source.importSource || "CSV" };
+      const row = { id: uid("entry"), ...entryFields({ ...source, date: String(source.date || "").slice(0, 10) }, ledger, assets), createdAt: nowIso(), importedAt: nowIso(), importBatchId, importSource: source.importSource || "CSV" };
       if (!/^\d{4}-\d{2}-\d{2}$/.test(row.date) || !row.amount || !row.account) { invalid += 1; return; }
       const signature = entrySignature(row);
       if (existing.has(signature)) { duplicates += 1; return; }
@@ -890,7 +891,29 @@
       imported += 1;
     });
     if (imported) persist(ledger, assets, `匯入 ${imported} 筆收支紀錄`);
-    return { imported, duplicates, invalid };
+    return { imported, duplicates, invalid, importBatchId: imported ? importBatchId : "" };
+  }
+
+  function importBatches() {
+    const { ledger } = load(), groups = new Map();
+    (ledger.entries || []).filter(row => row.importBatchId).forEach(row => {
+      const group = groups.get(row.importBatchId) || { id:row.importBatchId, source:row.importSource || "CSV", importedAt:row.importedAt || row.createdAt || "", count:0, amount:0 };
+      group.count += 1; group.amount += (row.type === "income" ? 1 : -1) * number(row.amount); groups.set(row.importBatchId, group);
+    });
+    return [...groups.values()].sort((a,b)=>String(b.importedAt).localeCompare(String(a.importedAt)));
+  }
+
+  function undoImportBatch(batchId) {
+    const { ledger, assets } = load();
+    const rows = (ledger.entries || []).filter(row => row.importBatchId === batchId);
+    if (!rows.length) throw new Error("找不到這個匯入批次");
+    const ids = new Set(rows.map(row => row.id));
+    (ledger.entries || []).filter(row => row.derivedFromEntryId && ids.has(row.derivedFromEntryId)).forEach(row => { ids.add(row.id); rows.push(row); });
+    rows.forEach(row => recycle(ledger, "entry", row));
+    ledger.entries = ledger.entries.filter(row => !ids.has(row.id));
+    amendClosedMonthSnapshots(ledger, rows.map(row => row.date));
+    persist(ledger, assets, `撤銷匯入批次 ${batchId}`);
+    return { removed: ids.size };
   }
 
   function addTransfer(values) {
@@ -1651,7 +1674,7 @@
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
-    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
+    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,

@@ -2,7 +2,7 @@
   "use strict";
 
   const KEY = "tsubin-finance-sync-state-v1";
-  const EMPTY = { outbox: [], phase: "idle", lastSyncedAt: "", lastRemoteUpdatedAt: "", lastError: "", retryCount: 0, remoteVersions: [] };
+  const EMPTY = { outbox: [], phase: "idle", lastSyncedAt: "", lastRemoteUpdatedAt: "", lastError: "", retryCount: 0, remoteVersions: [], lastComparison:null };
 
   function read() {
     try {
@@ -24,9 +24,9 @@
     return write({ ...state, phase: "pending", lastError: "", outbox: [...state.outbox, item] });
   }
   function markSyncing() { const state = read(); return write({ ...state, phase: "syncing", lastError: "" }); }
-  function markSynced({ remoteUpdatedAt = "" } = {}) {
+  function markSynced({ remoteUpdatedAt = "", comparison = null } = {}) {
     const state = read();
-    return write({ ...state, phase: "synced", outbox: [], lastSyncedAt: new Date().toISOString(), lastRemoteUpdatedAt: remoteUpdatedAt, lastError: "", retryCount: 0 });
+    return write({ ...state, phase: "synced", outbox: [], lastSyncedAt: new Date().toISOString(), lastRemoteUpdatedAt: remoteUpdatedAt, lastComparison:comparison || state.lastComparison, lastError: "", retryCount: 0 });
   }
   function markError(error) {
     const state = read();

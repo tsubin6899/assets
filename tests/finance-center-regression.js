@@ -248,6 +248,21 @@ assert.equal(window.FinanceSync.mergeBundles(deletionAwareBundle, remoteBundle).
 const preview = window.FinanceImport.previewCsv("日期,類型,金額,交易說明\n" + `${today},支出,120,捷運加值`, core.insights().ledger);
 assert.equal(preview.rows[0].category, "交通", "smart CSV import must suggest a category from merchant keywords");
 assert.equal(preview.rows[0].account, "生活帳戶", "smart CSV import must map an active default account");
+const schedule = upgrades.loanSchedule({ balance:120000, annualRate:6, monthlyPayment:6000, nextDueDate:today });
+const fasterSchedule = upgrades.loanSchedule({ balance:120000, annualRate:6, monthlyPayment:6000, nextDueDate:today }, 5000);
+assert.equal(schedule.paidOff, true, "loan schedule must reach a zero balance when payment covers interest");
+assert.equal(fasterSchedule.rows.length < schedule.rows.length, true, "extra loan payments must shorten the payoff period");
+assert.equal(fasterSchedule.totalInterest < schedule.totalInterest, true, "extra loan payments must reduce total interest");
+assert.equal(Array.isArray(upgrades.accountCashflow(90)), true, "per-account cashflow must return account forecasts");
+assert.equal(upgrades.goalFunding().reduce((sum,row)=>sum+row.allocated,0) <= core.insights().assetsSummary.cash, true, "goal funding must not allocate more cash than is available");
+assert.equal(Number.isFinite(upgrades.investmentAnalytics(String(new Date().getFullYear())).moneyWeightedRate), true, "investment analytics must return a finite money-weighted rate");
+assert.equal(Number.isFinite(upgrades.monthlyAttribution().marketAndFx), true, "monthly attribution must reconcile to a finite residual");
+const batchDateObject=new Date(`${today}T00:00:00`);batchDateObject.setDate(batchDateObject.getDate()+70);const batchDate=core.localDate(batchDateObject);
+const batchResult=core.importEntries([{ date:batchDate, type:"expense", amount:47, account:"生活帳戶", merchant:"匯入批次撤銷測試", importSource:"測試 CSV" }]);
+assert.equal(Boolean(batchResult.importBatchId), true, "CSV imports must receive a reversible batch id");
+assert.equal(core.importBatches().some(row=>row.id===batchResult.importBatchId), true, "import history must expose the new batch");
+assert.equal(core.undoImportBatch(batchResult.importBatchId).removed >= 1, true, "undoing an import batch must remove its imported records");
+assert.equal(core.insights().ledger.entries.some(row=>row.merchant==="匯入批次撤銷測試"), false, "undone import rows must no longer affect the ledger");
 
 const financeCenterHtml = fs.readFileSync("finance-center.html", "utf8");
 assert.equal(financeCenterHtml.includes('event.target.id==='), false, "form handlers must not use a shadowable form.id property");
@@ -281,6 +296,6 @@ assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credi
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
 assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
 assert.equal(financeCenterHtml.includes('data-exclude-bill-entry'), true, "credit-card statement entries must support excluding historical paid items from this bill");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v132"), true, "service worker cache must be bumped for currency conversion fixes");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v133"), true, "service worker cache must be bumped for finance intelligence upgrades");
 
 console.log("finance center regression test OK");

@@ -86,8 +86,47 @@
     const monthlyPayment = Math.max(0, number(loan.monthlyPayment));
     const interest = balance * monthlyRate;
     const principalPayment = Math.max(0, monthlyPayment - interest);
-    const monthsRemaining = principalPayment > 0 ? Math.ceil(balance / principalPayment) : null;
-    return { balance, annualRate, monthlyPayment, nextInterest: interest, nextPrincipal: principalPayment, monthsRemaining };
+    const schedule = loanSchedule(loan);
+    const monthsRemaining = schedule.paidOff ? schedule.rows.length : null;
+    return { balance, annualRate, monthlyPayment, nextInterest: interest, nextPrincipal: principalPayment, monthsRemaining, totalInterest:schedule.totalInterest };
+  }
+
+  function addMonths(value, count) { const date=new Date(`${value || core.localDate()}T00:00:00`);date.setMonth(date.getMonth()+count);return core.localDate(date); }
+  function loanSchedule(loan, extraPayment = 0, limit = 600) {
+    let balance=Math.max(0,number(loan.balance)),totalInterest=0;const rate=Math.max(0,number(loan.annualRate))/1200,payment=Math.max(0,number(loan.monthlyPayment))+Math.max(0,number(extraPayment)),rows=[];
+    for(let period=1;balance>0.005&&period<=limit;period+=1){const interest=balance*rate,principal=Math.min(balance,Math.max(0,payment-interest));if(principal<=0)break;balance=Math.max(0,balance-principal);totalInterest+=interest;rows.push({period,date:addMonths(loan.nextDueDate||core.localDate(),period-1),payment:principal+interest,principal,interest,balance});}
+    return { rows, totalInterest, paidOff:balance<=0.005, remainingBalance:balance, extraPayment:Math.max(0,number(extraPayment)) };
+  }
+
+  function investmentAnalytics(year = String(new Date().getFullYear())) {
+    const { assets }=core.load(),positions=core.stockPositionSummary(assets),base=core.investmentPerformance(assets),start=`${year}-01-01`,end=`${year}-12-31`;
+    const trades=positions.trades.filter(row=>String(row.date||"")>=start&&String(row.date||"")<=end),dividends=(assets.dividends||[]).filter(row=>String(row.date||"")>=start&&String(row.date||"")<=end);
+    const buys=trades.filter(row=>row.type!=="sell").reduce((sum,row)=>sum+number(row.twdNetAmount),0),saleProceeds=trades.filter(row=>row.type==="sell").reduce((sum,row)=>sum+number(row.twdNetAmount),0),realized=trades.filter(row=>row.type==="sell").reduce((sum,row)=>sum+number(row.twdRealized),0),dividendIncome=dividends.reduce((sum,row)=>sum+number(row.amount)*core.fxRate(assets,row.currency||"TWD"),0);
+    const allTrades=positions.trades.filter(row=>String(row.date||"")<=core.localDate()),allDividends=(assets.dividends||[]).filter(row=>String(row.date||"")<=core.localDate());
+    const cashflows=[...allTrades.map(row=>({date:row.date,amount:(row.type==="sell"?1:-1)*number(row.twdNetAmount)})),...allDividends.map(row=>({date:row.date,amount:number(row.amount)*core.fxRate(assets,row.currency||"TWD")})),{date:core.localDate(),amount:number(base.value)}].filter(row=>row.date&&row.amount);
+    const first=cashflows.reduce((min,row)=>row.date<min?row.date:min,cashflows[0]?.date||core.localDate());
+    const npv=rate=>cashflows.reduce((sum,row)=>sum+row.amount/Math.pow(1+rate,(new Date(row.date)-new Date(first))/31557600000),0);let low=-0.9999,high=10;
+    for(let i=0;i<100;i+=1){const mid=(low+high)/2;if(npv(mid)>0)low=mid;else high=mid;}
+    const moneyWeighted=cashflows.some(row=>row.amount<0)&&cashflows.some(row=>row.amount>0)?(low+high)/2*100:0;
+    const totalGain=realized+dividendIncome+number(base.unrealized),denominator=Math.max(0.01,buys);
+    return {...base,year,buys,saleProceeds,realized,dividendIncome,totalGain,simpleRate:totalGain/denominator*100,moneyWeightedRate:moneyWeighted};
+  }
+
+  function accountCashflow(days = 90) {
+    const bundle=core.insights(),today=core.localDate(),end=new Date(`${today}T00:00:00`);end.setDate(end.getDate()+days);const endDate=core.localDate(end),accounts=bundle.assetsSummary.accounts.filter(row=>row.type!=="信用卡"&&!row.archived),rules=bundle.ledger.recurringRules||[],bills=bundle.ledger.creditBills||[];
+    const months=[];for(let i=0;i<5;i+=1){const date=new Date(`${today}T00:00:00`);date.setMonth(date.getMonth()+i);months.push(`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`);}
+    const events=months.flatMap(month=>core.recurringOccurrences(bundle.ledger,month,today)).filter(row=>row.scheduledDate>today&&row.scheduledDate<=endDate).map(row=>({date:row.scheduledDate,account:row.account,amount:(row.type==="income"?1:-1)*number(row.amount)}));
+    bills.filter(row=>!row.paid&&row.dueDate>today&&row.dueDate<=endDate).forEach(row=>events.push({date:row.dueDate,account:row.payAccount,amount:-number(row.amount),title:row.card}));
+    return accounts.map(account=>{let balance=number(account.balance),minimum=balance,minimumDate=today;const rows=[];for(let i=1;i<=days;i+=1){const dateObj=new Date(`${today}T00:00:00`);dateObj.setDate(dateObj.getDate()+i);const date=core.localDate(dateObj),change=events.filter(row=>row.date===date&&row.account===account.name).reduce((sum,row)=>sum+row.amount,0);balance+=change;if(balance<minimum){minimum=balance;minimumDate=date;}if(change||i===days)rows.push({date,change,balance});}return {account:account.name,currency:account.currency||"TWD",opening:number(account.balance),minimum,minimumDate,ending:balance,shortfall:Math.max(0,-minimum),rows};});
+  }
+
+  function goalFunding() {
+    const bundle=core.insights(),available=new Map(bundle.assetsSummary.accounts.filter(row=>row.type!=="信用卡").map(row=>[row.name,Math.max(0,number(row.balance))]));
+    return (bundle.ledger.goals||[]).filter(row=>!row.completed).map(row=>{const wanted=Math.max(0,number(row.targetAmount)-number(row.currentAmount)),pool=available.get(row.linkedAccount)||0,allocated=Math.min(wanted,pool);available.set(row.linkedAccount,Math.max(0,pool-allocated));const months=Math.max(1,Math.ceil((new Date(row.targetDate||core.localDate())-new Date())/2629800000)),monthly=Math.max(0,wanted-allocated)/months;return {...row,wanted,allocated,unfunded:wanted-allocated,monthly,months};});
+  }
+
+  function monthlyAttribution(month = core.monthOf()) {
+    const bundle=core.insights(),summary=core.monthSummary(bundle.ledger,bundle.assets,month),positions=core.stockPositionSummary(bundle.assets),realized=positions.trades.filter(row=>row.type==="sell"&&String(row.date||"").startsWith(month)).reduce((sum,row)=>sum+number(row.twdRealized),0),dividends=(bundle.assets.dividends||[]).filter(row=>String(row.date||"").startsWith(month)).reduce((sum,row)=>sum+number(row.amount)*core.fxRate(bundle.assets,row.currency||"TWD"),0),snapshots=[...(bundle.assets.assetSnapshots||[])].filter(row=>String(row.date||"").slice(0,7)<=month).sort((a,b)=>String(a.date).localeCompare(String(b.date))),previous=snapshots.filter(row=>String(row.date).slice(0,7)<month).at(-1),current=snapshots.filter(row=>String(row.date).slice(0,7)===month).at(-1);const netChange=previous&&current?number(current.net??current.total)-number(previous.net??previous.total):summary.balance+realized;const explained=summary.balance+realized;return {month,netChange,cashflow:summary.balance,realized,dividends,marketAndFx:netChange-explained,hasSnapshots:Boolean(previous&&current)};
   }
 
   function saveLoan(values) {
@@ -149,9 +188,9 @@
     const bundle = core.insights();
     normalize(bundle.ledger);
     const plan = bundle.ledger.annualPlans.find(row => row.year === year) || {};
-    const performance = bundle.investmentPerformance || {};
-    return { year, targetRate:number(plan.benchmarkRate), actualRate:number(performance.unrealizedRate), difference:number(performance.unrealizedRate)-number(plan.benchmarkRate), investmentTarget:number(plan.investmentTarget), currentValue:number(performance.value) };
+    const performance = investmentAnalytics(year);
+    return { year, targetRate:number(plan.benchmarkRate), actualRate:number(performance.moneyWeightedRate), difference:number(performance.moneyWeightedRate)-number(plan.benchmarkRate), investmentTarget:number(plan.investmentTarget), currentValue:number(performance.value) };
   }
 
-  window.FinanceUpgrades = Object.freeze({ normalize, audit, repairSafeData, setAccountArchived, loanMetrics, saveLoan, removeLoan, saveGoal, removeGoal, saveAnnualPlan, bulkUpdateEntries, taxSummary, benchmark });
+  window.FinanceUpgrades = Object.freeze({ normalize, audit, repairSafeData, setAccountArchived, loanMetrics, loanSchedule, investmentAnalytics, accountCashflow, goalFunding, monthlyAttribution, saveLoan, removeLoan, saveGoal, removeGoal, saveAnnualPlan, bulkUpdateEntries, taxSummary, benchmark });
 })();
