@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-09-12T01:50:04+00:00",
+  "generatedAt": "2026-09-14T10:55:02+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -30,11 +30,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 107.49,
+      "nav": 106.69,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -42,11 +42,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 15.9,
+      "nav": 15.85,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -54,11 +54,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 29.41,
+      "nav": 29.3,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -66,11 +66,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 16.15,
+      "nav": 16.11,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-10",
+      "asOf": "2026-09-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -78,11 +78,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 17.39,
+      "nav": 17.19,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -101,11 +101,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 32.5,
+      "nav": 32.91,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -113,11 +113,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 14.0739,
+      "nav": 14.1512,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-10",
+      "asOf": "2026-09-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -125,11 +125,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 12.85,
+      "nav": 12.9,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -137,11 +137,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 34.13,
+      "nav": 34.35,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -198,17 +198,18 @@
       "dividendYield": 0.0,
       "source": "TPEx OpenAPI tpex_mainboard_peratio_analysis",
       "asOf": "2026-09-11",
-      "dataStatus": "partial"
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00999A": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 11.33,
+      "nav": 11.29,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -216,11 +217,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 10.21,
+      "nav": 10.14,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -228,11 +229,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 13.18,
+      "nav": 13.06,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-09-11",
+      "asOf": "2026-09-14",
       "dataStatus": "current",
       "stale": false
     },
@@ -607,28 +608,28 @@
     "US:VT": {
       "assetType": "etf",
       "metric": "premium",
-      "value": 0.01,
-      "premium": 0.01,
+      "value": 0.08,
+      "premium": 0.08,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/VT",
       "referenceLabel": "CMoney ETF 資料",
-      "asOf": "2026-09-12",
+      "asOf": "2026-09-14",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-09-12T01:50:00+00:00",
+      "fetchedAt": "2026-09-14T10:54:58+00:00",
       "dataStatus": "current",
       "stale": false
     },
     "US:QQQ": {
       "assetType": "etf",
       "metric": "premium",
-      "value": 0.03,
-      "premium": 0.03,
+      "value": -0.01,
+      "premium": -0.01,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/QQQ",
       "referenceLabel": "CMoney ETF 資料",
-      "asOf": "2026-09-12",
+      "asOf": "2026-09-14",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-09-12T01:49:58+00:00",
+      "fetchedAt": "2026-09-14T10:54:38+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -648,5 +649,10 @@
       "dataStatus": "manual-needed"
     }
   },
-  "errors": []
+  "errors": [
+    {
+      "source": "TPEx OpenAPI",
+      "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1010)>"
+    }
+  ]
 }
