@@ -22,5 +22,8 @@ function setup(options={}){
   t=setup({remote:{ledger:{entries:[{id:'remote',amount:30}]},assets:{}}});assert.equal(await t.context.saveCloud(true),false);assert.equal(t.writes,0);assert.equal(await t.context.saveCloud(false),true);assert.equal(t.reviews.length,2);assert.equal(t.local.ledger.entries.length,2);assert.equal(t.S.read().outbox.length,0);
   t=setup({remote:{ledger:{entries:[{id:'local',amount:10}]},assets:{fxHistory:{'2026-01-01':{USD:30}}}}});assert.equal(await t.context.saveCloud(true),false);assert.equal(t.writes,0);
   assert.throws(()=>t.S.mergeBundles({ledger:{loanPayments:[{id:'a',loanId:'loan'}]},assets:{}},{ledger:{loanPayments:[{id:'b',loanId:'loan'}]},assets:{}}),/兩端各有新增還款/);
-  console.log('cloud flow regression OK: preview, cancellation, compare-and-swap, concurrent edit, settings conflict, loan conflict');
+  t=setup({remote:{assets:{},ledger:{entries:[{amount:10,id:'local'}]}}});assert.equal(t.S.compareBundles(t.local,{assets:{},ledger:{entries:[{amount:10,id:'local'}]}}).conflicts,0);assert.equal(t.S.diffBundles(t.local,{assets:{},ledger:{entries:[{amount:10,id:'local'}]}}).length,0);assert.equal(await t.context.saveCloud(true),true);assert.equal(t.S.read().phase,'synced');assert.equal(await t.context.saveCloud(true),false);assert.equal(t.S.read().phase,'synced');
+  t=setup();t.context.refresh=()=>{throw new Error('render failure');};assert.equal(await t.context.saveCloud(false),true);assert.equal(t.S.read().phase,'synced');assert.equal(t.S.read().lastError,'');
+  t=setup({remote:{ledger:{entries:[{id:'different',amount:40}]},assets:{}}});await t.context.saveCloud(true);assert.equal(t.S.read().phase,'review');assert.equal(t.S.label(),'待確認差異');
+  console.log('cloud flow regression OK: preview, cancellation, compare-and-swap, concurrent edit, settings conflict, loan conflict, key order, stale timer, render failure');
 })().catch(error=>{console.error(error);process.exitCode=1;});

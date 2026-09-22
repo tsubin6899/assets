@@ -34,18 +34,21 @@
     return write({ ...state, phase: "error", lastError: String(error?.message || error || "同步失敗"), retryCount: Number(state.retryCount || 0) + 1 });
   }
   function hasPending() { return read().outbox.length > 0; }
+  function markReview(message) { const state=read();return write({...state,phase:"review",lastError:String(message),inFlightIds:[]}); }
   function setRemoteVersions(versions = []) { const state=read();return write({ ...state, remoteVersions:versions.map(({ data, ...meta })=>meta).slice(0,5) }); }
 
   const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","loanPayments","goals","goalAllocationHistory","importTemplates","importReconciliations","annualPlans","monthCloseouts","categoryRules"];
   const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots","financialSnapshots"];
   const RECYCLE_KIND_BY_COLLECTION = { entries:"entry", transfers:"transfer", accounts:"account", creditBills:"creditBill", creditInstallments:"installment", templates:"template", recurringRules:"recurring", budgets:"budget", reconciliations:"reconciliation", creditStatementChecks:"creditStatementCheck", loans:"loan",goals:"goal",loanPayments:"loanPayment",importReconciliations:"importReconciliation" };
   function clone(value) { return JSON.parse(JSON.stringify(value || {})); }
+  function stable(value) { if(Array.isArray(value))return value.map(stable);if(value&&typeof value==="object")return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value; }
+  function equalData(a,b) { return JSON.stringify(stable(a))===JSON.stringify(stable(b)); }
   function recordKey(row, index) { return String(row?.id || row?.month || row?.year || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
   function recordTime(row) { return new Date(row?.updatedAt || row?.capturedAt || row?.createdAt || row?.checkedAt || row?.date || 0).getTime() || 0; }
   function compareCollection(localRows = [], remoteRows = []) {
     const localMap=new Map(localRows.map((row,index)=>[recordKey(row,index),row])),remoteMap=new Map(remoteRows.map((row,index)=>[recordKey(row,index),row]));
     let localOnly=0,remoteOnly=0,conflicts=0,same=0;
-    new Set([...localMap.keys(),...remoteMap.keys()]).forEach(key=>{const local=localMap.get(key),remote=remoteMap.get(key);if(!remote)localOnly+=1;else if(!local)remoteOnly+=1;else if(JSON.stringify(local)===JSON.stringify(remote))same+=1;else conflicts+=1});
+    new Set([...localMap.keys(),...remoteMap.keys()]).forEach(key=>{const local=localMap.get(key),remote=remoteMap.get(key);if(!remote)localOnly+=1;else if(!local)remoteOnly+=1;else if(equalData(local,remote))same+=1;else conflicts+=1});
     return { localOnly, remoteOnly, conflicts, same };
   }
   function compareBundles(localBundle = {}, remoteBundle = {}) {
@@ -53,7 +56,7 @@
     const details=[];
     LEDGER_COLLECTIONS.forEach(key=>{const row=compareCollection(localLedger[key],remoteLedger[key]);if(row.localOnly||row.remoteOnly||row.conflicts)details.push({scope:"ledger",collection:key,...row})});
     ASSET_COLLECTIONS.forEach(key=>{const row=compareCollection(localAssets[key],remoteAssets[key]);if(row.localOnly||row.remoteOnly||row.conflicts)details.push({scope:"assets",collection:key,...row})});
-    for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(JSON.stringify(a[key])!==JSON.stringify(b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,conflicts:1,same:0});}}
+    for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(!equalData(a[key],b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,conflicts:1,same:0});}}
     return details.reduce((result,row)=>({localOnly:result.localOnly+row.localOnly,remoteOnly:result.remoteOnly+row.remoteOnly,conflicts:result.conflicts+row.conflicts,details}),{localOnly:0,remoteOnly:0,conflicts:0,details});
   }
   function mergeCollection(localRows = [], remoteRows = []) {
@@ -86,12 +89,13 @@
   function label(state = read()) {
     if (state.phase === "syncing") return "同步中";
     if (state.phase === "error") return "同步失敗";
+    if (state.phase === "review") return "待確認差異";
     if (state.outbox.length) return `${state.outbox.length} 項待同步`;
     if (state.lastSyncedAt) return "已同步";
     return "尚未同步";
   }
 
-  function fingerprint(bundle) { return JSON.stringify({ledger:bundle.ledger,assets:bundle.assets}); }
+  function fingerprint(bundle) { return JSON.stringify(stable({ledger:bundle.ledger,assets:bundle.assets})); }
   function diffBundles(before, after) {
     const rows=[];
     for(const scope of ["ledger","assets"]){const a=before[scope]||{},b=after[scope]||{};
@@ -99,11 +103,11 @@
         if(["auditJournal"].includes(key))continue;
         if(Array.isArray(a[key])||Array.isArray(b[key])){
           const left=new Map((Array.isArray(a[key])?a[key]:[]).map((r,i)=>[recordKey(r,i),r])),right=new Map((Array.isArray(b[key])?b[key]:[]).map((r,i)=>[recordKey(r,i),r]));
-          for(const id of new Set([...left.keys(),...right.keys()])){const old=left.get(id),next=right.get(id);if(JSON.stringify(old)===JSON.stringify(next))continue;rows.push({scope,collection:key,id,action:!old?"新增":!next?"刪除":"修改",before:old||null,after:next||null,title:next?.merchant||old?.merchant||next?.name||old?.name||next?.code||old?.code||id});}
-        }else if(JSON.stringify(a[key])!==JSON.stringify(b[key]))rows.push({scope,collection:key,id:key,action:"修改",before:a[key]??null,after:b[key]??null,title:key});
+          for(const id of new Set([...left.keys(),...right.keys()])){const old=left.get(id),next=right.get(id);if(equalData(old,next))continue;rows.push({scope,collection:key,id,action:!old?"新增":!next?"刪除":"修改",before:old||null,after:next||null,title:next?.merchant||old?.merchant||next?.name||old?.name||next?.code||old?.code||id});}
+        }else if(!equalData(a[key],b[key]))rows.push({scope,collection:key,id:key,action:"修改",before:a[key]??null,after:b[key]??null,title:key});
       }
     }
     return rows;
   }
-  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, fingerprint, label });
+  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, fingerprint, label });
 })();
