@@ -261,7 +261,7 @@
   <script src="finance-upgrades.js?v=2"></script>
   <script src="finance-storage.js?v=1"></script>
   <script src="finance-market.js?v=1"></script>
-  <script src="finance-sync.js?v=4"></script>
+  <script src="finance-sync.js?v=5"></script>
   <script src="finance-notifications.js?v=1"></script>
   <script src="finance-search.js?v=1"></script>
   <script src="finance-import.js?v=2"></script>
@@ -844,9 +844,11 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
 
     async function applyNewerCloudSnapshot(){
       const row=await fetchCloudRow();if(!row?.data)return false;
-      const local=FinanceCore.exportBundle(),remote=cloudDataToBundle(row.data),diff=FinanceSync.diffBundles(local,FinanceSync.mergeBundles(local,remote));
-      if(diff.length){FinanceSync.markReview("雲端有不同資料，請按載入或立即同步以預覽差異");showToast("雲端有不同資料，請先預覽再合併");}
-      return false;
+      const local=FinanceCore.exportBundle(),remote=cloudDataToBundle(row.data),comparison=FinanceSync.compareBundles(local,remote),bundle=FinanceSync.mergeBundles(local,remote),diff=FinanceSync.diffBundles(local,bundle);
+      if(comparison.conflicts){FinanceSync.markReview("本機與雲端有無法判定先後的資料，請按立即同步預覽差異");showToast("本機與雲端有真正衝突，請先預覽");return false;}
+      if(diff.length){cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}}
+      FinanceSync.markSynced({remoteUpdatedAt:row.updated_at,comparison,acknowledgedIds:[]});
+      return true;
     }
     async function initCloud(){
       if(!window.supabase?.createClient){updateCloudUi("! 登入元件未載入","error");return}
@@ -856,7 +858,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         migrateLegacyAuthSession(config);supabaseClient=supabase.createClient(config.supabaseUrl,config.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"tsubin-assets-auth"}});cloudReady=true;
         supabaseClient.auth.onAuthStateChange((event,session)=>{cloudUser=session?.user||null;if(cloudUser){cleanCloudAuthUrl();updateAuthenticatedSyncUi();if(event==="SIGNED_IN")showToast(`Email 登入成功${cloudUser.email?`：${cloudUser.email}`:""}`)}else if(event==="SIGNED_OUT")updateCloudUi("● 未登入","offline")});
         const signedIn=await refreshCloudSession({force:true});if(!signedIn)return;
-        if(await applyNewerCloudSnapshot())refresh();else if(FinanceSync.hasPending())cloudSaveTimer=setTimeout(()=>saveCloud(true),900);
+        if(await applyNewerCloudSnapshot())refresh();if(FinanceSync.hasPending())cloudSaveTimer=setTimeout(()=>saveCloud(true),900);
       }catch(error){cloudReady=false;updateCloudUi("! 雲端連線錯誤","error");showToast(`登入服務初始化失敗：${error.message||"請稍後再試"}`)}
     }
     function openCloudLoginDialog(){const dialog=document.getElementById("cloudLoginDialog"),email=document.getElementById("cloudEmail").value.trim();document.getElementById("cloudDialogEmail").value=email;if(typeof dialog.showModal==="function")dialog.showModal();else{const fallback=prompt("請輸入 Email",email);if(fallback)sendCloudLogin(fallback)}}
@@ -874,7 +876,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         const local=FinanceCore.exportBundle(),fingerprint=FinanceSync.fingerprint(local),existing=await fetchCloudRow();
         const remote=existing?.data?cloudDataToBundle(existing.data):null,comparison=remote?FinanceSync.compareBundles(local,remote):{conflicts:0,remoteOnly:0,localOnly:0,details:[]};
         const bundle=remote?FinanceSync.mergeBundles(local,remote):local;
-        if(silent&&remote&&(comparison.conflicts||comparison.remoteOnly)){FinanceSync.markReview("本機與雲端有差異，請按立即同步預覽");return false;}
+        if(silent&&remote&&comparison.conflicts){FinanceSync.markReview("本機與雲端有無法判定先後的資料，請按立即同步預覽");return false;}
         if(!silent){
           if(FinanceSync.diffBundles(local,bundle).length&&!await FinanceIntelligenceUI.review(local,bundle,"同步預覽：即將套用至本機"))return false;
           if(!await FinanceIntelligenceUI.review(remote||{ledger:{},assets:{}},bundle,"同步預覽：即將寫入雲端"))return false;
@@ -924,7 +926,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     if(startupCardRepair.changed||startupRecurringRepair.changed)showToast(`已自動修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄`);
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=136").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=137").catch(()=>{});
   </script>
 </body>
 </html>

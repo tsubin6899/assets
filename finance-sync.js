@@ -44,20 +44,24 @@
   function stable(value) { if(Array.isArray(value))return value.map(stable);if(value&&typeof value==="object")return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value; }
   function equalData(a,b) { return JSON.stringify(stable(a))===JSON.stringify(stable(b)); }
   function recordKey(row, index) { return String(row?.id || row?.month || row?.year || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
-  function recordTime(row) { return new Date(row?.updatedAt || row?.capturedAt || row?.createdAt || row?.checkedAt || row?.date || 0).getTime() || 0; }
+  function recordTime(row) {
+    const nested=[...Object.values(row?.statementChecks||{}).map(value=>value?.checkedAt),...Object.values(row?.statementExclusions||{}).map(value=>value?.excludedAt)];
+    return Math.max(0,...[row?.updatedAt,row?.reconciledAt,row?.paidAt,row?.capturedAt,row?.createdAt,row?.checkedAt,row?.date,...nested].map(value=>new Date(value||0).getTime()||0));
+  }
   function compareCollection(localRows = [], remoteRows = []) {
     const localMap=new Map(localRows.map((row,index)=>[recordKey(row,index),row])),remoteMap=new Map(remoteRows.map((row,index)=>[recordKey(row,index),row]));
-    let localOnly=0,remoteOnly=0,conflicts=0,same=0;
-    new Set([...localMap.keys(),...remoteMap.keys()]).forEach(key=>{const local=localMap.get(key),remote=remoteMap.get(key);if(!remote)localOnly+=1;else if(!local)remoteOnly+=1;else if(equalData(local,remote))same+=1;else conflicts+=1});
-    return { localOnly, remoteOnly, conflicts, same };
+    let localOnly=0,remoteOnly=0,localNewer=0,remoteNewer=0,conflicts=0,same=0;
+    new Set([...localMap.keys(),...remoteMap.keys()]).forEach(key=>{const local=localMap.get(key),remote=remoteMap.get(key);if(!remote)localOnly+=1;else if(!local)remoteOnly+=1;else if(equalData(local,remote))same+=1;else{const lt=recordTime(local),rt=recordTime(remote);if(lt>rt)localNewer+=1;else if(rt>lt)remoteNewer+=1;else conflicts+=1;}});
+    return { localOnly, remoteOnly, localNewer, remoteNewer, conflicts, same };
   }
   function compareBundles(localBundle = {}, remoteBundle = {}) {
     const localLedger=localBundle.ledger||localBundle.accountingLedger||{},remoteLedger=remoteBundle.ledger||remoteBundle.accountingLedger||{},localAssets=localBundle.assets||localBundle,remoteAssets=remoteBundle.assets||remoteBundle;
     const details=[];
-    LEDGER_COLLECTIONS.forEach(key=>{const row=compareCollection(localLedger[key],remoteLedger[key]);if(row.localOnly||row.remoteOnly||row.conflicts)details.push({scope:"ledger",collection:key,...row})});
-    ASSET_COLLECTIONS.forEach(key=>{const row=compareCollection(localAssets[key],remoteAssets[key]);if(row.localOnly||row.remoteOnly||row.conflicts)details.push({scope:"assets",collection:key,...row})});
-    for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(!equalData(a[key],b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,conflicts:1,same:0});}}
-    return details.reduce((result,row)=>({localOnly:result.localOnly+row.localOnly,remoteOnly:result.remoteOnly+row.remoteOnly,conflicts:result.conflicts+row.conflicts,details}),{localOnly:0,remoteOnly:0,conflicts:0,details});
+    LEDGER_COLLECTIONS.forEach(key=>{const row=compareCollection(localLedger[key],remoteLedger[key]);if(row.localOnly||row.remoteOnly||row.localNewer||row.remoteNewer||row.conflicts)details.push({scope:"ledger",collection:key,...row})});
+    ASSET_COLLECTIONS.forEach(key=>{const row=compareCollection(localAssets[key],remoteAssets[key]);if(row.localOnly||row.remoteOnly||row.localNewer||row.remoteNewer||row.conflicts)details.push({scope:"assets",collection:key,...row})});
+    const safelyMerged={ledger:new Set(["categories","items"]),assets:new Set(["fxHistory","fxRates","rates","marketPrices","marketDataMeta","valuationCache"])};
+    for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||safelyMerged[scope].has(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(!equalData(a[key],b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:1,same:0});}}
+    return details.reduce((result,row)=>({localOnly:result.localOnly+row.localOnly,remoteOnly:result.remoteOnly+row.remoteOnly,localNewer:result.localNewer+(row.localNewer||0),remoteNewer:result.remoteNewer+(row.remoteNewer||0),conflicts:result.conflicts+row.conflicts,details}),{localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:0,details});
   }
   function mergeCollection(localRows = [], remoteRows = []) {
     const merged=new Map();
