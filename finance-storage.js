@@ -76,7 +76,7 @@
     });
   }
 
-  async function restore(id) {
+  async function readRevision(id) {
     const db = await open();
     const row = await new Promise((resolve, reject) => {
       const request = db.transaction(STORE, "readonly").objectStore(STORE).get(Number(id));
@@ -84,9 +84,9 @@
       request.onerror = () => reject(request.error);
     });
     if (!row?.data) throw new Error("找不到本機歷史版本");
-    window.FinanceCore.importBundle(row.data);
     return row;
   }
+  async function restore(id) { const row=await readRevision(id);window.FinanceCore.importBundle(row.data);return row; }
 
   function schedule(reason = "資料更新") {
     if (!supported()) return;
@@ -101,5 +101,5 @@
     return true;
   }
 
-  window.FinanceStorage = Object.freeze({ supported, init, save, revisions, restore });
+  window.FinanceStorage = Object.freeze({ supported, init, save, revisions, readRevision, restore });
 })();

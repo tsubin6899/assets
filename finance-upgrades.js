@@ -80,78 +80,50 @@
   }
 
   function loanMetrics(loan) {
-    const balance = Math.max(0, number(loan.balance));
-    const annualRate = Math.max(0, number(loan.annualRate));
-    const monthlyRate = annualRate / 100 / 12;
-    const monthlyPayment = Math.max(0, number(loan.monthlyPayment));
-    const interest = balance * monthlyRate;
-    const principalPayment = Math.max(0, monthlyPayment - interest);
-    const schedule = loanSchedule(loan);
-    const monthsRemaining = schedule.paidOff ? schedule.rows.length : null;
-    return { balance, annualRate, monthlyPayment, nextInterest: interest, nextPrincipal: principalPayment, monthsRemaining, totalInterest:schedule.totalInterest };
+    const schedule=loanSchedule(loan),first=schedule.rows[0];
+    return { balance:number(loan.balance),annualRate:number(loan.annualRate),monthlyPayment:number(loan.monthlyPayment),nextInterest:first?.interest??number(loan.balance)*number(loan.annualRate)/1200,nextPrincipal:first?.principal??0,monthsRemaining:schedule.paidOff?schedule.rows.length:null,totalInterest:schedule.totalInterest,reason:schedule.reason };
   }
-
-  function addMonths(value, count) { const date=new Date(`${value || core.localDate()}T00:00:00`);date.setMonth(date.getMonth()+count);return core.localDate(date); }
-  function loanSchedule(loan, extraPayment = 0, limit = 600) {
-    let balance=Math.max(0,number(loan.balance)),totalInterest=0;const rate=Math.max(0,number(loan.annualRate))/1200,payment=Math.max(0,number(loan.monthlyPayment))+Math.max(0,number(extraPayment)),rows=[];
-    for(let period=1;balance>0.005&&period<=limit;period+=1){const interest=balance*rate,principal=Math.min(balance,Math.max(0,payment-interest));if(principal<=0)break;balance=Math.max(0,balance-principal);totalInterest+=interest;rows.push({period,date:addMonths(loan.nextDueDate||core.localDate(),period-1),payment:principal+interest,principal,interest,balance});}
-    return { rows, totalInterest, paidOff:balance<=0.005, remainingBalance:balance, extraPayment:Math.max(0,number(extraPayment)) };
-  }
-
-  function investmentAnalytics(year = String(new Date().getFullYear())) {
-    const { assets }=core.load(),positions=core.stockPositionSummary(assets),base=core.investmentPerformance(assets),start=`${year}-01-01`,end=`${year}-12-31`;
-    const trades=positions.trades.filter(row=>String(row.date||"")>=start&&String(row.date||"")<=end),dividends=(assets.dividends||[]).filter(row=>String(row.date||"")>=start&&String(row.date||"")<=end);
-    const buys=trades.filter(row=>row.type!=="sell").reduce((sum,row)=>sum+number(row.twdNetAmount),0),saleProceeds=trades.filter(row=>row.type==="sell").reduce((sum,row)=>sum+number(row.twdNetAmount),0),realized=trades.filter(row=>row.type==="sell").reduce((sum,row)=>sum+number(row.twdRealized),0),dividendIncome=dividends.reduce((sum,row)=>sum+number(row.amount)*core.fxRate(assets,row.currency||"TWD"),0);
-    const allTrades=positions.trades.filter(row=>String(row.date||"")<=core.localDate()),allDividends=(assets.dividends||[]).filter(row=>String(row.date||"")<=core.localDate());
-    const cashflows=[...allTrades.map(row=>({date:row.date,amount:(row.type==="sell"?1:-1)*number(row.twdNetAmount)})),...allDividends.map(row=>({date:row.date,amount:number(row.amount)*core.fxRate(assets,row.currency||"TWD")})),{date:core.localDate(),amount:number(base.value)}].filter(row=>row.date&&row.amount);
-    const first=cashflows.reduce((min,row)=>row.date<min?row.date:min,cashflows[0]?.date||core.localDate());
-    const npv=rate=>cashflows.reduce((sum,row)=>sum+row.amount/Math.pow(1+rate,(new Date(row.date)-new Date(first))/31557600000),0);let low=-0.9999,high=10;
-    for(let i=0;i<100;i+=1){const mid=(low+high)/2;if(npv(mid)>0)low=mid;else high=mid;}
-    const moneyWeighted=cashflows.some(row=>row.amount<0)&&cashflows.some(row=>row.amount>0)?(low+high)/2*100:0;
-    const totalGain=realized+dividendIncome+number(base.unrealized),denominator=Math.max(0.01,buys);
-    return {...base,year,buys,saleProceeds,realized,dividendIncome,totalGain,simpleRate:totalGain/denominator*100,moneyWeightedRate:moneyWeighted};
-  }
-
-  function accountCashflow(days = 90) {
-    const bundle=core.insights(),today=core.localDate(),end=new Date(`${today}T00:00:00`);end.setDate(end.getDate()+days);const endDate=core.localDate(end),accounts=bundle.assetsSummary.accounts.filter(row=>row.type!=="信用卡"&&!row.archived),rules=bundle.ledger.recurringRules||[],bills=bundle.ledger.creditBills||[];
-    const months=[];for(let i=0;i<5;i+=1){const date=new Date(`${today}T00:00:00`);date.setMonth(date.getMonth()+i);months.push(`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}`);}
-    const events=months.flatMap(month=>core.recurringOccurrences(bundle.ledger,month,today)).filter(row=>row.scheduledDate>today&&row.scheduledDate<=endDate).map(row=>({date:row.scheduledDate,account:row.account,amount:(row.type==="income"?1:-1)*number(row.amount)}));
-    bills.filter(row=>!row.paid&&row.dueDate>today&&row.dueDate<=endDate).forEach(row=>events.push({date:row.dueDate,account:row.payAccount,amount:-number(row.amount),title:row.card}));
-    return accounts.map(account=>{let balance=number(account.balance),minimum=balance,minimumDate=today;const rows=[];for(let i=1;i<=days;i+=1){const dateObj=new Date(`${today}T00:00:00`);dateObj.setDate(dateObj.getDate()+i);const date=core.localDate(dateObj),change=events.filter(row=>row.date===date&&row.account===account.name).reduce((sum,row)=>sum+row.amount,0);balance+=change;if(balance<minimum){minimum=balance;minimumDate=date;}if(change||i===days)rows.push({date,change,balance});}return {account:account.name,currency:account.currency||"TWD",opening:number(account.balance),minimum,minimumDate,ending:balance,shortfall:Math.max(0,-minimum),rows};});
-  }
-
-  function goalFunding() {
-    const bundle=core.insights(),available=new Map(bundle.assetsSummary.accounts.filter(row=>row.type!=="信用卡").map(row=>[row.name,Math.max(0,number(row.balance))]));
-    return (bundle.ledger.goals||[]).filter(row=>!row.completed).map(row=>{const wanted=Math.max(0,number(row.targetAmount)-number(row.currentAmount)),pool=available.get(row.linkedAccount)||0,allocated=Math.min(wanted,pool);available.set(row.linkedAccount,Math.max(0,pool-allocated));const months=Math.max(1,Math.ceil((new Date(row.targetDate||core.localDate())-new Date())/2629800000)),monthly=Math.max(0,wanted-allocated)/months;return {...row,wanted,allocated,unfunded:wanted-allocated,monthly,months};});
-  }
-
-  function monthlyAttribution(month = core.monthOf()) {
-    const bundle=core.insights(),summary=core.monthSummary(bundle.ledger,bundle.assets,month),positions=core.stockPositionSummary(bundle.assets),realized=positions.trades.filter(row=>row.type==="sell"&&String(row.date||"").startsWith(month)).reduce((sum,row)=>sum+number(row.twdRealized),0),dividends=(bundle.assets.dividends||[]).filter(row=>String(row.date||"").startsWith(month)).reduce((sum,row)=>sum+number(row.amount)*core.fxRate(bundle.assets,row.currency||"TWD"),0),snapshots=[...(bundle.assets.assetSnapshots||[])].filter(row=>String(row.date||"").slice(0,7)<=month).sort((a,b)=>String(a.date).localeCompare(String(b.date))),previous=snapshots.filter(row=>String(row.date).slice(0,7)<month).at(-1),current=snapshots.filter(row=>String(row.date).slice(0,7)===month).at(-1);const netChange=previous&&current?number(current.net??current.total)-number(previous.net??previous.total):summary.balance+realized;const explained=summary.balance+realized;return {month,netChange,cashflow:summary.balance,realized,dividends,marketAndFx:netChange-explained,hasSnapshots:Boolean(previous&&current)};
-  }
+  function loanSchedule(loan,extraPayment=0,limit=600) { return window.FinanceIntelligence.loanSchedule(loan,extraPayment,limit); }
+  function investmentAnalytics(year) { return window.FinanceIntelligence.performance(year); }
+  function accountCashflow(days=90) { return window.FinanceIntelligence.forecast(days); }
+  function goalFunding() { return window.FinanceIntelligence.funding(); }
+  function monthlyAttribution(month) { return window.FinanceIntelligence.attribution(month); }
 
   function saveLoan(values) {
     return commit(values.id ? "修改貸款" : "新增貸款", ledger => {
       const row = values.id ? ledger.loans.find(item => item.id === values.id) : null;
       const data = { name:text(values.name), lender:text(values.lender), principal:Math.max(0,number(values.principal)), balance:Math.max(0,number(values.balance ?? values.principal)), annualRate:Math.max(0,number(values.annualRate)), monthlyPayment:Math.max(0,number(values.monthlyPayment)), nextDueDate:text(values.nextDueDate), account:text(values.account), note:text(values.note), closed:Boolean(values.closed), updatedAt:nowIso() };
       if (!data.name || !data.balance) throw new Error("請輸入貸款名稱與目前餘額");
+      if (row && (ledger.loanPayments || []).some(payment=>payment.loanId===row.id) && data.balance!==row.balance) throw new Error("已有還款紀錄，請透過還款或撤回還款調整本金");
       if (row) Object.assign(row, data); else ledger.loans.push({ id:uid("loan"), ...data, createdAt:nowIso() });
       return row || ledger.loans[ledger.loans.length - 1];
     });
   }
 
-  function removeLoan(id) { return commit("刪除貸款", ledger => { const index=ledger.loans.findIndex(row=>row.id===id);if(index<0)throw new Error("找不到貸款");return ledger.loans.splice(index,1)[0]; }); }
+  function removeLoan(id) { return commit("刪除貸款", ledger => { const index=ledger.loans.findIndex(row=>row.id===id);if(index<0)throw new Error("找不到貸款");if((ledger.loanPayments||[]).some(row=>row.loanId===id))throw new Error("請先撤回還款紀錄再刪除貸款");ledger.recycleBin.push({id:uid("trash"),kind:"loan",row:ledger.loans[index],removedAt:nowIso()});return ledger.loans.splice(index,1)[0]; }); }
 
   function saveGoal(values) {
-    return commit(values.id ? "修改儲蓄目標" : "新增儲蓄目標", ledger => {
+    return commit(values.id ? "修改儲蓄目標" : "新增儲蓄目標", (ledger, assets) => {
       const row = values.id ? ledger.goals.find(item => item.id === values.id) : null;
       const data = { name:text(values.name), targetAmount:Math.max(0,number(values.targetAmount)), currentAmount:Math.max(0,number(values.currentAmount)), targetDate:text(values.targetDate), linkedAccount:text(values.linkedAccount), note:text(values.note), completed:Boolean(values.completed), updatedAt:nowIso() };
       if (!data.name || !data.targetAmount) throw new Error("請輸入目標名稱與目標金額");
-      if (row) Object.assign(row, data); else ledger.goals.push({ id:uid("goal"), ...data, createdAt:nowIso() });
+      data.reservedAmount=data.currentAmount;
+      data.priority=values.priority===undefined?number(row?.priority):Math.max(0,number(values.priority));
+      if(data.currentAmount>data.targetAmount)throw new Error("圈存不可超過目標");
+      if(data.currentAmount>0) {
+        const account=core.accountBalances(ledger,assets).find(a=>a.name===data.linkedAccount&&a.type!=="信用卡"&&!a.archived);
+        const used=ledger.goals.filter(g=>g.id!==row?.id&&!g.completed&&g.linkedAccount===data.linkedAccount).reduce((total,g)=>total+number(g.reservedAmount??g.currentAmount),0);
+        if(!account||used+data.currentAmount>Math.max(0,account.twdBalance)+0.005)throw new Error("帳戶可圈存金額不足；請先建立零圈存目標，再配置資金");
+      }
+      const goalId=row?.id||uid("goal");
+      ledger.goalAllocationHistory ||= [];
+      ledger.goalAllocationHistory.push({id:uid("allocation"),goalId,account:data.linkedAccount,before:number(row?.reservedAmount??row?.currentAmount),amount:data.currentAmount,createdAt:nowIso()});
+      if (row) Object.assign(row, data); else ledger.goals.push({ id:goalId, ...data, createdAt:nowIso() });
       return row || ledger.goals[ledger.goals.length - 1];
     });
   }
 
-  function removeGoal(id) { return commit("刪除儲蓄目標", ledger => { const index=ledger.goals.findIndex(row=>row.id===id);if(index<0)throw new Error("找不到儲蓄目標");return ledger.goals.splice(index,1)[0]; }); }
+  function removeGoal(id) { return commit("刪除儲蓄目標", ledger => { const index=ledger.goals.findIndex(row=>row.id===id);if(index<0)throw new Error("找不到儲蓄目標");ledger.recycleBin.push({id:uid("trash"),kind:"goal",row:ledger.goals[index],removedAt:nowIso()});return ledger.goals.splice(index,1)[0]; }); }
 
   function saveAnnualPlan(values) {
     return commit("儲存年度財務計畫", ledger => {
@@ -189,7 +161,7 @@
     normalize(bundle.ledger);
     const plan = bundle.ledger.annualPlans.find(row => row.year === year) || {};
     const performance = investmentAnalytics(year);
-    return { year, targetRate:number(plan.benchmarkRate), actualRate:number(performance.moneyWeightedRate), difference:number(performance.moneyWeightedRate)-number(plan.benchmarkRate), investmentTarget:number(plan.investmentTarget), currentValue:number(performance.value) };
+    return { year, targetRate:number(plan.benchmarkRate), actualRate:performance.annual.annualizedRate, difference:performance.annual.annualizedRate===null?null:performance.annual.annualizedRate-number(plan.benchmarkRate), reason:performance.annual.reason, investmentTarget:number(plan.investmentTarget), currentValue:number(performance.value) };
   }
 
   window.FinanceUpgrades = Object.freeze({ normalize, audit, repairSafeData, setAccountArchived, loanMetrics, loanSchedule, investmentAnalytics, accountCashflow, goalFunding, monthlyAttribution, saveLoan, removeLoan, saveGoal, removeGoal, saveAnnualPlan, bulkUpdateEntries, taxSummary, benchmark });

@@ -16,7 +16,7 @@ const context = {
   console, Date, Intl, JSON, Math, Number, Object, String, Array, Map, Set
 };
 vm.createContext(context);
-["finance-core.js", "finance-upgrades.js", "finance-sync.js", "finance-search.js", "finance-import.js", "finance-center-routes.js"].forEach(file => vm.runInContext(fs.readFileSync(file, "utf8"), context, { filename: file }));
+["finance-core.js", "finance-intelligence.js", "finance-upgrades.js", "finance-sync.js", "finance-search.js", "finance-import.js", "finance-center-routes.js"].forEach(file => vm.runInContext(fs.readFileSync(file, "utf8"), context, { filename: file }));
 
 const core = window.FinanceCore;
 const today = core.localDate();
@@ -190,7 +190,7 @@ upgrades.setAccountArchived(livingAccount.id, false);
 upgrades.saveLoan({ name:"測試房貸", lender:"測試銀行", principal:1000000, balance:800000, annualRate:2, monthlyPayment:10000, nextDueDate:futureDate, account:"生活帳戶" });
 assert.equal(core.insights().assetsSummary.loanDebt, 800000, "loan balance must be included in liabilities");
 assert.equal(core.insights().assetsSummary.liabilities >= 800000, true, "total liabilities must include loan debt");
-upgrades.saveGoal({ name:"緊急預備金", targetAmount:120000, currentAmount:30000, targetDate:futureDate, linkedAccount:"生活帳戶" });
+upgrades.saveGoal({ name:"緊急預備金", targetAmount:120000, currentAmount:0, targetDate:futureDate, linkedAccount:"生活帳戶" });
 upgrades.saveAnnualPlan({ year:String(new Date().getFullYear()), expectedIncome:900000, spendingLimit:600000, emergencyFundTarget:180000, investmentTarget:200000, benchmarkRate:6 });
 assert.equal(core.insights().ledger.goals.length, 1, "saving goal must persist it");
 assert.equal(upgrades.benchmark(String(new Date().getFullYear())).targetRate, 6, "benchmark must use the annual plan target");
@@ -233,6 +233,7 @@ assert.equal(window.FinanceSync.enqueue({ reason: "財務中心啟動" }).outbox
 assert.equal(window.FinanceSync.enqueue({ reason: "新增支出", updatedAt: new Date().toISOString() }).outbox.length, 1);
 window.FinanceSync.markError(new Error("offline"));
 assert.equal(window.FinanceSync.hasPending(), true);
+window.FinanceSync.markSyncing();
 window.FinanceSync.markSynced({ remoteUpdatedAt: new Date().toISOString() });
 assert.equal(window.FinanceSync.hasPending(), false);
 const localBundle = core.exportBundle();
@@ -255,8 +256,8 @@ assert.equal(fasterSchedule.rows.length < schedule.rows.length, true, "extra loa
 assert.equal(fasterSchedule.totalInterest < schedule.totalInterest, true, "extra loan payments must reduce total interest");
 assert.equal(Array.isArray(upgrades.accountCashflow(90)), true, "per-account cashflow must return account forecasts");
 assert.equal(upgrades.goalFunding().reduce((sum,row)=>sum+row.allocated,0) <= core.insights().assetsSummary.cash, true, "goal funding must not allocate more cash than is available");
-assert.equal(Number.isFinite(upgrades.investmentAnalytics(String(new Date().getFullYear())).moneyWeightedRate), true, "investment analytics must return a finite money-weighted rate");
-assert.equal(Number.isFinite(upgrades.monthlyAttribution().marketAndFx), true, "monthly attribution must reconcile to a finite residual");
+assert.equal(upgrades.investmentAnalytics(String(new Date().getFullYear())).lifetime.annualizedRate === null || Number.isFinite(upgrades.investmentAnalytics(String(new Date().getFullYear())).lifetime.annualizedRate), true, "investment analytics must report unavailable results as null");
+assert.equal(upgrades.monthlyAttribution().unexplained, null, "monthly attribution must not fabricate missing month-end values");
 const batchDateObject=new Date(`${today}T00:00:00`);batchDateObject.setDate(batchDateObject.getDate()+70);const batchDate=core.localDate(batchDateObject);
 const batchResult=core.importEntries([{ date:batchDate, type:"expense", amount:47, account:"生活帳戶", merchant:"匯入批次撤銷測試", importSource:"測試 CSV" }]);
 assert.equal(Boolean(batchResult.importBatchId), true, "CSV imports must receive a reversible batch id");
@@ -296,6 +297,6 @@ assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credi
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
 assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
 assert.equal(financeCenterHtml.includes('data-exclude-bill-entry'), true, "credit-card statement entries must support excluding historical paid items from this bill");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v133"), true, "service worker cache must be bumped for finance intelligence upgrades");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v134"), true, "service worker cache must be bumped for finance intelligence upgrades");
 
 console.log("finance center regression test OK");

@@ -10,5 +10,7 @@ const result=ctx.monthlyCategoryStatistics(ledger,'2026-09','TWD','2026-09-08');
 assert.equal(result.expense.total,400);assert.equal(result.income.total,500);assert.equal(result.expense.rows[0].share,75);assert.equal(result.expense.rows[1].share,25);
 assert.equal(ctx.monthlyCategoryStatistics(ledger,'2026-09','USD','2026-09-08').expense.total,10);
 assert.equal(ctx.monthlyCategoryStatistics(ledger,'2025-01','TWD','2026-09-08').expense.rows.length,0);
+ledger.loanPayments=[{date:'2026-09-02',account:'USD',interest:300,principal:3000,rate:30}];
+assert.equal(ctx.monthlyCategoryStatistics(ledger,'2026-09','USD','2026-09-08').expense.total,20);
 for(const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new Function(match[1]);
 console.log('category statistics and inline syntax OK');

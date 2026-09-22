@@ -36,7 +36,7 @@
     const match = normalized.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
     return match ? `${match[1]}-${String(match[2]).padStart(2, "0")}-${String(match[3]).padStart(2, "0")}` : normalized.slice(0, 10);
   }
-  function entriesFromCsv(source) {
+  function entriesFromCsv(source, options = {}) {
     const rows = parseCsv(source);
     if (rows.length < 2) throw new Error("CSV 沒有可匯入的資料");
     const headers = rows[0].map(normalizeHeader);
@@ -54,6 +54,7 @@
       merchant: findColumn(headers, ["merchant", "商家", "來源", "交易說明", "摘要", "交易內容", "備註摘要"]),
       note: findColumn(headers, ["note", "備註", "說明"])
     };
+    Object.entries(options.mapping || {}).forEach(([key,header])=>{if(key in columns)columns[key]=headers.indexOf(normalizeHeader(header));});
     if (columns.date < 0 || (columns.amount < 0 && columns.income < 0 && columns.expense < 0)) throw new Error("CSV 至少需要日期與金額欄位");
     return rows.slice(1).map(cells => {
       const income = columns.income >= 0 ? number(cells[columns.income]) : 0;
@@ -87,7 +88,7 @@
   function prepareEntries(rows, ledger = {}, options = {}) {
     const activeAccounts=(ledger.accounts||[]).filter(row=>!row.archived),defaultAccount=options.defaultAccount||activeAccounts[0]?.name||"";
     return rows.map(row=>{
-      const account=(ledger.accounts||[]).find(item=>item.name===row.account&&!item.archived)?.name||defaultAccount;
+      const account=row.account || defaultAccount;
       const accountCurrency=(ledger.accounts||[]).find(item=>item.name===account)?.currency||"TWD";
       return {...row,account,category:suggestCategory(row,ledger),currency:row.currency||accountCurrency,importSuggested:!row.category};
     });
@@ -95,9 +96,47 @@
   function previewCsv(source, ledger = {}, options = {}) {
     const signature=row=>[String(row.date||"").slice(0,10),row.type==="income"?"income":"expense",Math.round(Number((row.transactionAmount??row.amount)||0)*100)/100,String(row.account||"").trim(),String(row.merchant||"").trim(),String(row.item||"").trim()].join("|").toLocaleLowerCase("zh-TW");
     const existing=new Set((ledger.entries||[]).map(signature)),seen=new Set(existing);
-    const rows=prepareEntries(entriesFromCsv(source),ledger,options).map(row=>{const key=signature(row),importDuplicate=seen.has(key);seen.add(key);return{...row,importDuplicate}});
+    const rows=prepareEntries(entriesFromCsv(source,options),ledger,options).map(row=>{const key=signature(row),importDuplicate=seen.has(key);seen.add(key);return{...row,importDuplicate}});
     return {rows,stats:{total:rows.length,suggested:rows.filter(row=>row.importSuggested).length,duplicates:rows.filter(row=>row.importDuplicate).length,income:rows.filter(row=>row.type==="income").length,expense:rows.filter(row=>row.type!=="income").length}};
   }
 
-  window.FinanceImport = Object.freeze({ parseCsv, entriesFromCsv, suggestCategory, prepareEntries, previewCsv });
+  const fields = { date:"日期",type:"類型",amount:"金額",income:"存入",expense:"提出",merchant:"商家／摘要",category:"分類",account:"帳戶",currency:"幣別",code:"代號",market:"市場",shares:"股數",price:"單價",fee:"手續費",tax:"稅",note:"備註" };
+  const templates = [
+    {id:"bank",name:"銀行收支",kind:"entries",mapping:{date:"交易日期",income:"存入",expense:"提出",merchant:"摘要",account:"帳戶",currency:"幣別"}},
+    {id:"card",name:"信用卡帳單",kind:"entries",mapping:{date:"交易日期",amount:"交易金額",merchant:"交易說明",account:"卡片",currency:"幣別"}},
+    {id:"broker",name:"券商交易",kind:"trades",mapping:{date:"日期",type:"買賣",code:"代號",market:"市場",shares:"股數",price:"單價",fee:"手續費",tax:"稅",account:"帳戶",currency:"幣別"}}
+  ];
+  function parseWorkbench(source, ledger, options={}) {
+    const csv=parseCsv(source),headers=csv[0]||[],mapping=options.mapping||{},kind=options.kind||"entries";
+    if(kind!=="trades")return prepareEntries(entriesFromCsv(source,{mapping}),ledger,options);
+    const cell=(cells,key)=>cells[headers.indexOf(mapping[key]||fields[key])]||"";
+    return csv.slice(1).map(cells=>({date:date(cell(cells,"date")),type:/sell|賣/i.test(cell(cells,"type"))?"sell":"buy",code:cell(cells,"code").trim().toUpperCase(),market:cell(cells,"market")||"TW",shares:number(cell(cells,"shares")),price:number(cell(cells,"price")),fee:number(cell(cells,"fee")),tax:number(cell(cells,"tax")),account:cell(cells,"account")||options.defaultAccount||"",currency:cell(cells,"currency")||"TWD",note:cell(cells,"note"),importSource:"券商 CSV"}));
+  }
+  function assess(rows, bundle, kind="entries") {
+    const existing=kind==="trades"?bundle.assets.purchaseRecords:bundle.ledger.entries,seen=new Set();
+    const signature=r=>kind==="trades"?[r.date,r.type,r.code,r.market,r.currency,r.shares,r.price,r.fee||0,r.tax||0,r.account||r.cashAccount||""].join("|"):[r.date,r.type,r.transactionAmount??r.amount,r.transactionCurrency||r.currency||r.accountCurrency||"TWD",r.account,r.merchant||"",r.item||""].join("|");
+    return rows.map((r,index)=>{
+      const row={...r},account=bundle.ledger.accounts.find(a=>a.name===row.account&&!a.archived),key=signature(row),match=existing.find(e=>signature(e)===key),repeated=seen.has(key);seen.add(key);
+      let error=!window.FinanceIntelligence.validDate(row.date)?"日期無效":!account?"帳戶不存在或已封存":!/^[A-Z]{3}$/.test(row.currency||"")?"幣別無效":"";
+      if(kind==="trades"&&(!row.code||!['TW','US','FUND','USD_FUND'].includes(row.market)||!['buy','sell'].includes(row.type)||!(Number(row.shares)>0)||!(Number(row.price)>0)||Number(row.fee)<0||Number(row.tax)<0))error="請確認代號、市場、股數、價格與費用";
+      if(kind!=="trades"&&(!(Number(row.amount)>0)||!['income','expense'].includes(row.type)))error="請確認金額及收支類型";
+      const candidates=kind==="trades"?[]:existing.filter(e=>e.account===row.account&&e.type===row.type&&(e.transactionCurrency||e.accountCurrency||"TWD")===row.currency&&Math.abs(Date.parse(e.date)-Date.parse(row.date))<=3*86400000&&Math.abs(Number(e.transactionAmount??e.amount)-Number(row.amount))<=Math.max(10,Number(row.amount)*0.02)).map(e=>({id:e.id,date:e.date,merchant:e.merchant,amount:Number(e.transactionAmount??e.amount),difference:Number(row.amount)-Number(e.transactionAmount??e.amount)}));
+      const status=error?"待確認":match?"配對":repeated?"疑似重複":candidates.length?"待確認":"新增";
+      return {...row,index,status,error,matchId:match?.id||"",candidates,action:row.action||(match?"match":repeated?"skip":status==="新增"?"add":"review")};
+    });
+  }
+  function saveTemplate(values) {
+    if(!String(values.name||"").trim())throw new Error("請輸入範本名稱");
+    const b=window.FinanceCore.load();b.ledger.importTemplates ||= [];
+    const row={id:`template-${Date.now()}`,name:String(values.name).trim(),kind:values.kind,mapping:values.mapping,createdAt:new Date().toISOString()};b.ledger.importTemplates.push(row);window.FinanceCore.persist(b.ledger,b.assets,"儲存匯入欄位範本");return row;
+  }
+  function commit(rows, kind, source) {
+    const core=window.FinanceCore,b=core.load(),checked=assess(rows,b,kind),selected=checked.filter(r=>r.action!=="skip");
+    if(selected.some(r=>r.error||!['add','match'].includes(r.action)))throw new Error("請先修正或略過所有待確認紀錄");
+    const matches=selected.filter(r=>r.action==="match").map(row=>{const id=row.selectedMatchId||row.matchId;if(!id||(id!==row.matchId&&!row.candidates.some(c=>c.id===id)))throw new Error("請選擇有效的配對紀錄");const original=(kind==="trades"?b.assets.purchaseRecords:b.ledger.entries).find(r=>r.id===id);if(!original)throw new Error("配對紀錄已變更，請重新檢查");return {kind,matchedId:id,date:row.date,account:row.account,currency:row.currency,statementAmount:Number(row.amount||0),recordedAmount:Number(original.transactionAmount??original.amount??0),difference:Number(row.amount||0)-Number(original.transactionAmount??original.amount??0),importSource:source};});
+    const additions=selected.filter(r=>r.action==="add").map(r=>({...r,importSource:source}));
+    const result=kind==="trades"?core.importTradeRows(additions,matches):core.importEntries(additions,matches);
+    return {...result,matched:selected.filter(r=>r.action==="match").length,skipped:checked.filter(r=>r.action==="skip").length};
+  }
+  window.FinanceImport = Object.freeze({ parseCsv, entriesFromCsv, suggestCategory, prepareEntries, previewCsv, fields, templates, parseWorkbench, assess, saveTemplate, commit });
 })();

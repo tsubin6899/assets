@@ -23,10 +23,11 @@
     const item = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, reason, updatedAt: change.updatedAt || new Date().toISOString() };
     return write({ ...state, phase: "pending", lastError: "", outbox: [...state.outbox, item] });
   }
-  function markSyncing() { const state = read(); return write({ ...state, phase: "syncing", lastError: "" }); }
-  function markSynced({ remoteUpdatedAt = "", comparison = null } = {}) {
+  function markSyncing() { const state = read(); return write({ ...state, phase: "syncing", inFlightIds:state.outbox.map(row=>row.id), lastError: "" }); }
+  function markSynced({ remoteUpdatedAt = "", comparison = null, acknowledgedIds } = {}) {
     const state = read();
-    return write({ ...state, phase: "synced", outbox: [], lastSyncedAt: new Date().toISOString(), lastRemoteUpdatedAt: remoteUpdatedAt, lastComparison:comparison || state.lastComparison, lastError: "", retryCount: 0 });
+    const sent=new Set(acknowledgedIds || state.inFlightIds || []),outbox=state.outbox.filter(row=>!sent.has(row.id));
+    return write({ ...state, phase: outbox.length?"pending":"synced", outbox, inFlightIds:[], lastSyncedAt: new Date().toISOString(), lastRemoteUpdatedAt: remoteUpdatedAt, lastComparison:comparison || state.lastComparison, lastError: "", retryCount: 0 });
   }
   function markError(error) {
     const state = read();
@@ -35,12 +36,12 @@
   function hasPending() { return read().outbox.length > 0; }
   function setRemoteVersions(versions = []) { const state=read();return write({ ...state, remoteVersions:versions.map(({ data, ...meta })=>meta).slice(0,5) }); }
 
-  const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","goals","annualPlans"];
-  const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots"];
-  const RECYCLE_KIND_BY_COLLECTION = { entries:"entry", transfers:"transfer", accounts:"account", creditBills:"creditBill", creditInstallments:"installment", templates:"template", recurringRules:"recurring", budgets:"budget", reconciliations:"reconciliation", creditStatementChecks:"creditStatementCheck" };
+  const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","loanPayments","goals","goalAllocationHistory","importTemplates","importReconciliations","annualPlans","monthCloseouts","categoryRules"];
+  const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots","financialSnapshots"];
+  const RECYCLE_KIND_BY_COLLECTION = { entries:"entry", transfers:"transfer", accounts:"account", creditBills:"creditBill", creditInstallments:"installment", templates:"template", recurringRules:"recurring", budgets:"budget", reconciliations:"reconciliation", creditStatementChecks:"creditStatementCheck", loans:"loan",goals:"goal",loanPayments:"loanPayment",importReconciliations:"importReconciliation" };
   function clone(value) { return JSON.parse(JSON.stringify(value || {})); }
-  function recordKey(row, index) { return String(row?.id || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
-  function recordTime(row) { return new Date(row?.updatedAt || row?.createdAt || row?.checkedAt || row?.date || 0).getTime() || 0; }
+  function recordKey(row, index) { return String(row?.id || row?.month || row?.year || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
+  function recordTime(row) { return new Date(row?.updatedAt || row?.capturedAt || row?.createdAt || row?.checkedAt || row?.date || 0).getTime() || 0; }
   function compareCollection(localRows = [], remoteRows = []) {
     const localMap=new Map(localRows.map((row,index)=>[recordKey(row,index),row])),remoteMap=new Map(remoteRows.map((row,index)=>[recordKey(row,index),row]));
     let localOnly=0,remoteOnly=0,conflicts=0,same=0;
@@ -52,6 +53,7 @@
     const details=[];
     LEDGER_COLLECTIONS.forEach(key=>{const row=compareCollection(localLedger[key],remoteLedger[key]);if(row.localOnly||row.remoteOnly||row.conflicts)details.push({scope:"ledger",collection:key,...row})});
     ASSET_COLLECTIONS.forEach(key=>{const row=compareCollection(localAssets[key],remoteAssets[key]);if(row.localOnly||row.remoteOnly||row.conflicts)details.push({scope:"assets",collection:key,...row})});
+    for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(JSON.stringify(a[key])!==JSON.stringify(b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,conflicts:1,same:0});}}
     return details.reduce((result,row)=>({localOnly:result.localOnly+row.localOnly,remoteOnly:result.remoteOnly+row.remoteOnly,conflicts:result.conflicts+row.conflicts,details}),{localOnly:0,remoteOnly:0,conflicts:0,details});
   }
   function mergeCollection(localRows = [], remoteRows = []) {
@@ -63,6 +65,9 @@
   function mergeBundles(localBundle = {}, remoteBundle = {}) {
     const localLedger=clone(localBundle.ledger||localBundle.accountingLedger||{}),remoteLedger=clone(remoteBundle.ledger||remoteBundle.accountingLedger||{}),localAssets=clone(localBundle.assets||localBundle),remoteAssets=clone(remoteBundle.assets||remoteBundle);
     const ledger={...remoteLedger,...localLedger},assets={...remoteAssets,...localAssets};
+    const localPayments=localLedger.loanPayments||[],remotePayments=remoteLedger.loanPayments||[];
+    const localNew=localPayments.filter(p=>!remotePayments.some(r=>r.id===p.id)),remoteNew=remotePayments.filter(p=>!localPayments.some(r=>r.id===p.id));
+    if(localNew.some(p=>remoteNew.some(r=>r.loanId===p.loanId)))throw new Error("同一貸款在兩端各有新增還款，無法安全合併本金；請先匯出備份並核對兩端還款紀錄");
     // Deletions are data too. Without these tombstones, an older cloud copy can
     // resurrect a transfer or entry that was deliberately removed on this device.
     ledger.recycleBin=mergeCollection(localLedger.recycleBin,remoteLedger.recycleBin);
@@ -71,7 +76,9 @@
       const kind=RECYCLE_KIND_BY_COLLECTION[key];
       ledger[key]=mergeCollection(localLedger[key],remoteLedger[key]).filter(row=>!kind||!deletedIds.has(`${kind}:${row.id||""}`));
     });
-    ASSET_COLLECTIONS.forEach(key=>{assets[key]=mergeCollection(localAssets[key],remoteAssets[key])});
+    ASSET_COLLECTIONS.forEach(key=>{assets[key]=mergeCollection(localAssets[key],remoteAssets[key]).filter(row=>key!=="purchaseRecords"||!deletedIds.has(`purchase:${row.id||""}`))});
+    assets.fxHistory={...(remoteAssets.fxHistory||{}),...(localAssets.fxHistory||{})};
+    for(const date of Object.keys(assets.fxHistory))assets.fxHistory[date]={...(remoteAssets.fxHistory?.[date]||{}),...(localAssets.fxHistory?.[date]||{})};
     ledger.categories={income:[...new Set([...(remoteLedger.categories?.income||[]),...(localLedger.categories?.income||[])])],expense:[...new Set([...(remoteLedger.categories?.expense||[]),...(localLedger.categories?.expense||[])])]};
     ledger.items={...(remoteLedger.items||{}),...(localLedger.items||{})};
     return { ledger, assets };
@@ -84,5 +91,19 @@
     return "尚未同步";
   }
 
-  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, hasPending, setRemoteVersions, compareBundles, mergeBundles, label });
+  function fingerprint(bundle) { return JSON.stringify({ledger:bundle.ledger,assets:bundle.assets}); }
+  function diffBundles(before, after) {
+    const rows=[];
+    for(const scope of ["ledger","assets"]){const a=before[scope]||{},b=after[scope]||{};
+      for(const key of new Set([...Object.keys(a),...Object.keys(b)])){
+        if(["auditJournal"].includes(key))continue;
+        if(Array.isArray(a[key])||Array.isArray(b[key])){
+          const left=new Map((Array.isArray(a[key])?a[key]:[]).map((r,i)=>[recordKey(r,i),r])),right=new Map((Array.isArray(b[key])?b[key]:[]).map((r,i)=>[recordKey(r,i),r]));
+          for(const id of new Set([...left.keys(),...right.keys()])){const old=left.get(id),next=right.get(id);if(JSON.stringify(old)===JSON.stringify(next))continue;rows.push({scope,collection:key,id,action:!old?"新增":!next?"刪除":"修改",before:old||null,after:next||null,title:next?.merchant||old?.merchant||next?.name||old?.name||next?.code||old?.code||id});}
+        }else if(JSON.stringify(a[key])!==JSON.stringify(b[key]))rows.push({scope,collection:key,id:key,action:"修改",before:a[key]??null,after:b[key]??null,title:key});
+      }
+    }
+    return rows;
+  }
+  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, fingerprint, label });
 })();

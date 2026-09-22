@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = 6;
+  const VERSION = 7;
   const KEYS = {
     ledger: "personal-accounting-tsubin-v1",
     assets: "personal-assets-dashboard-tsubin-v2",
@@ -13,7 +13,7 @@
   const emptyLedger = {
     entries: [], transfers: [], creditBills: [], creditInstallments: [], templates: [], recurringRules: [],
     budgets: [], reconciliations: [], creditStatementChecks: [], recycleBin: [], monthCloseouts: [],
-    loans: [], goals: [], annualPlans: [], auditJournal: [],
+    loans: [], loanPayments: [], goals: [], goalAllocationHistory: [], importTemplates: [], annualPlans: [], auditJournal: [],
     budgetRollovers: {}, categories: { income: [], expense: [] }, items: { income: {}, expense: {} },
     accounts: [], methods: []
   };
@@ -22,7 +22,7 @@
     // Backup reference rates prevent an unsupported currency from being
     // mistakenly valued at NT$1 per unit. Live market rates override these.
     fxRates: { TWD: 1, IDR: 0.00178, MYR: 7.48, MOP: 4.03 },
-    marketPrices: {}, marketDataMeta: {}, valuationCache: {},
+    marketPrices: {}, marketDataMeta: {}, valuationCache: {}, fxHistory: {}, financialSnapshots: [],
     tw: [], us: [], cash: [], cards: [], gold: [], silver: [], funds: [], usdFunds: [], dca: [],
     dcaTargets: [], dcaSchedules: [], purchaseRecords: [], dividends: [], assetSnapshots: [], budget: [],
     pnlCalendar: [], safety: { monthlyExpense: 0, safetyMonths: 6 },
@@ -303,7 +303,11 @@
         note: row.note || "", raw: row
       };
     });
-    return [...entries, ...transfers, ...investments, ...dividends].sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
+    const loanEvents = (ledger.loanPayments || []).flatMap(row => [
+      { id:`loan-interest:${row.id}`,sourceId:row.id,kind:"expense",date:row.date,title:`${row.name} 利息`,category:"貸款利息",account:row.account,currency:"TWD",amount:row.interest,twdAmount:row.interest,direction:-1,pending:row.date>localDate(),raw:row },
+      { id:`loan-principal:${row.id}`,sourceId:row.id,kind:"loan_principal",date:row.date,title:`${row.name} 本金償還`,category:"貸款本金",account:row.account,currency:"TWD",amount:row.principal,twdAmount:row.principal,direction:0,pending:row.date>localDate(),raw:row }
+    ]);
+    return [...entries, ...transfers, ...investments, ...dividends, ...loanEvents].map(row=>({...row,pending:Boolean(row.date&&row.date>localDate())})).sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
   }
 
   function accountBalances(ledger, assets, asOf = localDate()) {
@@ -336,16 +340,17 @@
       const tradeCurrency = normalizeCurrency(row.currency || marketCurrency(row.market));
       const gross = number(row.price) * number(row.shares);
       const cashFlow = row.type === "sell" ? gross - number(row.fee) - number(row.tax) : -(gross + number(row.fee) + number(row.tax));
-      const accountAmount = cashFlow * fxRate(assets, tradeCurrency) / fxRate(assets, account?.currency || "TWD");
+      const accountAmount = cashFlow * (number(row.bookedFxRate) || number(assets.fxHistory?.[row.date]?.[tradeCurrency]) || fxRate(assets, tradeCurrency)) / (number(row.bookedAccountFxRate) || number(assets.fxHistory?.[row.date]?.[account?.currency]) || fxRate(assets, account?.currency || "TWD"));
       balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + accountAmount);
     });
     (assets.dividends || []).filter(row => row.cashAccount && (!row.date || String(row.date) <= asOf)).forEach(row => {
       if (balances.has(row.cashAccount)) {
         const account = accountMap.get(row.cashAccount);
-        const accountAmount = number(row.amount) * fxRate(assets, row.currency || "TWD") / fxRate(assets, account?.currency || "TWD");
+        const accountAmount = number(row.amount) * (number(row.bookedFxRate) || number(assets.fxHistory?.[row.date]?.[row.currency]) || fxRate(assets, row.currency || "TWD")) / (number(row.bookedAccountFxRate) || number(assets.fxHistory?.[row.date]?.[account?.currency]) || fxRate(assets, account?.currency || "TWD"));
         balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + accountAmount);
       }
     });
+    (ledger.loanPayments || []).filter(row=>row.date<=asOf).forEach(row=>{if(balances.has(row.account))balances.set(row.account,number(balances.get(row.account))-number(row.amount));});
     return (ledger.accounts || []).map(account => ({ ...account, balance: number(balances.get(account.name)), twdBalance: number(balances.get(account.name)) * fxRate(assets, account.currency) }));
   }
 
@@ -390,7 +395,7 @@
     manual.forEach(row => { if (row.key && !manualByKey.has(row.key)) manualByKey.set(row.key, row); });
     const positions = new Map();
     const tradeDetails = [];
-    (assets.purchaseRecords || []).map((row, index) => ({ row, index })).sort((a, b) => String(a.row.date || "").localeCompare(String(b.row.date || "")) || a.index - b.index).forEach(({ row, index }) => {
+    (assets.purchaseRecords || []).map((row, index) => ({ row, index })).filter(({row})=>!row.date||row.date<=localDate()).sort((a, b) => String(a.row.date || "").localeCompare(String(b.row.date || "")) || a.index - b.index).forEach(({ row, index }) => {
       const key = stockTradeKey(row);
       const shares = Math.max(0, number(row.shares));
       if (!key || !shares) return;
@@ -679,6 +684,7 @@
   function persist(ledger, assets, reason = "資料更新", options = {}) {
     const normalizedLedger = ensureLedger(ledger);
     const normalizedAssets = ensureAssets(assets);
+    if (window.FinanceIntelligence) window.FinanceIntelligence.freezeNewRates(normalizedLedger, normalizedAssets, readJson(KEYS.assets, emptyAssets),readJson(KEYS.ledger,emptyLedger));
     const isMonthControl = /月結|還原/.test(reason);
     if (!isMonthControl) {
       const monthKey = value => String(value || "").slice(0, 7);
@@ -696,9 +702,12 @@
         if (JSON.stringify(currentRows) !== JSON.stringify(snapshotRows) || JSON.stringify(currentTransfers) !== JSON.stringify(snapshotTransfers)) {
           throw new Error(`${closedMonth} 已完成月結，請先重新開啟月份後再修改`);
         }
+        const payments = list => (list || []).filter(row=>monthKey(row.date)===closedMonth);
+        if (JSON.stringify(payments(normalizedLedger.loanPayments)) !== JSON.stringify(payments(snapshot.loanPayments))) throw new Error(`${closedMonth} 已完成月結，請先重新開啟月份後再修改還款`);
       }
     }
     if (options.backup !== false) createBackup(reason);
+    if (window.FinanceIntelligence && !/還原|匯入完整|歷史估值/.test(reason)) window.FinanceIntelligence.storeDaily(normalizedLedger, normalizedAssets);
     normalizedLedger.auditJournal.unshift({
       id: uid("journal"), reason, createdAt: nowIso(), deviceId: preferences().deviceId,
       counts: { entries: normalizedLedger.entries.length, accounts: normalizedLedger.accounts.length, trades: normalizedAssets.purchaseRecords.length }
@@ -869,10 +878,10 @@
   }
 
   function entrySignature(row) {
-    return [String(row.date || "").slice(0, 10), row.type === "income" ? "income" : "expense", Math.round(number(row.amount) * 100) / 100, String(row.account || "").trim(), String(row.merchant || "").trim(), String(row.item || "").trim()].join("|").toLocaleLowerCase("zh-TW");
+    return [String(row.date || "").slice(0, 10), row.type === "income" ? "income" : "expense", Math.round(number(row.transactionAmount ?? row.amount) * 100) / 100, row.transactionCurrency || row.accountCurrency || row.currency || "TWD", String(row.account || "").trim(), String(row.merchant || "").trim(), String(row.item || "").trim()].join("|").toLocaleLowerCase("zh-TW");
   }
 
-  function importEntries(rows = []) {
+  function importEntries(rows = [], matches = []) {
     const { ledger, assets } = load();
     const importBatchId = uid("import");
     const existing = new Set(ledger.entries.map(entrySignature));
@@ -890,13 +899,15 @@
       syncForeignCardFee(ledger, assets, row);
       imported += 1;
     });
-    if (imported) persist(ledger, assets, `匯入 ${imported} 筆收支紀錄`);
-    return { imported, duplicates, invalid, importBatchId: imported ? importBatchId : "" };
+    ledger.importReconciliations ||= [];
+    matches.forEach(row=>ledger.importReconciliations.push({...row,id:uid("match"),importBatchId,createdAt:nowIso()}));
+    if (imported || matches.length) persist(ledger, assets, `匯入 ${imported} 筆收支紀錄，配對 ${matches.length} 筆`);
+    return { imported, duplicates, invalid, importBatchId: imported || matches.length ? importBatchId : "" };
   }
 
   function importBatches() {
-    const { ledger } = load(), groups = new Map();
-    (ledger.entries || []).filter(row => row.importBatchId).forEach(row => {
+    const { ledger, assets } = load(), groups = new Map();
+    [...(ledger.entries || []),...(assets.purchaseRecords||[]),...(ledger.importReconciliations||[])].filter(row => row.importBatchId).forEach(row => {
       const group = groups.get(row.importBatchId) || { id:row.importBatchId, source:row.importSource || "CSV", importedAt:row.importedAt || row.createdAt || "", count:0, amount:0 };
       group.count += 1; group.amount += (row.type === "income" ? 1 : -1) * number(row.amount); groups.set(row.importBatchId, group);
     });
@@ -906,14 +917,30 @@
   function undoImportBatch(batchId) {
     const { ledger, assets } = load();
     const rows = (ledger.entries || []).filter(row => row.importBatchId === batchId);
-    if (!rows.length) throw new Error("找不到這個匯入批次");
+    const trades=(assets.purchaseRecords||[]).filter(row=>row.importBatchId===batchId);
+    const matches=(ledger.importReconciliations||[]).filter(row=>row.importBatchId===batchId);
+    if (!rows.length && !trades.length && !matches.length) throw new Error("找不到這個匯入批次");
+    matches.forEach(row=>recycle(ledger,"importReconciliation",row));
+    ledger.importReconciliations=(ledger.importReconciliations||[]).filter(row=>row.importBatchId!==batchId);
     const ids = new Set(rows.map(row => row.id));
     (ledger.entries || []).filter(row => row.derivedFromEntryId && ids.has(row.derivedFromEntryId)).forEach(row => { ids.add(row.id); rows.push(row); });
     rows.forEach(row => recycle(ledger, "entry", row));
     ledger.entries = ledger.entries.filter(row => !ids.has(row.id));
+    trades.forEach(row=>recycle(ledger,"purchase",row));
+    assets.purchaseRecords=assets.purchaseRecords.filter(row=>row.importBatchId!==batchId);
     amendClosedMonthSnapshots(ledger, rows.map(row => row.date));
     persist(ledger, assets, `撤銷匯入批次 ${batchId}`);
-    return { removed: ids.size };
+    return { removed: ids.size+trades.length+matches.length };
+  }
+
+  function importTradeRows(rows, matches = []) {
+    const {ledger,assets}=load(),batch=uid("import"),signature=r=>[r.date,r.type,r.code,r.market,r.currency,r.shares,r.price,r.fee||0,r.tax||0,r.cashAccount||r.account||""].join("|"),seen=new Set(assets.purchaseRecords.map(signature));
+    let imported=0,duplicates=0;
+    for(const source of rows){const row={...source,id:uid("trade"),cashAccount:source.account,importBatchId:batch,importedAt:nowIso(),createdAt:nowIso()};if(seen.has(signature(row))){duplicates++;continue;}seen.add(signature(row));assets.purchaseRecords.push(row);imported++;}
+    ledger.importReconciliations ||= [];
+    matches.forEach(row=>ledger.importReconciliations.push({...row,id:uid("match"),importBatchId:batch,createdAt:nowIso()}));
+    if(imported||matches.length)persist(ledger,assets,`匯入 ${imported} 筆券商 CSV 交易，配對 ${matches.length} 筆`);
+    return {imported,duplicates,invalid:0,importBatchId:imported||matches.length?batch:""};
   }
 
   function addTransfer(values) {
@@ -1026,6 +1053,8 @@
     ledger.reconciliations.forEach(row => { if (row.account === from) row.account = to; });
     ledger.creditStatementChecks.forEach(row => { if (row.card === from) row.card = to; });
     ledger.loans.forEach(row => { if (row.account === from) row.account = to; });
+    (ledger.loanPayments||[]).forEach(row=>{if(row.account===from)row.account=to;});
+    (ledger.goals||[]).forEach(row=>{if(row.linkedAccount===from)row.linkedAccount=to;});
     assets.purchaseRecords.forEach(row => { if (row.cashAccount === from) row.cashAccount = to; });
     assets.dividends.forEach(row => { if (row.cashAccount === from) row.cashAccount = to; });
     assets.cash.forEach(row => { if (row.bank === from) row.bank = to; });
@@ -1466,7 +1495,10 @@
     const { ledger, assets } = load();
     const snapshot = clone(ledger); snapshot.monthCloseouts = [];
     ledger.monthCloseouts = ledger.monthCloseouts.filter(row => row.month !== month);
-    ledger.monthCloseouts.unshift({ month, closedAt: nowIso(), ledger: snapshot });
+    const monthEnd = window.FinanceIntelligence?.day(window.FinanceIntelligence.monthDate(`${month}-01`,1),-1);
+    if (window.FinanceIntelligence && monthEnd === localDate()) window.FinanceIntelligence.storeDaily(ledger,assets);
+    const valuation = (assets.financialSnapshots || []).find(row=>row.date===monthEnd);
+    ledger.monthCloseouts.unshift({ month, closedAt: nowIso(), ledger: snapshot, valuation:valuation?clone(valuation):null, valuationStatus:valuation?"available":"missing" });
     return persist(ledger, assets, `完成 ${month} 月結`);
   }
 
@@ -1535,6 +1567,7 @@
   function addAssetSnapshot(values={}) { const {ledger,assets}=load(); const summary=assetSummary(ledger,assets); const date=values.date||localDate(); assets.assetSnapshots=assets.assetSnapshots.filter(row=>row.date!==date); assets.assetSnapshots.push({id:uid("snapshot"),date,total:summary.totalAssets,liabilities:summary.liabilities,net:summary.netWorth,createdAt:nowIso()}); return persist(ledger,assets,"建立資產快照"); }
 
   function listBackups() { return readJson(KEYS.backups, []).map(({ data, ...meta }) => meta); }
+  function readBackup(id) { const row=readJson(KEYS.backups,[]).find(item=>item.id===id);if(!row?.data)throw new Error("找不到指定還原點");return clone(row.data); }
   function restoreBackup(id) {
     const backup = readJson(KEYS.backups, []).find(row => row.id === id);
     if (!backup?.data) throw new Error("找不到指定還原點");
@@ -1637,7 +1670,7 @@
     return { unchanged: false, pricesUpdated, ratesUpdated, valuationsUpdated: Object.keys(valuations).length, generatedAt };
   }
 
-  function importBundle(payload) {
+  function previewBundle(payload) {
     const current = load();
     let ledger = current.ledger;
     let assets = current.assets;
@@ -1648,8 +1681,9 @@
       if (payload.accountingLedger) ledger = payload.accountingLedger;
     } else if (payload?.entries || payload?.accounts) ledger = payload;
     else throw new Error("無法辨識此財務存檔格式");
-    return persist(ledger, assets, "匯入完整財務存檔");
+    return {ledger:ensureLedger(clone(ledger)),assets:ensureAssets(clone(assets))};
   }
+  function importBundle(payload) { const {ledger,assets}=previewBundle(payload);return persist(ledger,assets,"還原／匯入完整財務存檔"); }
 
   function exportBundle() {
     const current = load();
@@ -1674,14 +1708,14 @@
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
-    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
+    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
     addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
     marketSymbols, applyMarketSnapshot,
-    createBackup, listBackups, restoreBackup, importBundle,
+    createBackup, listBackups, readBackup, restoreBackup, importBundle, previewBundle,
     exportBundle, localDate, monthOf, fxRate, financialForecast, investmentPerformance, financialHealth
   };
 })();
