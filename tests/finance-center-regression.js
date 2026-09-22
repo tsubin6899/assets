@@ -297,6 +297,6 @@ assert.equal(financeCenterHtml.includes('row.account===bill.card'), true, "credi
 assert.equal(financeCenterHtml.includes('String(a.date||"").localeCompare(String(b.date||""))||String(a.id||"").localeCompare(String(b.id||""))'), true, "credit-card statement rows must be sorted by date");
 assert.equal(financeCenterHtml.includes('data-toggle-bill-reconciled'), true, "credit-card bills must expose a completed-reconciliation action");
 assert.equal(financeCenterHtml.includes('data-exclude-bill-entry'), true, "credit-card statement entries must support excluding historical paid items from this bill");
-assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v135"), true, "service worker cache must be bumped for finance intelligence upgrades");
+assert.equal(fs.readFileSync("service-worker.js", "utf8").includes("tsubin-finance-center-v136"), true, "service worker cache must be bumped for finance intelligence upgrades");
 
 console.log("finance center regression test OK");

@@ -4,7 +4,8 @@ const ctx={Date,Map,Number,String,ui:{calendarMonth:'2026-10',selectedDate:'2026
 vm.createContext(ctx);vm.runInContext(html.slice(html.indexOf('    function renderDailyCalendar('),html.indexOf('    function recurringRuleStatus(')),ctx);
 let output=ctx.renderDailyCalendar('');
 const cell=output.match(/<button class="calendar-day[^>]*data-calendar-date="2026-10-05"[\s\S]*?<\/button>/)[0];
-assert.match(cell,/待繳 Test Card/);assert.match(cell,/1234/);assert.match(output,/Test Card 信用卡繳款/);assert.match(output,/扣款帳戶：Bank/);assert.match(output,/已入帳支出<\/span><strong[^>]*>0/);assert.ok(!output.includes('預支 1234'));assert.match(output,/accounts\/credit/);
-ctx.current.ledger.creditBills[0].paid=true;output=ctx.renderDailyCalendar('');assert.match(output,/已繳 Test Card/);assert.match(output,/已繳款/);
+assert.match(cell,/待繳卡費 1234/);assert.ok(!cell.includes('>Test Card<'));assert.match(cell,/title="Test Card 1234"/);assert.match(output,/Test Card 信用卡繳款/);assert.match(output,/扣款帳戶：Bank/);assert.match(output,/已入帳支出<\/span><strong[^>]*>0/);assert.ok(!output.includes('預支 1234'));assert.match(output,/accounts\/credit/);
+ctx.current.ledger.creditBills[0].paid=true;output=ctx.renderDailyCalendar('');assert.match(output,/已繳卡費 1234/);assert.match(output,/已繳款/);
+ctx.current.ledger.creditBills.push({id:'bill-2',card:'Second Card',billMonth:'2026-09',dueDate:'2026-10-05',amount:766,payAccount:'Bank',paid:false});output=ctx.renderDailyCalendar('');assert.match(output,/待繳卡費 2 筆 2000/);assert.ok(!output.match(/calendar-bill-summary[^>]*>[^<]*(Test Card|Second Card)/));
 ctx.ui.calendarMonth='2026-09';ctx.ui.selectedDate='2026-09-05';assert.ok(!ctx.renderDailyCalendar('').includes('Test Card'));
 console.log('calendar credit bills OK: due date, selected details, paid status, no duplicate expense');
