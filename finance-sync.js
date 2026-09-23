@@ -86,6 +86,20 @@
     // A stale device may still carry the generated fee after its parent was deleted.
     ledger.entries=ledger.entries.filter(row=>!(row.isForeignTransactionFee&&row.derivedFromEntryId&&deletedIds.has(`entry:${row.derivedFromEntryId}`)));
     ASSET_COLLECTIONS.forEach(key=>{assets[key]=mergeCollection(localAssets[key],remoteAssets[key]).filter(row=>key!=="purchaseRecords"||!deletedIds.has(`purchase:${row.id||""}`))});
+    // Older asset and ledger arrays are still present in saved cloud bundles.
+    // Empty defaults on a newer device must not erase those remote records.
+    for(const [result,local,remote,handled] of [
+      [ledger,localLedger,remoteLedger,new Set([...LEDGER_COLLECTIONS,"recycleBin","auditJournal"])],
+      [assets,localAssets,remoteAssets,new Set([...ASSET_COLLECTIONS,"auditJournal"])]
+    ]){
+      for(const key of new Set([...Object.keys(local),...Object.keys(remote)])){
+        if(handled.has(key)||!Array.isArray(local[key])&&!Array.isArray(remote[key]))continue;
+        const left=Array.isArray(local[key])?local[key]:[],right=Array.isArray(remote[key])?remote[key]:[];
+        if(!left.length)result[key]=clone(right);
+        else if(!right.length||equalData(left,right))result[key]=clone(left);
+        else throw new Error(`舊版資料 ${key} 在本機與雲端皆有不同內容，請先核對後再同步`);
+      }
+    }
     assets.fxHistory={...(remoteAssets.fxHistory||{}),...(localAssets.fxHistory||{})};
     for(const date of Object.keys(assets.fxHistory))assets.fxHistory[date]={...(remoteAssets.fxHistory?.[date]||{}),...(localAssets.fxHistory?.[date]||{})};
     ledger.categories={income:[...new Set([...(remoteLedger.categories?.income||[]),...(localLedger.categories?.income||[])])],expense:[...new Set([...(remoteLedger.categories?.expense||[]),...(localLedger.categories?.expense||[])])]};

@@ -29,5 +29,11 @@ function setup(options={}){
   t=setup({remote:{ledger:{entries:[{id:'local',amount:40}]},assets:{}},remoteUpdatedAt:'2026-09-22T05:00:00+00:00',returnedAt:'2026-09-22T06:00:00+00:00'});t.S.markSynced({remoteUpdatedAt:'2026-09-22T05:00:00.000Z',acknowledgedIds:[]});t.S.enqueue({reason:'same timestamp spelling'});assert.equal(await t.context.saveCloud(true),true);assert.equal(t.S.read().lastRemoteUpdatedAt,'2026-09-22T06:00:00+00:00');assert.equal(t.S.read().phase,'synced');
   const localChecked={ledger:{entries:[{id:'card-entry',amount:500,createdAt:'2026-08-01T00:00:00Z'}],creditBills:[{id:'bill',reconciled:false,createdAt:'2026-08-01T00:00:00Z'}]},assets:{}},remoteChecked={ledger:{entries:[{id:'card-entry',amount:500,createdAt:'2026-08-01T00:00:00Z',statementChecks:{bill:{checkedAt:'2026-09-22T04:00:00Z'}}}],creditBills:[{id:'bill',reconciled:true,reconciledAt:'2026-09-22T04:01:00Z'}]},assets:{}};
   assert.equal(t.S.compareBundles(localChecked,remoteChecked).conflicts,0);const mergedChecked=t.S.mergeBundles(localChecked,remoteChecked);assert.ok(mergedChecked.ledger.entries[0].statementChecks.bill);assert.equal(mergedChecked.ledger.creditBills[0].reconciled,true);
+  const localLegacy={ledger:{entries:[],methods:[]},assets:{dca:[],budget:[],pnlCalendar:[]}},remoteLegacy={ledger:{entries:[],methods:[{name:'bank'}]},assets:{dca:[{name:'plan'}],budget:[{category:'food'}],pnlCalendar:[{date:'2026-07-01',amount:3}]}};
+  const mergedLegacy=t.S.mergeBundles(localLegacy,remoteLegacy);
+  assert.equal(mergedLegacy.ledger.methods.length,1);assert.equal(mergedLegacy.assets.dca.length,1);
+  assert.equal(mergedLegacy.assets.budget.length,1);assert.equal(mergedLegacy.assets.pnlCalendar.length,1);
+  assert.ok(!t.S.diffBundles(remoteLegacy,mergedLegacy).some(row=>row.action==='刪除'));
+  assert.throws(()=>t.S.mergeBundles({...localLegacy,ledger:{entries:[],methods:[{name:'cash'}]}},remoteLegacy),/舊版資料 methods/);
   console.log('cloud flow regression OK: preview, cancellation, compare-and-swap, concurrent edit, settings conflict, loan conflict, key order, stale timer, render failure');
 })().catch(error=>{console.error(error);process.exitCode=1;});

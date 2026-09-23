@@ -855,15 +855,32 @@
 
   function repairOrphanForeignCardFees() {
     const {ledger,assets}=load();
-    const parents=new Set(ledger.entries.filter(row=>!row.isForeignTransactionFee).map(row=>row.id));
-    const orphaned=ledger.entries.filter(row=>row.isForeignTransactionFee&&row.derivedFromEntryId&&!parents.has(row.derivedFromEntryId));
-    if(!orphaned.length)return {changed:false,removed:0};
-    const ids=new Set(orphaned.map(row=>row.id));
-    orphaned.forEach(row=>recycle(ledger,"entry",row));
+    const parents=new Map(ledger.entries.filter(row=>!row.isForeignTransactionFee).map(row=>[row.id,row]));
+    const grouped=new Map(),invalid=[];
+    ledger.entries.filter(row=>row.isForeignTransactionFee&&row.derivedFromEntryId).forEach(row=>{
+      if(!parents.has(row.derivedFromEntryId)){invalid.push(row);return}
+      const group=grouped.get(row.derivedFromEntryId)||[];
+      group.push(row);grouped.set(row.derivedFromEntryId,group);
+    });
+    grouped.forEach((group,parentId)=>{
+      if(group.length<2)return;
+      const expected=Math.round(number(parents.get(parentId).amount)*1.5)/100;
+      group.sort((a,b)=>{
+        const distance=Math.abs(number(a.amount)-expected)-Math.abs(number(b.amount)-expected);
+        if(Math.abs(distance)>0.000001)return distance;
+        const checked=Object.keys(b.statementChecks||{}).length-Object.keys(a.statementChecks||{}).length;
+        if(checked)return checked;
+        return String(b.updatedAt||b.createdAt||"").localeCompare(String(a.updatedAt||a.createdAt||""));
+      });
+      invalid.push(...group.slice(1));
+    });
+    if(!invalid.length)return {changed:false,removed:0};
+    const ids=new Set(invalid.map(row=>row.id));
+    invalid.forEach(row=>recycle(ledger,"entry",row));
     ledger.entries=ledger.entries.filter(row=>!ids.has(row.id));
-    amendClosedMonthSnapshots(ledger,orphaned.map(row=>row.date));
-    persist(ledger,assets,"修復原交易已刪除的國外刷卡手續費");
-    return {changed:true,removed:orphaned.length};
+    amendClosedMonthSnapshots(ledger,invalid.map(row=>row.date));
+    persist(ledger,assets,"修復重複或失去原交易的國外刷卡手續費");
+    return {changed:true,removed:invalid.length};
   }
 
   function saveEntryTemplate(id) {
