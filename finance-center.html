@@ -256,7 +256,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
   <script src="finance-center-routes.js?v=2"></script>
-  <script src="finance-core.js?v=27"></script>
+  <script src="finance-core.js?v=28"></script>
   <script src="finance-intelligence.js?v=1"></script>
   <script src="finance-upgrades.js?v=2"></script>
   <script src="finance-storage.js?v=1"></script>
@@ -926,10 +926,10 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     if(startupCardRepair.changed||startupRecurringRepair.changed||startupFeeRepair.changed)current=FinanceCore.insights();
     FinanceIntelligenceUI.init({refresh,toast:showToast});
     FinanceStorage.init(); loadStorageRevisions(false); readRoute(); initCloud(); armPrivacyTimer();
-    if(startupCardRepair.changed||startupRecurringRepair.changed||startupFeeRepair.changed)showToast(`已修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄、${startupFeeRepair.removed} 筆重複或失去原交易的手續費；原資料已備份`);
+    if(startupCardRepair.changed||startupRecurringRepair.changed||startupFeeRepair.changed)showToast(`已修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄、${startupFeeRepair.removed} 筆重複或失去原交易的手續費，並校正 ${startupFeeRepair.recalculated||0} 筆台幣手續費；原資料已備份`);
     FinanceNotifications.check(current.alerts);
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=141").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=142").catch(()=>{});
   </script>
 </body>
 </html>

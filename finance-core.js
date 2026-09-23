@@ -768,7 +768,7 @@
     const account = ledger.accounts.find(row => row.name === entry.account);
     if (account?.type !== "信用卡" || entry.type !== "expense" || entry.purchaseRegion !== "foreign") return;
     const feeRate = 0.015;
-    const feeAmount = Math.round(number(entry.amount) * feeRate * 100) / 100;
+    const feeAmount = calculateForeignCardFee(entry, feeRate);
     if (!feeAmount) return;
     ledger.entries.push({
       id: uid("entry"), type: "expense", date: entry.date, amount: feeAmount,
@@ -783,6 +783,12 @@
     ledger.categories.expense = unique([...(ledger.categories.expense || []), "手續費"]);
     ledger.items.expense = ledger.items.expense || {};
     ledger.items.expense["手續費"] = unique([...(ledger.items.expense["手續費"] || []), "國外刷卡手續費"]);
+  }
+
+  function calculateForeignCardFee(entry, feeRate = 0.015) {
+    const fee = number(entry.amount) * feeRate;
+    const currency = entry.accountCurrency || "TWD";
+    return currency === "TWD" ? Math.round(fee) : Math.round(fee * 100) / 100;
   }
 
   function rememberEntryTaxonomy(ledger, row) {
@@ -862,9 +868,21 @@
       const group=grouped.get(row.derivedFromEntryId)||[];
       group.push(row);grouped.set(row.derivedFromEntryId,group);
     });
+    let recalculated=0;
     grouped.forEach((group,parentId)=>{
-      if(group.length<2)return;
-      const expected=Math.round(number(parents.get(parentId).amount)*1.5)/100;
+      const parent=parents.get(parentId);
+      const feeRate=number(group[0].feeRate)||0.015;
+      const expected=calculateForeignCardFee(parent,feeRate);
+      if(group.length<2){
+        const row=group[0];
+        if(Math.abs(number(row.amount)-expected)>0.000001){
+          row.amount=expected;
+          row.transactionAmount=expected;
+          row.updatedAt=nowIso();
+          recalculated++;
+        }
+        return;
+      }
       group.sort((a,b)=>{
         const distance=Math.abs(number(a.amount)-expected)-Math.abs(number(b.amount)-expected);
         if(Math.abs(distance)>0.000001)return distance;
@@ -874,13 +892,13 @@
       });
       invalid.push(...group.slice(1));
     });
-    if(!invalid.length)return {changed:false,removed:0};
+    if(!invalid.length&&!recalculated)return {changed:false,removed:0,recalculated:0};
     const ids=new Set(invalid.map(row=>row.id));
     invalid.forEach(row=>recycle(ledger,"entry",row));
     ledger.entries=ledger.entries.filter(row=>!ids.has(row.id));
-    amendClosedMonthSnapshots(ledger,invalid.map(row=>row.date));
+    amendClosedMonthSnapshots(ledger,[...invalid.map(row=>row.date),...Array.from(grouped.values()).flat().filter(row=>row.updatedAt).map(row=>row.date)]);
     persist(ledger,assets,"修復重複或失去原交易的國外刷卡手續費");
-    return {changed:true,removed:invalid.length};
+    return {changed:true,removed:invalid.length,recalculated};
   }
 
   function saveEntryTemplate(id) {
