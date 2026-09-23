@@ -69,6 +69,12 @@
     localRows.forEach((row,index)=>{const key=recordKey(row,index),remote=merged.get(key);if(!remote||recordTime(row)>=recordTime(remote))merged.set(key,clone(row))});
     return [...merged.values()];
   }
+  function mergeLegacyWatchlist(localRows = [], remoteRows = []) {
+    const merged=new Map(),keyOf=(row,index)=>String(row?.code||row?.symbol||row?.ticker||row?.id||row?.name||index).trim().toUpperCase();
+    remoteRows.forEach((row,index)=>merged.set(keyOf(row,index),clone(row)));
+    localRows.forEach((row,index)=>{const key=keyOf(row,index),remote=merged.get(key);if(!remote||recordTime(row)>=recordTime(remote))merged.set(key,clone(row));});
+    return [...merged.values()];
+  }
   function mergeBundles(localBundle = {}, remoteBundle = {}) {
     const localLedger=clone(localBundle.ledger||localBundle.accountingLedger||{}),remoteLedger=clone(remoteBundle.ledger||remoteBundle.accountingLedger||{}),localAssets=clone(localBundle.assets||localBundle),remoteAssets=clone(remoteBundle.assets||remoteBundle);
     const ledger={...remoteLedger,...localLedger},assets={...remoteAssets,...localAssets};
@@ -95,7 +101,8 @@
       for(const key of new Set([...Object.keys(local),...Object.keys(remote)])){
         if(handled.has(key)||!Array.isArray(local[key])&&!Array.isArray(remote[key]))continue;
         const left=Array.isArray(local[key])?local[key]:[],right=Array.isArray(remote[key])?remote[key]:[];
-        if(!left.length)result[key]=clone(right);
+        if(["twWatchlist","usWatchlist"].includes(key))result[key]=mergeLegacyWatchlist(left,right);
+        else if(!left.length)result[key]=clone(right);
         else if(!right.length||equalData(left,right))result[key]=clone(left);
         else throw new Error(`舊版資料 ${key} 在本機與雲端皆有不同內容，請先核對後再同步`);
       }
