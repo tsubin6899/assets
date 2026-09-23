@@ -169,6 +169,16 @@
     return { linked, removed, changed: true };
   }
   function number(value) { const result = Number(value); return Number.isFinite(result) ? result : 0; }
+  // Financial amounts use integer minor units when summing to avoid binary
+  // floating-point drift (for example 0.1 + 0.2). Round only at currency
+  // posting boundaries; valuation and FX calculations keep their precision.
+  function roundMoney(value, fractionDigits = 2) {
+    const scale = 10 ** fractionDigits;
+    return Math.round((number(value) + Number.EPSILON * Math.sign(number(value))) * scale) / scale;
+  }
+  function sumMoney(rows, amountOf = row => row) {
+    return roundMoney(rows.reduce((sum, row) => sum + Math.round(number(amountOf(row)) * 100), 0) / 100);
+  }
   function normalizeCurrency(value) { return String(value || "TWD").trim().toUpperCase() || "TWD"; }
   function unique(list) { return [...new Set((list || []).filter(Boolean))]; }
 
@@ -748,10 +758,10 @@
     const accountCurrency = normalizeCurrency(account?.currency || existing.accountCurrency || "TWD");
     const transactionCurrency = normalizeCurrency(values.currency || values.transactionCurrency || accountCurrency);
     const transactionAmount = Math.max(0, number(values.amount ?? values.transactionAmount ?? existing.transactionAmount ?? existing.amount));
-    const bookedAmount = transactionAmount * fxRate(assets, transactionCurrency) / fxRate(assets, accountCurrency);
+    const bookedAmount = roundMoney(transactionAmount * fxRate(assets, transactionCurrency) / fxRate(assets, accountCurrency));
     const purchaseRegion = values.purchaseRegion === "foreign" ? "foreign" : "domestic";
     return {
-      type, date: values.date || existing.date || localDate(), amount: Math.round(bookedAmount * 100) / 100,
+      type, date: values.date || existing.date || localDate(), amount: bookedAmount,
       transactionAmount, transactionCurrency, accountCurrency, exchangeRate: fxRate(assets, transactionCurrency),
       category: values.category || existing.category || "未分類", item: values.item || existing.item || "",
       account: accountName, merchant: values.merchant || existing.merchant || "", note: values.note || existing.note || "",
@@ -786,9 +796,9 @@
   }
 
   function calculateForeignCardFee(entry, feeRate = 0.015) {
-    const fee = number(entry.amount) * feeRate;
+    const fee = roundMoney(number(entry.amount) * feeRate, 4);
     const currency = entry.accountCurrency || "TWD";
-    return currency === "TWD" ? Math.round(fee) : Math.round(fee * 100) / 100;
+    return currency === "TWD" ? Math.round(fee) : roundMoney(fee);
   }
 
   function rememberEntryTaxonomy(ledger, row) {
@@ -1568,7 +1578,7 @@
   function upsertCreditStatementCheck(ledger, values) {
     const billMonth = String(values.billMonth || monthOf()).slice(0, 7), card = values.card || "";
     const entries = creditBillEntriesForPeriod(ledger, card, billMonth).sort((a, b) => String(a.date || "").localeCompare(String(b.date || "")) || String(a.id || "").localeCompare(String(b.id || "")));
-    const appAmount = entries.reduce((sum, row) => sum + (row.type === "expense" ? number(row.amount) : -number(row.amount)), 0);
+    const appAmount = sumMoney(entries, row => (row.type === "expense" ? 1 : -1) * number(row.amount));
     const statementAmount = number(values.statementAmount), existing = ledger.creditStatementChecks.find(row => row.creditBillId === values.creditBillId || (!values.creditBillId && row.card === card && row.billMonth === billMonth));
     const matchedEntries = entries.map(row => ({ id: row.id || "", date: row.date || "", type: row.type === "income" ? "income" : "expense", category: row.category || "未分類", item: row.item || "", merchant: row.merchant || "", amount: number(row.amount), note: row.note || "" }));
     const data = { id: existing?.id || uid("statement"), creditBillId: values.creditBillId || existing?.creditBillId || "", card, billMonth, statementAmount, appAmount, diff: statementAmount - appAmount, matchedKeys: matchedEntries.map(row => row.id).filter(Boolean), matchedEntries, rowCount: entries.length, matchedAmount: appAmount, note: values.note || "", checkedAt: nowIso(), updatedAt: nowIso() };
@@ -1770,6 +1780,6 @@
     addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
     marketSymbols, applyMarketSnapshot,
     createBackup, listBackups, readBackup, restoreBackup, importBundle, previewBundle,
-    exportBundle, localDate, monthOf, fxRate, financialForecast, investmentPerformance, financialHealth
+    exportBundle, localDate, monthOf, fxRate, roundMoney, sumMoney, financialForecast, investmentPerformance, financialHealth
   };
 })();
