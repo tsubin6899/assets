@@ -83,6 +83,8 @@
       const kind=RECYCLE_KIND_BY_COLLECTION[key];
       ledger[key]=mergeCollection(localLedger[key],remoteLedger[key]).filter(row=>!kind||!deletedIds.has(`${kind}:${row.id||""}`));
     });
+    // A stale device may still carry the generated fee after its parent was deleted.
+    ledger.entries=ledger.entries.filter(row=>!(row.isForeignTransactionFee&&row.derivedFromEntryId&&deletedIds.has(`entry:${row.derivedFromEntryId}`)));
     ASSET_COLLECTIONS.forEach(key=>{assets[key]=mergeCollection(localAssets[key],remoteAssets[key]).filter(row=>key!=="purchaseRecords"||!deletedIds.has(`purchase:${row.id||""}`))});
     assets.fxHistory={...(remoteAssets.fxHistory||{}),...(localAssets.fxHistory||{})};
     for(const date of Object.keys(assets.fxHistory))assets.fxHistory[date]={...(remoteAssets.fxHistory?.[date]||{}),...(localAssets.fxHistory?.[date]||{})};

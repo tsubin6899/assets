@@ -762,6 +762,8 @@
   }
 
   function syncForeignCardFee(ledger, assets, entry) {
+    const previous = ledger.entries.filter(row => row.isForeignTransactionFee && row.derivedFromEntryId === entry.id);
+    previous.forEach(row => recycle(ledger, "entry", row));
     ledger.entries = ledger.entries.filter(row => !(row.isForeignTransactionFee && row.derivedFromEntryId === entry.id));
     const account = ledger.accounts.find(row => row.name === entry.account);
     if (account?.type !== "信用卡" || entry.type !== "expense" || entry.purchaseRegion !== "foreign") return;
@@ -849,6 +851,19 @@
     ledger.entries = ledger.entries.filter(row => !ids.has(row.id));
     amendClosedMonthSnapshots(ledger, [target.date, ...linked.map(row => row.date)]);
     return persist(ledger, assets, "刪除收支紀錄（同步修正月結快照）");
+  }
+
+  function repairOrphanForeignCardFees() {
+    const {ledger,assets}=load();
+    const parents=new Set(ledger.entries.filter(row=>!row.isForeignTransactionFee).map(row=>row.id));
+    const orphaned=ledger.entries.filter(row=>row.isForeignTransactionFee&&row.derivedFromEntryId&&!parents.has(row.derivedFromEntryId));
+    if(!orphaned.length)return {changed:false,removed:0};
+    const ids=new Set(orphaned.map(row=>row.id));
+    orphaned.forEach(row=>recycle(ledger,"entry",row));
+    ledger.entries=ledger.entries.filter(row=>!ids.has(row.id));
+    amendClosedMonthSnapshots(ledger,orphaned.map(row=>row.date));
+    persist(ledger,assets,"修復原交易已刪除的國外刷卡手續費");
+    return {changed:true,removed:orphaned.length};
   }
 
   function saveEntryTemplate(id) {
@@ -1712,7 +1727,7 @@
   window.FinanceCore = {
     VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
-    addEntry, updateEntry, removeEntry, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
+    addEntry, updateEntry, removeEntry, repairOrphanForeignCardFees, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
