@@ -193,6 +193,21 @@
       .mobile-nav button{display:flex;min-width:0;max-width:100%;padding:0 2px;overflow:hidden;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:0;border-radius:15px;color:#526076;background:transparent;font-size:10px;font-weight:800}.mobile-nav button span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mobile-nav svg{width:21px;height:21px;flex:0 0 21px}.mobile-nav button.active{color:#fff;background:linear-gradient(145deg,#17284b,#2b4778);box-shadow:0 8px 17px rgba(23,40,75,.25)}
       .mobile-nav button[data-domain="daily"].active{background:linear-gradient(145deg,#c9504a,#e47761)}.mobile-nav button[data-domain="accounts"].active{background:linear-gradient(145deg,#107f78,#1eaa8b)}.mobile-nav button[data-domain="investments"].active{background:linear-gradient(145deg,#5548a8,#3979ed)}.mobile-nav button[data-domain="analysis"].active{background:linear-gradient(145deg,#6e52bb,#8d65ce)}
       .toast{right:12px;bottom:calc(136px + env(safe-area-inset-bottom));left:12px;max-width:none}
+      .quick-entry-layout{grid-template-columns:minmax(0,1fr)}.quick-entry-side{display:none}
+      .quick-page-heading p{display:none}
+      #quickEntryForm.quick-entry-page{padding:11px;border-radius:15px}
+      #quickEntryForm.quick-entry-page .template-strip{margin:-1px 0 8px;padding-bottom:2px}
+      #quickEntryForm.quick-entry-page .segmented{margin-bottom:8px;padding:3px}
+      #quickEntryForm.quick-entry-page .segmented span{padding:7px}
+      #quickEntryForm.quick-entry-page .form-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+      #quickEntryForm.quick-entry-page .form-grid label{gap:4px;font-size:11px}
+      #quickEntryForm.quick-entry-page .form-grid input,#quickEntryForm.quick-entry-page .form-grid select{height:39px;min-height:39px;padding:7px 9px;border-radius:9px;font-size:13px}
+      #quickEntryForm.quick-entry-page .form-grid .quick-field-account,#quickEntryForm.quick-entry-page .form-grid .quick-field-merchant,#quickEntryForm.quick-entry-page .form-grid .quick-field-region,#quickEntryForm.quick-entry-page .form-grid .quick-field-note,#quickEntryForm.quick-entry-page .form-grid .exchange-note{grid-column:1/-1}
+      #quickEntryForm.quick-entry-page .exchange-note{padding:6px 9px;font-size:10px}
+      #quickEntryForm.quick-entry-page .quick-note summary{padding:4px 0;color:var(--muted);font-size:11px;font-weight:750;cursor:pointer}
+      #quickEntryForm.quick-entry-page .quick-note textarea{min-height:54px;margin-top:5px}
+      #quickEntryForm.quick-entry-page>button[type="submit"]{min-height:44px;margin-top:9px!important}
+      #quickEntryForm.quick-entry-page>button[data-cancel-entry]{min-height:38px;margin-top:6px!important}
     }
     @media(max-width:900px){.calendar-layout{grid-template-columns:1fr}.calendar-day{height:92px;min-height:92px}}
     @media(max-width:720px){.calendar-weekdays,.calendar-grid{gap:5px}.calendar-day-lines{margin-top:7px}.trade-detail-card{align-items:stretch}.trade-result{width:100%;text-align:left}.account-picker-dialog{width:calc(100% - 24px);max-width:440px;max-height:82vh;margin:auto;padding:0;border:1px solid #d8e1e8;border-radius:18px;background:#fffdf8;color:var(--ink);box-shadow:0 24px 64px rgba(16,34,61,.3)}.account-picker-dialog::backdrop{background:rgba(16,28,52,.48);backdrop-filter:blur(3px)}.account-picker-shell{display:flex;max-height:82vh;flex-direction:column}.account-picker-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 11px;border-bottom:1px solid #e2e9ef}.account-picker-head h3{margin:0;font-size:16px}.account-picker-close{width:32px;height:32px;border:1px solid #d5dfe8;border-radius:50%;color:var(--muted);background:#fff;font-size:18px;line-height:1}.account-picker-options{overflow-y:auto;padding:6px 10px 12px}.account-picker-group{padding:10px 8px 5px;color:#52647a;font-size:11px;font-weight:800}.account-picker-option{display:flex;width:100%;min-height:40px;align-items:center;justify-content:space-between;gap:10px;padding:7px 8px;border:0;border-bottom:1px solid #eef2f4;color:var(--ink);background:transparent;text-align:left;font-size:12px;line-height:1.25}.account-picker-option span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.account-picker-option[aria-selected="true"]{color:#245bb8;background:#edf5ff;font-weight:800}.account-picker-option .picker-currency{flex:0 0 auto;color:var(--muted);font-size:11px}}
@@ -339,7 +354,7 @@
       secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id === state.tab ? "active" : ""}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||"circle"}"></i>${label}</button>`).join("");
       requestAnimationFrame(() => { const active=secondaryNav.querySelector("button.active");if(!active)return;const left=Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2);secondaryNav.scrollTo({left,behavior:"smooth"}) });
     }
-    function pageHeading(kicker, title, note, action = "") { return `<header class="page-heading"><div><span class="eyebrow">${esc(kicker)}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`; }
+    function pageHeading(kicker, title, note, action = "") { return `<header class="page-heading ${title==="快速記帳"?"quick-page-heading":""}"><div><span class="eyebrow">${esc(kicker)}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`; }
     function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value ${/負債/.test(label)?"negative":""}">${value}</strong><small>${esc(note)}</small></article>`; }
     function alertList(rows) {
       return rows.length ? `<div class="alert-list">${rows.map(row => `<article class="alert-card ${esc(row.level)}"><i class="alert-dot"></i><div><strong>${esc(row.title)}</strong><small>${esc(row.detail)}</small></div><span class="status-chip">${row.level === "danger" ? "需處理" : row.level === "warning" ? "留意" : "建議"}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有需要處理的財務提醒。</div>`;
@@ -348,21 +363,21 @@
     function itemsForCategory(type,category,selected="") { return [...new Set([...(current.ledger.items?.[type]?.[category] || []), ...(current.ledger.entries||[]).filter(row=>row.type===type&&row.category===category).map(row=>row.item), ...(current.ledger.recurringRules||[]).filter(row=>row.type===type&&row.category===category).map(row=>row.item), ...(current.ledger.templates||[]).filter(row=>row.type===type&&row.category===category).map(row=>row.item), ...(type==="expense"?(current.ledger.creditInstallments||[]).filter(row=>row.category===category).map(row=>row.item):[]), selected].filter(Boolean))]; }
     function quickEntryForm(compact = false, row = null) {
       const draft=!row?readQuickDraft():null,type=row?.type==="income"?"income":draft?.type==="income"?"income":"expense",categories=categoriesForType(type),category=row?.category||draft?.category||categories[0]||"未分類",items=itemsForCategory(type,category,row?.item||draft?.item||""),templates=current.ledger.templates||[],selectedAccount=row?.account||draft?.account||current.ledger.accounts[0]?.name||"",selectedAccountRow=current.ledger.accounts.find(account=>account.name===selectedAccount),accountCurrency=selectedAccountRow?.currency||"TWD",accountFx=Number(FinanceCore.fxRate(current.assets,accountCurrency)||0),creditAccount=selectedAccountRow?.type==="信用卡";
-      return `<form id="quickEntryForm" class="${compact ? "" : "panel"}">
+      return `<form id="quickEntryForm" class="${compact ? "" : "panel quick-entry-page"}">
         <input type="hidden" name="id" value="${esc(row?.id || "")}">
         ${!row&&draft?`<div class="alert-card warning" style="margin-bottom:12px"><i class="alert-dot"></i><div><strong>已恢復未完成草稿</strong><small>上次輸入於 ${new Date(draft.savedAt||Date.now()).toLocaleString("zh-TW")}</small></div><button class="action-btn" type="button" data-clear-draft>清除草稿</button></div>`:""}
         ${!row&&templates.length?`<div class="template-strip"><span class="template-strip-label">常用範本</span>${templates.map(template=>`<span class="template-chip"><button type="button" data-use-template="${esc(template.id)}">${esc(template.name)}</button><button type="button" data-delete-template="${esc(template.id)}" aria-label="刪除 ${esc(template.name)} 範本">×</button></span>`).join("")}</div>`:""}
         <div class="segmented"><label><input type="radio" name="type" value="expense" ${type!=="income"?"checked":""}><span>支出</span></label><label><input type="radio" name="type" value="income" ${type==="income"?"checked":""}><span>收入</span></label></div>
         <div class="form-grid">
-          <label>交易金額<input name="amount" type="number" min="0" step="0.01" inputmode="decimal" required placeholder="0" value="${esc(row?.transactionAmount ?? row?.amount ?? draft?.amount ?? "")}"></label>
-          <label>日期<input name="date" type="date" value="${esc(row?.date || draft?.date || FinanceCore.localDate())}" required></label>
-          <label>分類<select name="category" data-entry-category>${categories.map(item => option(item,item,category)).join("")}</select></label>
-          <label>項目<select name="item" data-entry-item>${option("","未指定",row?.item||draft?.item||"")}${items.map(item=>option(item,item,row?.item||draft?.item||"")).join("")}</select></label>
-          <label>帳戶<select name="account">${accountOptions(selectedAccount)}</select></label>
-          <label data-card-region ${creditAccount?"":"hidden"}>刷卡地區<select name="purchaseRegion" ${creditAccount?"":"disabled"}>${option("domestic","國內刷卡",row?.purchaseRegion||"domestic")}${option("foreign","國外刷卡（自動加 1.5% 手續費）",row?.purchaseRegion)}</select></label>
-          <label>商家／來源<input name="merchant" placeholder="例如：早餐店" value="${esc(row?.merchant || draft?.merchant || "")}"></label>
+          <label class="quick-field-amount">交易金額<input name="amount" type="number" min="0" step="0.01" inputmode="decimal" required placeholder="0" value="${esc(row?.transactionAmount ?? row?.amount ?? draft?.amount ?? "")}"></label>
+          <label class="quick-field-date">日期<input name="date" type="date" value="${esc(row?.date || draft?.date || FinanceCore.localDate())}" required></label>
+          <label class="quick-field-category">分類<select name="category" data-entry-category>${categories.map(item => option(item,item,category)).join("")}</select></label>
+          <label class="quick-field-item">項目<select name="item" data-entry-item>${option("","未指定",row?.item||draft?.item||"")}${items.map(item=>option(item,item,row?.item||draft?.item||"")).join("")}</select></label>
+          <label class="quick-field-account">帳戶<select name="account">${accountOptions(selectedAccount)}</select></label>
+          <label class="quick-field-region" data-card-region ${creditAccount?"":"hidden"}>刷卡地區<select name="purchaseRegion" ${creditAccount?"":"disabled"}>${option("domestic","國內刷卡",row?.purchaseRegion||"domestic")}${option("foreign","國外刷卡（自動加 1.5% 手續費）",row?.purchaseRegion)}</select></label>
+          <label class="quick-field-merchant">商家／來源<input name="merchant" placeholder="例如：早餐店" value="${esc(row?.merchant || draft?.merchant || "")}"></label>
           <div class="exchange-note" data-account-currency-note>交易幣別依帳戶自動使用：${accountCurrency==="TWD"?"台幣 TWD":accountCurrency==="USD"?"美元 USD":esc(accountCurrency)}${accountCurrency!=="TWD"?`｜1 ${esc(accountCurrency)} ≈ NT$ ${accountFx.toFixed(3)}`:""}</div>
-          ${compact ? "" : `<label class="wide">備註<textarea name="note" placeholder="選填">${esc(row?.note || draft?.note || "")}</textarea></label>`}
+          ${compact ? "" : `<details class="quick-note quick-field-note"><summary>備註（選填）</summary><textarea name="note" placeholder="選填">${esc(row?.note || draft?.note || "")}</textarea></details>`}
         </div>
         <button class="action-btn blue" style="width:100%;margin-top:13px" type="submit"><i data-lucide="${row?"save":"plus"}"></i>${row?"儲存修改":"新增記帳"}</button>
         ${row ? `<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-entry>取消編輯</button>` : ""}
@@ -517,7 +532,7 @@
       const m=current.month;
       const titles={quick:"快速記帳",lookup:"查帳",calendar:"月份行事曆",records:"收支明細",taxonomy:"分類與項目",budgets:"分類預算",recurring:"固定收支",closeout:"月結"};
       const head=pageHeading("Daily Ledger",titles[state.tab]||"日常記帳","收支、預算與固定項目都可直接在財務中心完成，不必再切換舊頁面。");
-      if(state.tab==="quick") return `${head}<div class="two-col grid"><section>${quickEntryForm(false)}</section><section class="grid"><div class="three-col grid">${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}</div><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>只顯示已入帳項目；未來收支請至月份行事曆查看</p></div></div>${eventRows(current.events.filter(row=>!row.pending&&["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
+      if(state.tab==="quick") return `${head}<div class="two-col grid quick-entry-layout"><section>${quickEntryForm(false)}</section><section class="grid quick-entry-side"><div class="three-col grid">${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}</div><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>只顯示已入帳項目；未來收支請至月份行事曆查看</p></div></div>${eventRows(current.events.filter(row=>!row.pending&&["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
       if(state.tab==="lookup") return renderLedgerLookup(head);
       if(state.tab==="statistics") return renderDailyStatistics(pageHeading('Daily Ledger','收支統計','依月份查看每個分類的金額與占比。'));
       if(state.tab==="calendar") return renderDailyCalendar(head);
