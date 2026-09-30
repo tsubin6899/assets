@@ -1,5 +1,5 @@
 const crypto=require('node:crypto');
-const allowedHosts=['fcm.googleapis.com','updates.push.services.mozilla.com','web.push.apple.com','wns.windows.com'];
+const allowedHosts=['fcm.googleapis.com','updates.push.services.mozilla.com','web.push.apple.com','wns.windows.com','notify.windows.com'];
 function validSubscription(value){
   try{const url=new URL(value.endpoint);return url.protocol==='https:'&&!url.username&&!url.password&&(!url.port||url.port==='443')&&allowedHosts.some(host=>url.hostname===host||url.hostname.endsWith('.'+host))&&/^[A-Za-z0-9_-]{80,100}$/.test(value.keys?.p256dh||'')&&/^[A-Za-z0-9_-]{20,30}$/.test(value.keys?.auth||'');}catch{return false;}
 }
