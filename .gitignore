@@ -1,2 +1,8 @@
 __pycache__/
 *.pyc
+node_modules/
+test-results/
+playwright-report/
+.vercel/
+.env*
+.playwright-browsers/

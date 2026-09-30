@@ -16,6 +16,9 @@
     window.dispatchEvent(new CustomEvent("finance-sync-status", { detail: state }));
     return state;
   }
+  function log(result, detail="") {
+    const state=read();return write({...state,history:[{at:new Date().toISOString(),result,detail,pending:state.outbox.length},...(state.history||[])].slice(0,30)});
+  }
   function enqueue(change = {}) {
     const reason = String(change.reason || "財務資料更新");
     if (/財務中心啟動/.test(reason)) return read();
@@ -27,20 +30,20 @@
   function markSynced({ remoteUpdatedAt = "", comparison = null, acknowledgedIds } = {}) {
     const state = read();
     const sent=new Set(acknowledgedIds || state.inFlightIds || []),outbox=state.outbox.filter(row=>!sent.has(row.id));
-    return write({ ...state, phase: outbox.length?"pending":"synced", outbox, inFlightIds:[], lastSyncedAt: new Date().toISOString(), lastRemoteUpdatedAt: remoteUpdatedAt, lastComparison:comparison || state.lastComparison, lastError: "", retryCount: 0 });
+    write({ ...state, phase: outbox.length?"pending":"synced", outbox, inFlightIds:[], lastSyncedAt: new Date().toISOString(), lastRemoteUpdatedAt: remoteUpdatedAt, lastComparison:comparison || state.lastComparison, lastError: "", retryCount: 0 });return log("成功",remoteUpdatedAt);
   }
   function markError(error) {
     const state = read();
-    return write({ ...state, phase: "error", lastError: String(error?.message || error || "同步失敗"), retryCount: Number(state.retryCount || 0) + 1 });
+    write({ ...state, phase: "error", lastError: String(error?.message || error || "同步失敗"), retryCount: Number(state.retryCount || 0) + 1 });return log("失敗",read().lastError);
   }
   function hasPending() { return read().outbox.length > 0; }
-  function markReview(message) { const state=read();return write({...state,phase:"review",lastError:String(message),inFlightIds:[]}); }
+  function markReview(message) { const state=read();write({...state,phase:"review",lastError:String(message),inFlightIds:[]});return log('待核對',String(message)); }
   function setRemoteVersions(versions = []) { const state=read();return write({ ...state, remoteVersions:versions.map(({ data, ...meta })=>meta).slice(0,5) }); }
 
   const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","loanPayments","goals","goalAllocationHistory","importTemplates","importReconciliations","annualPlans","monthCloseouts","categoryRules"];
   const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots","financialSnapshots"];
   const RECYCLE_KIND_BY_COLLECTION = { entries:"entry", transfers:"transfer", accounts:"account", creditBills:"creditBill", creditInstallments:"installment", templates:"template", recurringRules:"recurring", budgets:"budget", reconciliations:"reconciliation", creditStatementChecks:"creditStatementCheck", loans:"loan",goals:"goal",loanPayments:"loanPayment",importReconciliations:"importReconciliation" };
-  function clone(value) { return JSON.parse(JSON.stringify(value || {})); }
+  function clone(value) { return JSON.parse(JSON.stringify(value ?? {})); }
   function stable(value) { if(Array.isArray(value))return value.map(stable);if(value&&typeof value==="object")return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value; }
   function equalData(a,b) { return JSON.stringify(stable(a))===JSON.stringify(stable(b)); }
   function recordKey(row, index) { return String(row?.id || row?.month || row?.year || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
@@ -59,6 +62,10 @@
     const details=[];
     LEDGER_COLLECTIONS.forEach(key=>{const row=compareCollection(localLedger[key],remoteLedger[key]);if(row.localOnly||row.remoteOnly||row.localNewer||row.remoteNewer||row.conflicts)details.push({scope:"ledger",collection:key,...row})});
     ASSET_COLLECTIONS.forEach(key=>{const row=compareCollection(localAssets[key],remoteAssets[key]);if(row.localOnly||row.remoteOnly||row.localNewer||row.remoteNewer||row.conflicts)details.push({scope:"assets",collection:key,...row})});
+    for(const scope of ['ledger','assets']){
+      const a=scope==='ledger'?localLedger:localAssets,b=scope==='ledger'?remoteLedger:remoteAssets,handled=new Set([...(scope==='ledger'?LEDGER_COLLECTIONS:ASSET_COLLECTIONS),'recycleBin','auditJournal','twWatchlist','usWatchlist']);
+      for(const key of new Set([...Object.keys(a),...Object.keys(b)]))if(!handled.has(key)&&Array.isArray(a[key])&&Array.isArray(b[key])&&a[key].length&&b[key].length&&!equalData(a[key],b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:1,same:0});
+    }
     const safelyMerged={ledger:new Set(["categories","items"]),assets:new Set(["fxHistory","fxRates","rates","marketPrices","marketDataMeta","valuationCache"])};
     for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||safelyMerged[scope].has(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(!equalData(a[key],b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:1,same:0});}}
     return details.reduce((result,row)=>({localOnly:result.localOnly+row.localOnly,remoteOnly:result.remoteOnly+row.remoteOnly,localNewer:result.localNewer+(row.localNewer||0),remoteNewer:result.remoteNewer+(row.remoteNewer||0),conflicts:result.conflicts+row.conflicts,details}),{localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:0,details});
@@ -136,5 +143,30 @@
     }
     return rows;
   }
-  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, fingerprint, label });
+  function conflictRows(local,remote) {
+    const legacy=[];
+    for(const scope of ['ledger','assets'])for(const key of new Set([...Object.keys(local[scope]||{}),...Object.keys(remote[scope]||{})])){
+      if((scope==='ledger'?LEDGER_COLLECTIONS:ASSET_COLLECTIONS).includes(key)||['recycleBin','auditJournal','twWatchlist','usWatchlist'].includes(key))continue;
+      const a=local[scope]?.[key],b=remote[scope]?.[key];if(Array.isArray(a)&&Array.isArray(b)&&a.length&&b.length&&!equalData(a,b))legacy.push({scope,collection:key,id:key,title:key,before:a,after:b,whole:true});
+    }
+    return [...legacy,...diffBundles(local,remote).filter(r=>!legacy.some(x=>x.scope===r.scope&&x.collection===r.collection)&&r.before!==null&&r.after!==null&&
+      (Array.isArray(local[r.scope]?.[r.collection])?recordTime(r.before)===recordTime(r.after):!['updatedAt','version','categories','items','fxHistory','fxRates','rates','marketPrices','marketDataMeta','valuationCache'].includes(r.collection)))];
+  }
+  function resolveBundles(local,remote,decisions) {
+    const left=clone(local),right=clone(remote);
+    for(const row of conflictRows(local,remote)){
+      const key=JSON.stringify([row.scope,row.collection,row.id]),choice=decisions[key];
+      if(!['local','remote'].includes(choice))throw new Error('請逐筆選擇保留版本');
+      const value=clone(choice==='local'?row.before:row.after);
+      for(const bundle of [left,right]){
+        if(row.whole)bundle[row.scope][row.collection]=clone(value);
+        else if(Array.isArray(bundle[row.scope][row.collection])){
+          const index=bundle[row.scope][row.collection].findIndex((r,i)=>recordKey(r,i)===row.id);
+          bundle[row.scope][row.collection][index]=clone(value);
+        }else bundle[row.scope][row.collection]=clone(value);
+      }
+    }
+    return mergeBundles(left,right);
+  }
+  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, conflictRows, resolveBundles, log, fingerprint, label });
 })();

@@ -773,21 +773,21 @@
 
   function syncForeignCardFee(ledger, assets, entry) {
     const previous = ledger.entries.filter(row => row.isForeignTransactionFee && row.derivedFromEntryId === entry.id);
-    previous.forEach(row => recycle(ledger, "entry", row));
-    ledger.entries = ledger.entries.filter(row => !(row.isForeignTransactionFee && row.derivedFromEntryId === entry.id));
     const account = ledger.accounts.find(row => row.name === entry.account);
-    if (account?.type !== "信用卡" || entry.type !== "expense" || entry.purchaseRegion !== "foreign") return;
-    const feeRate = 0.015;
-    const feeAmount = calculateForeignCardFee(entry, feeRate);
+    const applies=account?.type === "信用卡" && entry.type === "expense" && entry.purchaseRegion === "foreign";
+    const feeRate = account?.foreignFeeRate ?? 0.015;
+    const feeAmount = applies ? (entry.bankFeeAmount ?? calculateForeignCardFee(entry, feeRate)) : 0;
+    previous.slice(feeAmount?1:0).forEach(row => recycle(ledger, "entry", row));
+    ledger.entries = ledger.entries.filter(row => !(row.isForeignTransactionFee && row.derivedFromEntryId === entry.id));
     if (!feeAmount) return;
     ledger.entries.push({
-      id: uid("entry"), type: "expense", date: entry.date, amount: feeAmount,
+      ...(previous[0]||{}), id: previous[0]?.id||uid("entry"), type: "expense", date: entry.date, amount: feeAmount, updatedAt:nowIso(),
       transactionAmount: feeAmount, transactionCurrency: entry.accountCurrency || account.currency || "TWD",
       accountCurrency: entry.accountCurrency || account.currency || "TWD", exchangeRate: 1,
       category: "手續費", item: "國外刷卡手續費", account: entry.account,
       merchant: `${entry.merchant || entry.item || entry.category || "國外交易"}｜國外刷卡手續費`,
-      note: `由原交易自動計算 ${feeRate * 100}%`, purchaseRegion: "foreign", createdAt: nowIso(),
-      postedDate: "", statementMonthOverride: "", statementStatus: "estimated",
+      note: entry.bankFeeAmount!==undefined ? '依銀行帳單實收手續費' : `由原交易自動計算 ${feeRate * 100}%`, purchaseRegion: "foreign", createdAt: previous[0]?.createdAt||nowIso(),
+      postedDate: previous[0]?.postedDate||"", statementMonthOverride: previous[0]?.statementMonthOverride||"", statementStatus: entry.bankFeeAmount!==undefined?'confirmed':'estimated',
       isForeignTransactionFee: true, derivedFromEntryId: entry.id, feeRate
     });
     ledger.categories.expense = unique([...(ledger.categories.expense || []), "手續費"]);
@@ -881,8 +881,8 @@
     let recalculated=0;
     grouped.forEach((group,parentId)=>{
       const parent=parents.get(parentId);
-      const feeRate=number(group[0].feeRate)||0.015;
-      const expected=calculateForeignCardFee(parent,feeRate);
+      const feeRate=group[0].feeRate??0.015;
+      const expected=parent.bankFeeAmount??calculateForeignCardFee(parent,feeRate);
       if(group.length<2){
         const row=group[0];
         if(Math.abs(number(row.amount)-expected)>0.000001){
@@ -1136,6 +1136,31 @@
     return persist(ledger, assets, "修改財務帳戶");
   }
 
+  function setCardFeeRate(id,rate){
+    const {ledger,assets}=load(),card=ledger.accounts.find(r=>r.id===id&&r.type==='信用卡');
+    if(!card||!Number.isFinite(rate)||rate<0||rate>0.1)throw new Error('手續費率須介於 0% 與 10%');
+    Object.assign(card,{foreignFeeRate:rate,updatedAt:nowIso()});return persist(ledger,assets,'設定信用卡手續費率（下次交易適用）');
+  }
+  function saveBankStatement(id,rows,matches={}){
+    const {ledger,assets}=load(),bill=ledger.creditBills.find(r=>r.id===id);
+    if(!bill||!Array.isArray(rows)||rows.length>1000||rows.some(r=>!Number.isFinite(r.amount)))throw new Error('銀行明細格式不正確');
+    const eligible=creditBillEntriesForPeriod(ledger,bill.card,bill.billMonth),used=new Set();
+    for(const [index,entryId] of Object.entries(matches)){
+      if(!rows[index]||used.has(entryId)||!eligible.some(r=>r.id===entryId))throw new Error('配對重複或不屬於此帳期');used.add(entryId);
+      const entry=eligible.find(r=>r.id===entryId);
+      if(Math.abs((entry.type==='income'?-1:1)*number(entry.amount)-rows[index].amount)>0.005)throw new Error('配對金額有差異，請先修正記帳或手續費');
+      entry.statementChecks={...entry.statementChecks,[id]:{checkedAt:nowIso()}};entry.updatedAt=nowIso();
+    }
+    Object.assign(bill,{bankStatementRows:clone(rows),bankMatches:clone(matches),updatedAt:nowIso()});
+    refreshCreditStatementCheckForBill(ledger,bill);return persist(ledger,assets,'保存銀行帳單明細配對');
+  }
+  function setBankFee(id,amount){
+    const {ledger,assets}=load(),entry=ledger.entries.find(r=>r.id===id&&!r.isForeignTransactionFee);
+    if(!entry||entry.purchaseRegion!=='foreign'||!Number.isFinite(amount)||amount<0)throw new Error('請輸入有效銀行實收手續費');
+    Object.assign(entry,{bankFeeAmount:amount,updatedAt:nowIso()});syncForeignCardFee(ledger,assets,entry);
+    ledger.creditBills.filter(r=>r.card===entry.account).forEach(bill=>refreshCreditStatementCheckForBill(ledger,bill));
+    return persist(ledger,assets,'保存銀行實收手續費');
+  }
   function addCreditBill(values) {
     const { ledger, assets } = load();
     if (!values.card || !values.payAccount || !values.billMonth || number(values.amount) <= 0) throw new Error("請完整填寫帳單資料");
@@ -1770,7 +1795,7 @@
   }
 
   window.FinanceCore = {
-    VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete,
+    VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, repairOrphanForeignCardFees, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,

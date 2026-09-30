@@ -196,7 +196,7 @@
       Object.assign(goal,{linkedAccount:account.name,reservedAmount:amount,currentAmount:amount,priority:Math.max(0,n(values.priority)),updatedAt:stamp()});
     });
   }
-  function forecast(days=90,bundle=core.load()) {
+  function forecast(days=90,bundle=core.load(),scenario={}) {
     const {ledger,assets}=bundle,today=core.localDate(),end=day(today,days),accounts=core.accountBalances(ledger,assets).filter(r=>r.type!=="信用卡"&&!r.archived),events=[],warnings=[];
     const add=(date,account,amount,title,sourceId)=>{if(date>today&&date<=end){if(!accounts.some(a=>a.name===account)){warnings.push(`${title}：未指定有效現金帳戶`);return;}events.push({date,account,amount,title,sourceId});}};
     const entries=(ledger.entries||[]).filter(r=>!r.recurringSkipped);
@@ -225,11 +225,26 @@
       const account=accounts.find(a=>a.name===r.cashAccount),currency=r.currency||"TWD",amount=kind==="dividends"?n(r.amount):r.type==="sell"?n(r.price)*n(r.shares)-n(r.fee)-n(r.tax):-(n(r.price)*n(r.shares)+n(r.fee)+n(r.tax));
       add(r.date,r.cashAccount,amount*core.fxRate(assets,currency)/core.fxRate(assets,account?.currency||"TWD"),kind==="dividends"?"預計股息":"預計投資交易",r.id);
     }
+    const estimates=[];
+    if(scenario.mode&&scenario.mode!=='scheduled'){
+      const start=day(today,-90),factor=scenario.mode==='conservative'?1.25:1;
+      for(const account of accounts){
+        const history=entries.filter(r=>r.account===account.name&&r.type==='expense'&&r.date>=start&&r.date<today&&!r.recurringId&&!r.isReconciliationAdjustment&&!r.isForeignTransactionFee);
+        const daily=round((Object.hasOwn(scenario.daily||{},account.name)?scenario.daily[account.name]:sum(history,r=>n(r.amount))/90)*factor);
+        if(!Number.isFinite(daily)||daily<0)throw new Error('每日生活費須為非負金額');
+        estimates.push({account:account.name,daily,samples:history.length,lookback:90});
+        for(let i=1;i<=days;i++){
+          const date=day(today,i),scheduled=sum(entries.filter(r=>r.account===account.name&&r.date===date&&r.type==='expense'&&!r.recurringId&&!r.isReconciliationAdjustment),r=>n(r.amount));
+          const amount=Math.max(0,daily-scheduled);if(amount)add(date,account.name,-amount,'預估日常生活費（情境）',`scenario-${account.id}-${date}`);
+        }
+      }
+      warnings.push('生活費採過去 90 天現金帳戶非固定支出平均；未出帳刷卡不推算為帳單，可手動提高繳款帳戶每日生活費。');
+    }
     const reservations=funding(bundle);
     const result=accounts.map(a=>{let balance=a.balance,minimum=balance,minimumDate=today;const rows=[],reserved=sum(reservations.filter(g=>g.linkedAccount===a.name),g=>g.allocated)/core.fxRate(assets,a.currency);
       for(let i=1;i<=days;i++){const date=day(today,i),items=events.filter(e=>e.date===date&&e.account===a.name),change=sum(items,r=>r.amount);balance+=change;if(balance<minimum){minimum=balance;minimumDate=date;}rows.push({date,change,balance,available:balance-reserved,events:items});}
       return {account:a.name,currency:a.currency||"TWD",opening:a.balance,minimum,minimumDate,ending:balance,shortfall:Math.max(0,-minimum),reserved,rows,warnings:[...new Set(warnings)]};});
-    result.warnings=[...new Set(warnings)];return result;
+    result.warnings=[...new Set(warnings)];result.estimates=estimates;return result;
   }
   function attribution(month=core.monthOf(),bundle=core.load()) {
     const {ledger,assets}=bundle,start=`${month}-01`,end=day(monthDate(start,1),-1),openingDate=day(start,-1),snapshots=assets.financialSnapshots||[],opening=snapshots.find(r=>r.date===openingDate),ending=snapshots.find(r=>r.date===end);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsubin-finance-center-v144";
+const CACHE_NAME = "tsubin-finance-center-v145";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -14,6 +14,8 @@ const CORE_ASSETS = [
   "./finance-storage.js",
   "./finance-market.js",
   "./finance-sync.js",
+  "./finance-experience.js",
+  "./finance-trade-sync.js",
   "./finance-notifications.js",
   "./finance-search.js",
   "./finance-import.js",
@@ -27,6 +29,15 @@ const CORE_ASSETS = [
   "./icons/accounting-512.png"
 ];
 
+self.addEventListener('push',event=>{
+  let payload={};try{payload=event.data?.json()||{}}catch{}
+  event.waitUntil(self.registration.showNotification(payload.title||'繳款提醒',{body:payload.body||'請開啟個人財務中心確認待繳帳單',tag:payload.tag||'finance-payment-reminder',icon:'./icons/icon-192.png',data:{url:'./finance-center.html#accounts/credit'}}));
+});
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();const url=new URL('./finance-center.html#accounts/credit',self.location.href).href;
+  event.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(async windows=>{const existing=windows.find(w=>new URL(w.url).origin===self.location.origin);if(existing){await existing.navigate(url);return existing.focus();}return clients.openWindow(url);}));
+});
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -38,7 +49,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then((keys) => Promise.all(keys.filter((key) => key.startsWith('tsubin-finance-center-') && key !== CACHE_NAME).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -61,6 +72,6 @@ self.addEventListener("fetch", (event) => {
         }
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("./index.html")))
+      .catch(() => caches.match(event.request,{ignoreSearch:true}).then(async cached => cached || (event.request.mode==='navigate'?await caches.match('./finance-center.html'):null) || Response.error()))
   );
 });

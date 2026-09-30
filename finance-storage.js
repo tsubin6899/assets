@@ -6,6 +6,11 @@
   const STORE = "revisions";
   let databasePromise = null;
   let saveTimer = 0;
+  const HEALTH_KEY='tsubin-finance-backup-health-v1';
+  let memoryHealth={};
+  function health(){try{return {...JSON.parse(localStorage.getItem(HEALTH_KEY)||'{}'),...memoryHealth}}catch{return memoryHealth}}
+  function report(values){memoryHealth={...health(),...values};try{localStorage.setItem(HEALTH_KEY,JSON.stringify(memoryHealth))}catch{}window.dispatchEvent(new CustomEvent('finance-storage-status'));}
+  function checksum(bundle){let hash=2166136261;for(const char of JSON.stringify(bundle)){hash=Math.imul(hash^char.charCodeAt(0),16777619)}return (hash>>>0).toString(16);}
 
   function supported() { return typeof indexedDB !== "undefined"; }
   function open() {
@@ -45,17 +50,19 @@
   }
 
   async function save(bundle = window.FinanceCore?.exportBundle(), reason = "自動鏡像") {
-    if (!supported() || !bundle) return false;
+    if (!supported() || !bundle){report({lastError:'此裝置無法建立本機鏡像'});return false;}
+    try {
     const db = await open();
     await new Promise((resolve, reject) => {
       const transaction = db.transaction(STORE, "readwrite");
-      transaction.objectStore(STORE).add({ createdAt:new Date().toISOString(), reason, schemaVersion:bundle.schemaVersion, updatedAt:bundle.updatedAt, data:bundle });
+      transaction.objectStore(STORE).add({ createdAt:new Date().toISOString(), reason, schemaVersion:bundle.schemaVersion, updatedAt:bundle.updatedAt, checksum:checksum(bundle), data:bundle });
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
     });
     await prune(db);
-    window.dispatchEvent(new CustomEvent("finance-storage-status"));
+    report({lastSavedAt:new Date().toISOString(),lastError:''});
     return true;
+    }catch(error){report({lastError:error.message||'本機備份失敗'});throw error;}
   }
 
   async function revisions(limit = 20) {
@@ -84,9 +91,19 @@
       request.onerror = () => reject(request.error);
     });
     if (!row?.data) throw new Error("找不到本機歷史版本");
+    if(row.checksum&&row.checksum!==checksum(row.data))throw new Error('備份校驗不符，請勿還原此版本');
     return row;
   }
   async function restore(id) { const row=await readRevision(id);window.FinanceCore.importBundle(row.data);return row; }
+  async function verify(id){
+    try{
+      const row=await readRevision(id);
+      if(row.checksum&&row.checksum!==checksum(row.data))throw new Error('備份校驗不符，請勿還原此版本');
+      if(!row.data.ledger||!row.data.assets||!Array.isArray(row.data.ledger.entries)||!Array.isArray(row.data.ledger.accounts))throw new Error('備份資料結構不完整');
+      window.FinanceCore.previewBundle(row.data);
+      const result={verifiedAt:new Date().toISOString(),verifiedId:row.id,verificationError:'',verification:row.checksum?'內容校驗與還原預覽通過':'舊版結構檢查通過（無校驗碼）'};report(result);return result;
+    }catch(error){report({verificationError:error.message});throw error;}
+  }
 
   function schedule(reason = "資料更新") {
     if (!supported()) return;
@@ -101,5 +118,5 @@
     return true;
   }
 
-  window.FinanceStorage = Object.freeze({ supported, init, save, revisions, readRevision, restore });
+  window.FinanceStorage = Object.freeze({ supported, init, save, revisions, readRevision, restore, health, verify, checksum });
 })();

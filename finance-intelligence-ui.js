@@ -5,7 +5,7 @@
   const money=v=>v===null||v===undefined?"資料不足":Number(v).toLocaleString("zh-TW",{maximumFractionDigits:2});
   const pct=v=>v===null||v===undefined?"無法計算":`${Number(v).toFixed(2)}%`;
   const sum=(a,fn)=>a.reduce((s,r)=>s+fn(r),0);
-  const state={month:core.monthOf(),extra:5000,loanId:"",workbench:null};
+  const state={month:core.monthOf(),extra:5000,loanId:"",workbench:null,scenario:{mode:'scheduled',daily:{}}};
   let host;
   const panel=(title,description,body)=>`<section class="panel fi-panel" style="margin-top:16px"><div class="panel-head"><div><h3>${esc(title)}</h3><p>${esc(description)}</p></div></div>${body}</section>`;
   const cell=v=>`<td>${v}</td>`;
@@ -26,8 +26,9 @@
     return `<svg class="money-value" viewBox="0 0 700 180" role="img" aria-label="每日預估餘額，詳細數字請展開下方明細" style="width:100%;max-height:190px"><line x1="20" x2="680" y1="${y}" y2="${y}" stroke="#e8907a" stroke-dasharray="4"/><polyline points="${points}" fill="none" stroke="#27766a" stroke-width="3"/><text x="20" y="175" fill="currentColor" font-size="12">${esc(rows[0]?.date)}</text><text x="590" y="175" fill="currentColor" font-size="12">${esc(rows.at(-1)?.date)}</text></svg>`;
   }
   function forecast(b) {
-    const rows=I.forecast(90,b);
-    return panel("未來 90 天每日現金流","納入已排定收支、轉帳、帳單、貸款及投資款項。未排定的日常花費未計入；外幣預測採目前匯率。",`${rows.warnings.length?`<p class="negative">${rows.warnings.map(esc).join("；")}</p>`:""}${rows.map(r=>`<article class="upgrade-card"><h4>${esc(r.account)} · ${esc(r.currency)}</h4><div class="three-col grid">${metric("最低餘額",money(r.minimum),r.minimumDate)}${metric("最低餘額扣除圈存",money(r.minimum-r.reserved),`圈存 ${money(r.reserved)}`)}${metric("90 天後",money(r.ending),r.shortfall?`預估缺口 ${money(r.shortfall)}`:"依已排定款項可支應")}</div>${curve(r.rows)}<details><summary>每日明細與缺口原因</summary>${table(["日期","當日變動","餘額","款項來源"],r.rows.map(d=>[esc(d.date),`<span class="money-value">${money(d.change)}</span>`,`<span class="money-value ${d.balance<0?"negative":""}">${money(d.balance)}</span>`,d.events.map(e=>`${esc(e.title)} <span class="money-value">${money(e.amount)}</span>`).join("<br>")||"—"]))}</details></article>`).join("")||`<p>尚無可預測帳戶。</p>`}`);
+    const rows=I.forecast(90,b,state.scenario);
+    const controls=`<form data-fi-form="living-scenario" class="form-grid"><label>預測情境<select name="mode">${[['scheduled','已排定款項'],['normal','一般（加上生活費）'],['conservative','保守（生活費增加 25%）']].map(([value,label])=>`<option value="${value}" ${state.scenario.mode===value?'selected':''}>${label}</option>`).join('')}</select></label>${rows.map(r=>`<label>${esc(r.account)} 每日生活費（${esc(r.currency)}）<input type="number" name="daily:${esc(r.account)}" min="0" step="0.01" placeholder="自動採近 90 天平均" value="${esc(state.scenario.daily[r.account]??'')}"></label>`).join('')}<button class="action-btn blue" type="submit">重新試算</button></form><p>只改變預測；不會建立實際記帳。${(rows.estimates||[]).map(r=>`${esc(r.account)}：每日 ${money(r.daily)}，${r.samples} 筆歷史支出`).join('；')}</p>`;
+    return panel("未來 90 天每日現金流","納入已排定收支、轉帳、帳單、貸款及投資款項；可另加生活費情境。外幣預測採目前匯率。",`${controls}${rows.warnings.length?`<p class="negative">${rows.warnings.map(esc).join("；")}</p>`:""}${rows.map(r=>`<article class="upgrade-card"><h4>${esc(r.account)} · ${esc(r.currency)}</h4><div class="three-col grid">${metric("最低餘額",money(r.minimum),r.minimumDate)}${metric("最低餘額扣除圈存",money(r.minimum-r.reserved),`圈存 ${money(r.reserved)}`)}${metric("90 天後",money(r.ending),r.shortfall?`預估缺口 ${money(r.shortfall)}`:"依已排定款項可支應")}</div>${curve(r.rows)}<details><summary>每日明細與缺口原因</summary>${table(["日期","當日變動","餘額","款項來源"],r.rows.map(d=>[esc(d.date),`<span class="money-value">${money(d.change)}</span>`,`<span class="money-value ${d.balance<0?"negative":""}">${money(d.balance)}</span>`,d.events.map(e=>`${esc(e.title)} <span class="money-value">${money(e.amount)}</span>`).join("<br>")||"—"]))}</details></article>`).join("")||`<p>尚無可預測帳戶。</p>`}`);
   }
   function loans(b) {
     const loans=(b.ledger.loans||[]),loan=loans.find(r=>r.id===state.loanId)||loans.find(r=>!r.closed)||loans[0];
@@ -80,6 +81,7 @@
       if(key==="loan-payment")core.recordLoanPayment(v);
       if(key==="loan-scenario"){state.loanId=v.loanId;state.extra=Number(v.extra);}
       if(key==="month")state.month=v.month;
+      if(key==='living-scenario'){state.scenario={mode:v.mode,daily:Object.fromEntries(Object.entries(v).filter(([k,val])=>k.startsWith('daily:')&&val!=='').map(([k,val])=>[k.slice(6),Number(val)]))};}
       if(key==="mapping"){const mapping=Object.fromEntries(Object.entries(v).filter(([k,val])=>k.startsWith("map:")&&val).map(([k,val])=>[k.slice(4),val]));Object.assign(state.workbench,{mapping,kind:v.kind,defaultAccount:v.defaultAccount});state.workbench.rows=window.FinanceImport.parseWorkbench(state.workbench.source,core.load().ledger,state.workbench);if(v.templateName)window.FinanceImport.saveTemplate({name:v.templateName,kind:v.kind,mapping});}
       host.refresh();host.toast("已更新");
     }catch(error){host.toast(error.message);}});

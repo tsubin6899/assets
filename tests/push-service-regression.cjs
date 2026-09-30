@@ -1,0 +1,24 @@
+const assert=require('node:assert/strict'),webpush=require('web-push'),utils=require('../server/push-utils.cjs');
+const envKeys=['SUPABASE_URL','SUPABASE_ANON_KEY','SUPABASE_SERVICE_ROLE_KEY','VAPID_PUBLIC_KEY','VAPID_PRIVATE_KEY','VAPID_SUBJECT','CRON_SECRET'],saved=Object.fromEntries(envKeys.map(k=>[k,process.env[k]])),originalFetch=global.fetch,originalSend=webpush.sendNotification;
+const response=()=>({code:0,body:null,setHeader(){},status(value){this.code=value;return this},json(body){this.body=body;return this}});
+(async()=>{
+  const keys=webpush.generateVAPIDKeys();Object.assign(process.env,{SUPABASE_URL:'https://fixture.invalid',SUPABASE_ANON_KEY:'fixture-anon',SUPABASE_SERVICE_ROLE_KEY:'fixture-service',VAPID_PUBLIC_KEY:keys.publicKey,VAPID_PRIVATE_KEY:keys.privateKey,VAPID_SUBJECT:'mailto:fixture@example.com',CRON_SECRET:'fixture-secret'});
+  const reminder=(await import('../api/payment-reminders.js')).default,subscribe=(await import('../api/push-subscription.js')).default;
+  let calls=[],paid=false,claimed=true,sends=0;const today=utils.taiwanDate();
+  const subscription={endpoint:'https://fcm.googleapis.com/fcm/send/fixture',keys:{p256dh:'A'.repeat(87),auth:'B'.repeat(22)}};
+  global.fetch=async(url,options={})=>{calls.push({url,options});const pathname=new URL(url).pathname;let data=null;
+    if(pathname==='/auth/v1/user')data={id:'fixture-user'};
+    else if(pathname.includes('asset_dashboard_profiles'))data=[{data:{accountingLedger:{creditBills:[{dueDate:today,paid}]}}}];
+    else if(pathname.includes('claim_finance_push_reminder'))data=claimed;
+    else if(pathname.includes('finance_push_subscriptions'))data=options.method==='POST'||options.method==='DELETE'||options.method==='PATCH'?null:new URL(url).searchParams.get('select')==='id'?[]:[{id:'fixture',user_id:'fixture-user',subscription,last_notified_date:null}];
+    else throw new Error('Unexpected fixture fetch '+url);
+    return {ok:true,status:data===null?204:200,json:async()=>data};
+  };
+  webpush.sendNotification=async()=>{sends++;};let res=response();await reminder({method:'GET',headers:{}},res);assert.equal(res.code,401);assert.equal(calls.length,0);
+  res=response();await reminder({method:'GET',headers:{authorization:'Bearer fixture-secret'}},res);assert.equal(res.body.sent,1);assert.equal(sends,1);
+  claimed=false;res=response();await reminder({method:'GET',headers:{authorization:'Bearer fixture-secret'}},res);assert.equal(res.body.sent,0);assert.equal(sends,1);
+  paid=true;claimed=true;res=response();await reminder({method:'GET',headers:{authorization:'Bearer fixture-secret'}},res);assert.equal(res.body.sent,0);assert.equal(sends,1);
+  res=response();await subscribe({method:'POST',headers:{authorization:'Bearer fixture-user-token'},body:{subscription}},res);assert.equal(res.code,200);assert.ok(calls.some(c=>c.options.method==='DELETE'&&c.url.includes('user_id=neq.')));
+  res=response();await subscribe({method:'POST',headers:{authorization:'Bearer fixture-user-token'},body:{subscription:{...subscription,endpoint:'http://127.0.0.1/private'}}},res);assert.equal(res.code,400);
+  console.log('push service regression OK: authentication, claim deduplication, paid suppression, account switch, endpoint validation');
+})().catch(error=>{console.error(error);process.exitCode=1}).finally(()=>{global.fetch=originalFetch;webpush.sendNotification=originalSend;for(const key of envKeys)if(saved[key]===undefined)delete process.env[key];else process.env[key]=saved[key];});

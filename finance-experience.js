@@ -1,0 +1,57 @@
+(function(){
+  'use strict';
+  const VERSION='2026.09.30.1',core=window.FinanceCore,{FinanceSync,FinanceStorage,FinanceNotifications,FinanceImport,FinanceIntelligence}=window;
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const money=v=>Number(v||0).toLocaleString('zh-TW',{maximumFractionDigits:2});
+  const date=v=>v?new Date(v).toLocaleString('zh-TW',{timeZone:'Asia/Taipei'}):'尚無紀錄';
+  const panel=(title,body)=>`<section class="panel" style="margin-top:14px"><h3>${esc(title)}</h3>${body}</section>`;
+  let host,undo=null,bankWorkbench=null;
+  function dialog(title,body){const node=document.createElement('dialog');node.className='experience-dialog';node.innerHTML=`<form method="dialog"><button class="action-btn" style="float:right">關閉</button></form><h2>${esc(title)}</h2>${body}`;document.body.append(node);node.addEventListener('close',()=>node.remove());node.showModal();return node;}
+  function fields(before,after){return [...new Set([...Object.keys(before||{}),...Object.keys(after||{})])].filter(k=>JSON.stringify(before?.[k])!==JSON.stringify(after?.[k]));}
+  async function resolveSync(local,remote){
+    const rows=FinanceSync.conflictRows(local,remote);if(!rows.length)return FinanceSync.mergeBundles(local,remote);
+    return new Promise(resolve=>{
+      const node=dialog('逐筆選擇同步版本',`<p>逐筆確認不同欄位後，再預覽合併結果。本機指目前使用的裝置。</p><form data-resolution>${rows.map((r,i)=>`<fieldset><legend>${esc(r.collection)} · ${esc(r.title)}</legend><p>不同欄位：${fields(r.before,r.after).map(esc).join('、')}</p><div class="two-col grid money-value"><pre>${esc(JSON.stringify(r.before,null,2))}</pre><pre>${esc(JSON.stringify(r.after,null,2))}</pre></div><label>保留版本<select name="choice:${i}" required><option value="">請選擇</option><option value="local">本機版本</option><option value="remote">雲端版本</option></select></label></fieldset>`).join('')}<p class="negative" data-resolution-error></p><button class="action-btn blue">預覽選定的合併結果</button></form>`);
+      node.addEventListener('close',()=>resolve(null),{once:true});
+      node.querySelector('[data-resolution]').addEventListener('submit',e=>{e.preventDefault();try{const values=new FormData(e.target),decisions=Object.fromEntries(rows.map((r,i)=>[JSON.stringify([r.scope,r.collection,r.id]),values.get(`choice:${i}`)])),bundle=FinanceSync.resolveBundles(local,remote,decisions);resolve(bundle);node.close();}catch(error){node.querySelector('[data-resolution-error]').textContent=error.message}});
+    });
+  }
+  function dataPanel(){const health=FinanceStorage.health(),sync=FinanceSync.read(),notification=FinanceNotifications.status();return panel('備份健康與版本',`<p>系統版本 ${VERSION}｜台灣時間</p><div class="three-col grid"><div>最後成功鏡像<strong>${esc(date(health.lastSavedAt))}</strong></div><div>備份驗證<strong>${esc(health.verification||'尚未驗證')}</strong><small>${esc(date(health.verifiedAt))}</small></div><div>備份狀態<strong class="${health.lastError||health.verificationError?'negative':'positive'}">${esc(health.lastError||health.verificationError||'目前無回報錯誤')}</strong></div></div><button class="action-btn" data-experience-verify>驗證最新備份可還原</button><details><summary>最近 30 次同步結果</summary>${(sync.history||[]).map(r=>`<p>${esc(date(r.at))} · ${esc(r.result)} · ${esc(r.detail)} · 待同步 ${r.pending} 項</p>`).join('')||'<p>新版同步後開始記錄。</p>'}</details><p>背景提醒：${esc(notification.pushEnabled?'此装置已註冊':notification.pushError||'尚未啟用')}</p><div class="row-actions"><button class="action-btn" data-experience-push>啟用背景繳款提醒</button><button class="action-btn" data-experience-push-stop>停止此裝置背景提醒</button></div><details><summary>本次更新內容</summary><p>逐筆同步差異、銀行帳單配對、實收手續費、連續記帳與撤銷、生活費情境、背景推播、備份驗證及自動檢查。</p></details>`);}
+  function decorate(root,state,bundle){
+    if(state.domain==='analysis'&&state.tab==='data')root.insertAdjacentHTML('beforeend',dataPanel());
+    if(state.domain==='daily'&&state.tab==='quick'){
+      const form=root.querySelector('#quickEntryForm');if(form&&!form.elements.id.value){form.insertAdjacentHTML('beforeend',`<label class="quick-continue"><input type="checkbox" name="continueEntry" ${localStorage.getItem('finance-continue-entry')==='1'?'checked':''}>儲存後繼續下一筆</label>${undo&&Date.now()<undo.expires?'<button type="button" class="action-btn" data-experience-undo>撤銷上一筆（30 秒內）</button>':''}`);}
+    }
+    root.querySelectorAll('[data-view-bill]').forEach(button=>{const b=document.createElement('button');b.type='button';b.className='action-btn';b.dataset.experienceBill=button.dataset.viewBill;b.textContent='追查差額／配對銀行明細';button.parentElement.append(b)});
+    if(state.domain==='accounts'&&['accounts','credit'].includes(state.tab)){
+      const cards=bundle.ledger.accounts.filter(r=>r.type==='信用卡');if(cards.length)root.insertAdjacentHTML('beforeend',panel('每張卡的國外手續費率',`<p>新費率供新增或修改交易使用；歷史實收費用請在帳單差額追查中修正。</p>${cards.map(r=>`<form data-experience-rate="${esc(r.id)}" class="filter-bar"><label>${esc(r.name)} 手續費 %<input name="rate" type="number" min="0" max="10" step="0.001" required value="${(r.foreignFeeRate??0.015)*100}"></label><button class="action-btn">保存費率</button></form>`).join('')}`));
+    }
+  }
+  function rememberEntry(before,after){const ids=new Set(before.ledger.entries.map(r=>r.id)),row=after.ledger.entries.find(r=>!ids.has(r.id)&&!r.isForeignTransactionFee);if(!row)return;undo={id:row.id,signature:JSON.stringify(row),feeSignature:JSON.stringify(after.ledger.entries.filter(r=>r.derivedFromEntryId===row.id)),expires:Date.now()+30000};}
+  function parseBank(source){const csv=FinanceImport.parseCsv(source);if(csv.length<2)throw new Error('請貼上標題與明細：日期,商家,金額');const headers=csv[0],find=names=>headers.findIndex(h=>names.includes(String(h).trim().toLowerCase())),di=find(['日期','date']),mi=find(['商家','商家／來源','merchant','description','消費明細']),ai=find(['金額','amount','新臺幣金額']);if(di<0||ai<0)throw new Error('需要日期與金額欄位');return csv.slice(1).filter(r=>r.some(v=>String(v).trim())).map(r=>{const amount=Number(String(r[ai]).replace(/,/g,'')),date=String(r[di]).trim().replace(/\//g,'-');if(!Number.isFinite(amount)||!/^\d{4}-\d{2}-\d{2}$/.test(date)||!FinanceIntelligence.validDate(date))throw new Error('日期請用 YYYY-MM-DD，退款／回饋金請用負數');return {date,merchant:String(r[mi]||''),amount};});}
+  function bankPanel(bill,rows,bank){
+    const total=rows.reduce((s,r)=>s+(r.type==='income'?-1:1)*Number(r.amount||0),0),refund=rows.filter(r=>r.type==='income'),fees=rows.filter(r=>r.isForeignTransactionFee),duplicates=rows.filter((r,i)=>rows.slice(0,i).some(p=>p.date===r.date&&p.amount===r.amount&&p.merchant===r.merchant));
+    return `<p class="money-value">帳單 ${money(bill.amount)} · 系統 ${money(total)} · 差額 ${money(bill.amount-total)}</p><p>退款／回饋 ${refund.length} 筆；自動手續費 ${fees.length} 筆；相同日期、商家與金額 ${duplicates.length} 筆（請核對，可能為正常交易）。</p><p>跨期交易請使用原帳單的「移入下期／不列本期」。</p><form data-experience-bank="${esc(bill.id)}"><label>銀行 CSV 明細（日期,商家,金額）<textarea name="source" placeholder="日期,商家,金額&#10;2026-09-01,早餐店,80&#10;2026-09-15,回饋金,-58" required></textarea></label><button class="action-btn">解析並排比對</button></form>${bank.length?`<p class="money-value">銀行明細合計 ${money(bank.reduce((s,r)=>s+r.amount,0))} · 與帳單差額 ${money(bill.amount-bank.reduce((s,r)=>s+r.amount,0))}</p><form data-experience-matches="${esc(bill.id)}">${bank.map((r,i)=>{const candidates=rows.filter(e=>Math.abs((e.type==='income'?-1:1)*e.amount-r.amount)<0.005),exact=candidates.filter(e=>(e.postedDate||e.date)===r.date&&e.merchant===r.merchant),saved=bill.bankMatches?.[i],selected=saved&&candidates.some(e=>e.id===saved)?saved:exact.length===1?exact[0].id:'';return `<label class="money-value">銀行：${esc(r.date)} · ${esc(r.merchant)} · ${money(r.amount)}<select name="match:${i}"><option value="">未配對／略過</option>${candidates.map(e=>`<option value="${esc(e.id)}" ${selected===e.id?'selected':''}>系統：${esc(e.date)} · ${esc(e.merchant)} · ${money((e.type==='income'?-1:1)*e.amount)}</option>`).join('')}</select></label>`}).join('')}<button class="action-btn green">確認保存明細及選定配對</button><p>金額不相同時不會標記已核對；請先修正原記帳或實收手續費。</p></form>`:''}<details><summary>依銀行實收修正國外手續費</summary>${rows.filter(r=>r.purchaseRegion==='foreign'&&!r.isForeignTransactionFee&&r.type==='expense').map(r=>`<form data-experience-fee="${esc(r.id)}" class="filter-bar"><label>${esc(r.date)} ${esc(r.merchant)}<input name="amount" type="number" min="0" step="0.01" required value="${r.bankFeeAmount??fees.find(f=>f.derivedFromEntryId===r.id)?.amount??0}"></label><button class="action-btn">保存銀行實收金額</button></form>`).join('')||'<p>此期沒有國外刷卡交易。</p>'}</details>`;
+  }
+  function openBill(id,bank){const bill=core.load().ledger.creditBills.find(r=>r.id===id);if(!bill)throw new Error('找不到帳單');const rows=host.billEntries(bill);bankWorkbench={id,bank:bank||bill.bankStatementRows||[]};return dialog(`${bill.card}｜${bill.billMonth} 差額追查`,bankPanel(bill,rows,bankWorkbench.bank));}
+  function init(callbacks){host=callbacks;
+    document.addEventListener('change',e=>{if(e.target.name==='continueEntry')localStorage.setItem('finance-continue-entry',e.target.checked?'1':'0')});
+    document.addEventListener('submit',async e=>{const form=e.target,key=Object.keys(form.dataset).find(k=>k.startsWith('experience'));if(!key)return;e.preventDefault();try{const v=Object.fromEntries(new FormData(form));
+      if(key==='experienceRate')core.setCardFeeRate(form.dataset[key],Number(v.rate)/100);
+      if(key==='experienceFee'){core.setBankFee(form.dataset[key],Number(v.amount));form.closest('dialog').close();host.refresh();openBill(bankWorkbench.id,bankWorkbench.bank);return;}
+      if(key==='experienceBank'){const bank=parseBank(v.source),id=form.dataset[key];form.closest('dialog').close();openBill(id,bank);return;}
+      if(key==='experienceMatches'){const matches=Object.fromEntries(Object.entries(v).filter(([k,val])=>k.startsWith('match:')&&val).map(([k,val])=>[k.slice(6),val]));core.saveBankStatement(form.dataset[key],bankWorkbench.bank,matches);form.closest('dialog').close();}
+      host.refresh();host.toast('已保存');
+    }catch(error){host.toast(error.message)}});
+    document.addEventListener('click',async e=>{try{
+      const target=e.target.closest('[data-experience-bill],[data-experience-verify],[data-experience-undo],[data-experience-push],[data-experience-push-stop]');if(!target)return;
+      if(target.dataset.experienceBill){openBill(target.dataset.experienceBill);return;}
+      if(target.hasAttribute('data-experience-verify')){const latest=(await FinanceStorage.revisions(1))[0];if(!latest)throw new Error('尚無本機備份');await FinanceStorage.verify(latest.id);host.toast('最新備份校驗與還原預覽完成');}
+      if(target.hasAttribute('data-experience-undo')){if(!undo||Date.now()>undo.expires)throw new Error('撤銷期限已過，請至收支明細處理');const bundle=core.load(),row=bundle.ledger.entries.find(r=>r.id===undo.id);if(JSON.stringify(row)!==undo.signature||JSON.stringify(bundle.ledger.entries.filter(r=>r.derivedFromEntryId===undo.id))!==undo.feeSignature)throw new Error('這筆資料已修改，請至收支明細處理');core.removeEntry(undo.id);undo=null;host.toast('已撤銷上一筆與相關手續費');}
+      if(target.hasAttribute('data-experience-push')){await FinanceNotifications.enablePush(await host.token());host.toast('背景提醒已註冊');}
+      if(target.hasAttribute('data-experience-push-stop')){await FinanceNotifications.disablePush(await host.token());host.toast('此裝置背景提醒已停止');}
+      host.refresh();
+    }catch(error){host.toast(error.message)}});
+  }
+  window.FinanceExperience={VERSION,decorate,init,resolveSync,rememberEntry,parseBank,fields};
+})();
