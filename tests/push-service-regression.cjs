@@ -12,7 +12,7 @@ const response=()=>({code:0,body:null,setHeader(){},status(value){this.code=valu
     else if(pathname.includes('claim_finance_push_reminder'))data=claimed;
     else if(pathname.includes('finance_push_subscriptions'))data=options.method==='POST'||options.method==='DELETE'||options.method==='PATCH'?null:new URL(url).searchParams.get('select')==='id'?[]:[{id:'fixture',user_id:'fixture-user',subscription,last_notified_date:null}];
     else throw new Error('Unexpected fixture fetch '+url);
-    return {ok:true,status:data===null?204:200,json:async()=>data};
+    return {ok:true,status:data===null?(options.method==='POST'?201:204):200,json:async()=>data,text:async()=>data===null?'':JSON.stringify(data)};
   };
   webpush.sendNotification=async()=>{sends++;};let res=response();await reminder({method:'GET',headers:{}},res);assert.equal(res.code,401);assert.equal(calls.length,0);
   res=response();await reminder({method:'GET',headers:{authorization:'Bearer fixture-secret'}},res);assert.equal(res.body.sent,1);assert.equal(sends,1);
