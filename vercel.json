@@ -1,5 +1,7 @@
 {
-  "buildCommand": "node tests/run-tests.cjs",
+  "framework": null,
+  "buildCommand": "node scripts/build-static.cjs",
+  "outputDirectory": "public",
   "crons": [{"path":"/api/payment-reminders","schedule":"0 0 * * *"}],
   "functions": {"api/payment-reminders.js":{"maxDuration":60}},
   "headers": [{"source":"/service-worker.js","headers":[{"key":"Cache-Control","value":"no-cache"}]}]

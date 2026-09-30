@@ -2,7 +2,7 @@
   "name": "personal-finance-center",
   "private": true,
   "packageManager": "pnpm@10.28.0",
-  "scripts": {"test":"node tests/run-tests.cjs", "test:mobile":"playwright test"},
+  "scripts": {"build":"node scripts/build-static.cjs", "test":"node tests/run-tests.cjs", "test:mobile":"playwright test"},
   "dependencies": {"web-push":"3.6.7"},
   "devDependencies": {"@playwright/test":"^1.58.0"}
 }
