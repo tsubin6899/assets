@@ -876,7 +876,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
       if(sameCloudVersion(syncState.lastRemoteUpdatedAt,row.updated_at)){FinanceSync.markSynced({remoteUpdatedAt:row.updated_at,comparison:syncState.lastComparison,acknowledgedIds:[]});return true;}
       const local=FinanceCore.exportBundle(),remote=cloudDataToBundle(row.data),comparison=FinanceSync.compareBundles(local,remote),bundle=FinanceSync.mergeBundles(local,remote),diff=FinanceSync.diffBundles(local,bundle);
       if(comparison.conflicts){FinanceSync.markReview("本機與雲端有無法判定先後的資料，請按立即同步預覽差異");showToast("本機與雲端有真正衝突，請先預覽");return false;}
-      if(diff.length){cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}}
+      if(diff.length){await FinanceStorage.prepareLocalWrite();cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}}
       FinanceSync.markSynced({remoteUpdatedAt:row.updated_at,comparison,acknowledgedIds:[]});
       return true;
     }
@@ -925,7 +925,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         const result=await request;if(result.error)throw result.error;
         if(!result.data?.length)throw new Error("其他裝置已更新雲端，請重新讀取並預覽");
         if(FinanceSync.fingerprint(FinanceCore.exportBundle())===fingerprint&&FinanceSync.diffBundles(local,bundle).length){
-          cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}
+          await FinanceStorage.prepareLocalWrite();cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}
         }
         ui.cloudVersions=history;FinanceSync.setRemoteVersions(history);
         FinanceSync.markSynced({remoteUpdatedAt:result.data[0]?.updated_at||syncedAt,comparison,acknowledgedIds:sent});
@@ -944,7 +944,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         if(!await FinanceIntelligenceUI.review(local,bundle,"載入雲端合併預覽"))return;
         if(FinanceSync.fingerprint(FinanceCore.exportBundle())!==fingerprint)throw new Error("預覽期間本機資料已變更，請重新載入");
         const latest=await fetchCloudRow();if(latest?.updated_at!==row.updated_at)throw new Error("雲端已更新，請重新預覽");
-        FinanceCore.importBundle(bundle);
+        await FinanceStorage.prepareLocalWrite();FinanceCore.importBundle(bundle);
         ui.cloudVersions=row.data.financeCenterCloudHistory||[];FinanceSync.setRemoteVersions(ui.cloudVersions);
         refresh();showToast("已合併到本機；合併結果將列為待同步");
       }catch(error){showToast(error.message||"載入失敗");}finally{cloudSyncBusy=false;}

@@ -36,7 +36,16 @@
       return value && typeof value === "object" ? value : clone(fallback);
     } catch { return clone(fallback); }
   }
-  function writeJson(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+  function writeJson(key, value) {
+    const encoded = JSON.stringify(value);
+    try { localStorage.setItem(key, encoded); }
+    catch (error) {
+      if (key === KEYS.unified || key === KEYS.backups) throw error;
+      // The envelope duplicates ledger/assets and can always be rebuilt.
+      localStorage.removeItem(KEYS.unified);
+      localStorage.setItem(key, encoded);
+    }
+  }
   function uid(prefix = "fin") { return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`; }
   function nowIso() { return new Date().toISOString(); }
   function localDate(date = new Date()) {
@@ -683,6 +692,10 @@
     const current = buildEnvelope();
     const backups = readJson(KEYS.backups, []);
     const item = { id: uid("backup"), createdAt: nowIso(), reason, schemaVersion: VERSION, data: backupSafe(current) };
+    if (window.FinanceStorage?.supported()) {
+      window.FinanceStorage.save(item.data, reason).catch(() => {});
+      return item;
+    }
     backups.unshift(item);
     try { writeJson(KEYS.backups, backups.slice(0, 12)); }
     catch {
@@ -730,7 +743,7 @@
       ledger: normalizedLedger, assets: normalizedAssets, events: buildEvents(normalizedLedger, normalizedAssets),
       lastMutation: reason
     };
-    writeJson(KEYS.unified, envelope);
+    try { writeJson(KEYS.unified, envelope); } catch {}
     window.dispatchEvent(new CustomEvent("finance-core-change", { detail: { reason, updatedAt: envelope.updatedAt } }));
     return envelope;
   }

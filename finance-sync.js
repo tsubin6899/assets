@@ -62,6 +62,11 @@
   function clone(value) { return JSON.parse(JSON.stringify(value ?? {})); }
   function stable(value) { if(Array.isArray(value))return value.map(stable);if(value&&typeof value==="object")return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value; }
   function equalData(a,b) { return JSON.stringify(stable(a))===JSON.stringify(stable(b)); }
+  function marketOnly(a,b) {
+    if (!a || !b || Array.isArray(a) || Array.isArray(b)) return false;
+    const omit = row => Object.fromEntries(Object.entries(row).filter(([key]) => !['price','currentPrice','priceUpdatedAt'].includes(key)));
+    return equalData(omit(a),omit(b));
+  }
   function recordKey(row, index) { return String(row?.id || row?.month || row?.year || [row?.date,row?.name,row?.code,row?.account,row?.amount,index].join("|")); }
   function recordTime(row) {
     const nested=[...Object.values(row?.statementChecks||{}).map(value=>value?.checkedAt),...Object.values(row?.statementExclusions||{}).map(value=>value?.excludedAt)];
@@ -84,12 +89,16 @@
     }
     const safelyMerged={ledger:new Set(["categories","items"]),assets:new Set(["fxHistory","fxRates","rates","marketPrices","marketDataMeta","valuationCache"])};
     for(const scope of ["ledger","assets"]){const a=scope==="ledger"?localLedger:localAssets,b=scope==="ledger"?remoteLedger:remoteAssets;for(const key of new Set([...Object.keys(a),...Object.keys(b)])){if(["updatedAt","auditJournal","version"].includes(key)||safelyMerged[scope].has(key)||Array.isArray(a[key])||Array.isArray(b[key]))continue;if(!equalData(a[key],b[key]))details.push({scope,collection:key,localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:1,same:0});}}
+    for (const row of details) if (row.scope==='assets' && ASSET_COLLECTIONS.includes(row.collection)) {
+      const left=localAssets[row.collection]||[],right=remoteAssets[row.collection]||[];
+      row.conflicts=Math.max(0,row.conflicts-left.filter((a,i)=>right.some((b,j)=>recordKey(a,i)===recordKey(b,j)&&!equalData(a,b)&&marketOnly(a,b)&&recordTime(a)===recordTime(b))).length);
+    }
     return details.reduce((result,row)=>({localOnly:result.localOnly+row.localOnly,remoteOnly:result.remoteOnly+row.remoteOnly,localNewer:result.localNewer+(row.localNewer||0),remoteNewer:result.remoteNewer+(row.remoteNewer||0),conflicts:result.conflicts+row.conflicts,details}),{localOnly:0,remoteOnly:0,localNewer:0,remoteNewer:0,conflicts:0,details});
   }
   function mergeCollection(localRows = [], remoteRows = []) {
     const merged=new Map();
     remoteRows.forEach((row,index)=>merged.set(recordKey(row,index),clone(row)));
-    localRows.forEach((row,index)=>{const key=recordKey(row,index),remote=merged.get(key);if(!remote||recordTime(row)>=recordTime(remote))merged.set(key,clone(row))});
+    localRows.forEach((row,index)=>{const key=recordKey(row,index),remote=merged.get(key);const newer=marketOnly(row,remote)?(new Date(row.priceUpdatedAt||0).getTime()||0)>=(new Date(remote.priceUpdatedAt||0).getTime()||0):recordTime(row)>=recordTime(remote);if(!remote||newer)merged.set(key,clone(row))});
     return [...merged.values()];
   }
   function mergeLegacyWatchlist(localRows = [], remoteRows = []) {
@@ -165,7 +174,7 @@
       if((scope==='ledger'?LEDGER_COLLECTIONS:ASSET_COLLECTIONS).includes(key)||['recycleBin','auditJournal','twWatchlist','usWatchlist'].includes(key))continue;
       const a=local[scope]?.[key],b=remote[scope]?.[key];if(Array.isArray(a)&&Array.isArray(b)&&a.length&&b.length&&!equalData(a,b))legacy.push({scope,collection:key,id:key,title:key,before:a,after:b,whole:true});
     }
-    return [...legacy,...diffBundles(local,remote).filter(r=>!legacy.some(x=>x.scope===r.scope&&x.collection===r.collection)&&r.before!==null&&r.after!==null&&
+    return [...legacy,...diffBundles(local,remote).filter(r=>!(r.scope==='assets'&&ASSET_COLLECTIONS.includes(r.collection)&&marketOnly(r.before,r.after))&&!legacy.some(x=>x.scope===r.scope&&x.collection===r.collection)&&r.before!==null&&r.after!==null&&
       (Array.isArray(local[r.scope]?.[r.collection])?recordTime(r.before)===recordTime(r.after):!['updatedAt','version','categories','items','fxHistory','fxRates','rates','marketPrices','marketDataMeta','valuationCache'].includes(r.collection)))];
   }
   function resolveBundles(local,remote,decisions) {

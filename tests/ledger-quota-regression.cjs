@@ -1,0 +1,23 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const values=new Map(),window={dispatchEvent(){}};
+const storage={getItem:k=>values.get(k)||null,removeItem:k=>values.delete(k),setItem(k,v){
+  if(k==='tsubin-personal-finance-center-v3'||k==='personal-accounting-tsubin-v1'&&values.has('tsubin-personal-finance-center-v3'))throw new Error('QuotaExceededError');
+  values.set(k,String(v));
+}};
+const context={window,localStorage:storage,CustomEvent:class{},console,Date,Intl};
+vm.runInNewContext(fs.readFileSync('finance-core.js','utf8'),context);
+const core=window.FinanceCore,bundle=core.exportBundle();
+values.set(core.KEYS.unified,JSON.stringify(bundle));
+bundle.ledger.entries.push({id:'cloud-entry',date:'2026-10-01',amount:10,type:'expense',account:'現金'});
+core.importBundle(bundle);
+assert.ok(JSON.parse(values.get(core.KEYS.ledger)).entries.some(r=>r.id==='cloud-entry'));
+assert.ok(core.exportBundle().ledger.entries.some(r=>r.id==='cloud-entry'));
+vm.runInNewContext(fs.readFileSync('finance-sync.js','utf8'),context);
+const sync=window.FinanceSync,a={ledger:{},assets:{tw:[{code:'0050',shares:3000,cost:100,price:111,currentPrice:111,priceUpdatedAt:'2026-09-29'}]}},b=JSON.parse(JSON.stringify(a));
+b.assets.tw[0].price=b.assets.tw[0].currentPrice=112;b.assets.tw[0].priceUpdatedAt='2026-10-01';
+assert.equal(sync.conflictRows(a,b).length,0);
+assert.equal(sync.compareBundles(a,b).conflicts,0);
+assert.equal(sync.mergeBundles(a,b).assets.tw[0].price,112);
+b.assets.tw[0].shares=4000;
+assert.equal(sync.conflictRows(a,b).length,1);
+console.log('ledger quota regression OK: rebuildable cache reclaimed, cloud ledger durable, market-only auto-merge, holdings still reviewed');

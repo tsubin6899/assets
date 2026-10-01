@@ -118,5 +118,20 @@
     return true;
   }
 
-  window.FinanceStorage = Object.freeze({ supported, init, save, revisions, readRevision, restore, health, verify, checksum });
+  async function prepareLocalWrite() {
+    if (!await save(window.FinanceCore.exportBundle(), '同步套用前備份'))
+      throw new Error('無法保留本機備份，請先匯出完整存檔');
+    const key = window.FinanceCore.KEYS.backups;
+    const backups = JSON.parse(localStorage.getItem(key) || '[]');
+    if (!backups.length) return;
+    // Preserve every existing restore point in IndexedDB before reclaiming
+    // the much smaller localStorage quota. Never remove transaction stores.
+    for (const row of backups) {
+      if (row.data && !await save(row.data, row.reason || '舊版本備份移轉'))
+        throw new Error('無法保留本機備份，請先匯出完整存檔');
+    }
+    localStorage.removeItem(key);
+  }
+
+  window.FinanceStorage = Object.freeze({ supported, init, save, revisions, readRevision, restore, health, verify, checksum, prepareLocalWrite });
 })();

@@ -9,7 +9,7 @@ function setup(options={}){
   const context=vm.createContext({window,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},CustomEvent:class{},Date,console});
   vm.runInContext(fs.readFileSync(path.join(root,'finance-sync.js'),'utf8'),context);
   const S=window.FinanceSync;S.enqueue({reason:'initial'});
-  Object.assign(context,{FinanceSync:S,FinanceCore:{VERSION:7,exportBundle:()=>clone(local),importBundle:b=>{imports++;local=clone(b);}},FinanceIntelligenceUI:{review:async(before,after,title)=>{reviews.push({before,after,title});return options.accept!==false;}},cloudUser:{id:'user'},cloudApplying:false,ui:{},showToast(){},refresh(){},updateAuthenticatedSyncUi(){},sameCloudVersion:(left,right)=>{const a=Date.parse(left||''),b=Date.parse(right||'');return Number.isFinite(a)&&Number.isFinite(b)?a===b:Boolean(left&&left===right);},fetchCloudRow:async()=>({data:remote,updated_at:options.remoteUpdatedAt||'remote-version'}),cloudDataToBundle:clone});
+  Object.assign(context,{FinanceStorage:{prepareLocalWrite:async()=>{}},FinanceSync:S,FinanceCore:{VERSION:7,exportBundle:()=>clone(local),importBundle:b=>{imports++;local=clone(b);}},FinanceIntelligenceUI:{review:async(before,after,title)=>{reviews.push({before,after,title});return options.accept!==false;}},cloudUser:{id:'user'},cloudApplying:false,ui:{},showToast(){},refresh(){},updateAuthenticatedSyncUi(){},sameCloudVersion:(left,right)=>{const a=Date.parse(left||''),b=Date.parse(right||'');return Number.isFinite(a)&&Number.isFinite(b)?a===b:Boolean(left&&left===right);},fetchCloudRow:async()=>({data:remote,updated_at:options.remoteUpdatedAt||'remote-version'}),cloudDataToBundle:clone});
   const request={eq:(...args)=>{filters.push(args);return request;},select:async()=>{writes++;if(options.duringUpload){local.ledger.entries.push({id:'late',amount:20});S.enqueue({reason:'during-upload'});}return {data:options.casFailure?[]:[{updated_at:options.returnedAt||'2026-09-22T05:00:00+00:00'}]};}};
   context.supabaseClient={from:()=>({update:()=>request,insert:()=>request})};
   vm.runInContext(source,context);
@@ -38,3 +38,4 @@ function setup(options={}){
   assert.throws(()=>t.S.mergeBundles({...localLegacy,ledger:{entries:[],methods:[{name:'cash'}]}},remoteLegacy),/舊版資料 methods/);
   console.log('cloud flow regression OK: preview, cancellation, compare-and-swap, concurrent edit, settings conflict, loan conflict, key order, stale timer, render failure');
 })().catch(error=>{console.error(error);process.exitCode=1;});
+
