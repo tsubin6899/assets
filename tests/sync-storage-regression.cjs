@@ -1,0 +1,18 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+let saved=null,blocked=true;
+const context={localStorage:{getItem:()=>saved,setItem:(key,value)=>{if(blocked)throw new Error('QuotaExceededError');saved=value}},window:{dispatchEvent(){}},CustomEvent:class{}};
+vm.runInNewContext(fs.readFileSync('finance-sync.js','utf8'),context);
+const sync=context.window.FinanceSync;
+sync.enqueue({reason:'新增交易'});
+assert.equal(sync.read().outbox.length,1);
+assert.ok(sync.read().storageWarning);
+sync.markSyncing();
+sync.markSynced({remoteUpdatedAt:'fixture'});
+assert.equal(sync.read().phase,'synced');
+assert.equal(sync.read().outbox.length,0);
+sync.enqueue({reason:'另一筆交易'});
+blocked=false;
+sync.log('成功');
+assert.equal(JSON.parse(saved).outbox.length,1);
+assert.equal(sync.read().outbox.length,1);
+console.log('sync storage regression OK: quota cannot break login bookkeeping, pending changes retained, persistence recovers');

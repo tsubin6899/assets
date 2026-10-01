@@ -3,8 +3,10 @@
 
   const KEY = "tsubin-finance-sync-state-v1";
   const EMPTY = { outbox: [], phase: "idle", lastSyncedAt: "", lastRemoteUpdatedAt: "", lastError: "", retryCount: 0, remoteVersions: [], lastComparison:null };
+  let memoryState = null;
 
   function read() {
+    if (memoryState) return memoryState;
     try {
       const saved = JSON.parse(localStorage.getItem(KEY) || "null");
       return saved && typeof saved === "object" ? { ...EMPTY, ...saved, outbox: Array.isArray(saved.outbox) ? saved.outbox : [], remoteVersions:Array.isArray(saved.remoteVersions)?saved.remoteVersions:[] } : { ...EMPTY };
@@ -12,7 +14,21 @@
   }
   function write(next) {
     const state = { ...EMPTY, ...next, outbox: (next.outbox || []).slice(-50), remoteVersions:(next.remoteVersions || []).slice(0, 5) };
-    localStorage.setItem(KEY, JSON.stringify(state));
+    // Sync status is bookkeeping, not the transaction store. A full browser
+    // must not turn a successful login or cloud operation into an auth failure.
+    state.remoteVersions = state.remoteVersions.map(({data, ...meta}) => meta);
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      memoryState = null;
+    } catch {
+      const compact = { ...state, history: [], remoteVersions: [], lastComparison: null };
+      try {
+        localStorage.setItem(KEY, JSON.stringify(compact));
+        memoryState = null;
+      } catch {
+        memoryState = { ...compact, storageWarning: "本機儲存空間不足，同步狀態暫存於此頁；請先匯出備份，勿清除網站資料。" };
+      }
+    }
     window.dispatchEvent(new CustomEvent("finance-sync-status", { detail: state }));
     return state;
   }
