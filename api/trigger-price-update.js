@@ -52,6 +52,14 @@ export default async function handler(req, res) {
   });
 
   if (!githubResponse.ok) {
+    if (githubResponse.status === 401 || githubResponse.status === 403) {
+      send(res, 503, {
+        ok: false,
+        code: "MARKET_UPDATE_CREDENTIALS_INVALID",
+        error: "伺服器的 GitHub 行情更新授權已失效或權限不足，需更新伺服器設定；現有行情資料仍保留。"
+      });
+      return;
+    }
     const detail = await githubResponse.text();
     send(res, githubResponse.status, {
       ok: false,

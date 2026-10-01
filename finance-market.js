@@ -19,8 +19,14 @@
   }
   async function requestJson(url, options) {
     const response = await fetch(url, options);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      const error = new Error(payload?.error || `HTTP ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+    if (!payload) throw new Error("行情服務回傳格式不正確");
+    return payload;
   }
   async function fetchLatest() {
     if (!isHttp()) throw new Error("本機檔案模式無法讀取行情資料");
