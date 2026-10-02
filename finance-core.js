@@ -1654,10 +1654,13 @@
     const { ledger, assets } = load();
     const summary = stockPositionSummary(assets);
     const position = [...summary.active, ...summary.closed].find(row => row.key === key);
-    if (!position || !position.manualId) throw new Error("找不到可同步的舊持倉");
+    if (!position) throw new Error("找不到可同步的交易持倉");
     const rows = holdingCollection(assets, position.manualAssetClass);
-    const row = rows.find(item => item.id === position.manualId);
+    const matches = rows.filter(item => stockTradeKey({...item,market:position.market,currency:item.currency||position.currency})===key);
+    if(matches.length>1)throw new Error("同一標的有多筆舊持倉，請先核對後再同步");
+    const row = position.manualId ? rows.find(item => item.id === position.manualId) : matches[0];
     if (!row) throw new Error("找不到舊持倉資料");
+    if(!row.id)row.id=uid("holding");
     if (row.legacySharesBeforeTradeSync === undefined) row.legacySharesBeforeTradeSync = number(row.shares ?? row.units ?? row.quantity);
     row.shares = position.shares;
     if ("units" in row) row.units = position.shares;

@@ -79,3 +79,12 @@
 @media(max-width:760px){.workspace-exposure>.investment-card-data{grid-column:1/-1}.workspace-list-toolbar{padding:0 18px 14px}.workspace-list-toolbar input{max-width:none;flex-basis:100%}.workspace-list-toolbar span{margin-left:0;margin-right:auto}.closed-position-grid.inline-list{grid-template-columns:minmax(0,1fr)}}
 
 .workspace-journal>.investment-card-intro{display:none}
+.closed-position-grid .inline-item:nth-child(6n+1){background:#eff6ff;border-color:#c7dcf8;border-top:4px solid #568fd8}
+.closed-position-grid .inline-item:nth-child(6n+2){background:#f1f0ff;border-color:#d9d1fa;border-top:4px solid #9474d7}
+.closed-position-grid .inline-item:nth-child(6n+3){background:#edf9f5;border-color:#bfe6d7;border-top:4px solid #38a887}
+.closed-position-grid .inline-item:nth-child(6n+4){background:#fff5ec;border-color:#f1d9be;border-top:4px solid #d99c57}
+.closed-position-grid .inline-item:nth-child(6n+5){background:#fff0f3;border-color:#f0cbd5;border-top:4px solid #d77e97}
+.closed-position-grid .inline-item:nth-child(6n){background:#edf8fc;border-color:#c3e3ee;border-top:4px solid #5aabbf}
+.holding-sync-preview{padding:12px;background:#fff;border:1px solid #b7daca;border-radius:10px;max-width:300px}
+.holding-sync-preview p{font-size:12px;line-height:1.7;margin-bottom:10px}
+.closed-position-grid .inline-item>div:last-child{flex-wrap:wrap}
