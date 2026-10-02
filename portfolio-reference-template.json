@@ -1,0 +1,11 @@
+{
+  "example": true,
+  "code": "0050",
+  "asOf": "2026-10-01",
+  "source": "請填原始公告來源名稱",
+  "sourceUrl": "https://www.yuantaetfs.com/product/detail/0050/ratio",
+  "partial": true,
+  "holdings": [
+    {"code": "2330", "market": "TW", "name": "格式示例，請改成已核對資料", "weight": 1}
+  ]
+}

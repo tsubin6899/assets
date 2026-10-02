@@ -270,13 +270,13 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="market-data-config.js"></script>
-  <script src="finance-center-routes.js?v=2"></script>
+  <script src="finance-center-routes.js?v=20261002-lab"></script>
   <script src="finance-core.js?v=30"></script>
   <script src="finance-intelligence.js?v=2"></script>
   <script src="finance-upgrades.js?v=2"></script>
   <script src="finance-storage.js?v=2"></script>
   <script src="finance-market.js?v=1"></script>
-  <script src="finance-sync.js?v=9"></script>
+  <script src="finance-sync.js?v=20261002-lab"></script>
   <script src="finance-notifications.js?v=2"></script>
   <script src="finance-search.js?v=1"></script>
   <script src="finance-import.js?v=2"></script>
@@ -285,6 +285,7 @@
   <script src="fubon-review.js?v=20261002-phase3"></script>
   <script src="fubon-portfolio.js?v=20261002-phase3"></script>
   <script src="investment-operations.js?v=20261002"></script>
+  <script src="portfolio-lab.js?v=20261002-lab4"></script>
   <script src="finance-experience.js?v=1"></script>
   <style>
     .experience-dialog{width:min(960px,calc(100% - 24px));max-height:85dvh;padding:18px;border:0;border-radius:16px;color:var(--ink);background:#fff;overflow:auto}
@@ -645,6 +646,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       return `${head}<div class="three-col grid" style="margin-bottom:16px">${metric("累計投入成本",money(buyTotal),"含買入手續費","tone-blue")}${metric("累計賣出收入",money(sellTotal),"已扣除手續費與交易稅","tone-amber")}${metric("已實現盈虧",`${realizedTotal>=0?"+":"−"}${money(Math.abs(realizedTotal))}`,"依加權平均成本計算",realizedTotal>=0?"tone-green":"tone-coral")}</div><div class="two-col grid"><form id="tradeForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}交易</h3><p>台股、美股、基金與美元基金都使用同一套交易紀錄</p></div></div><div class="form-grid"><label>買賣<select name="type">${option("buy","買入",edit?.type||"buy")}${option("sell","賣出",edit?.type)}</select></label><label>日期<input name="date" type="date" value="${esc(edit?.date||FinanceCore.localDate())}"></label><label>資產類型<select name="market">${option("TW","台股",edit?.market||"TW")}${option("US","美股",edit?.market)}${option("FUND","台幣基金",edit?.market)}${option("USD_FUND","美元基金",edit?.market)}</select></label><label>代號<input name="code" value="${esc(edit?.code||"")}" required></label><label>名稱<input name="name" value="${esc(edit?.name||"")}"></label><label>股數／單位<input name="shares" type="number" min="0" step="0.0001" value="${esc(edit?.shares||"")}" required></label><label>成交價／淨值<input name="price" type="number" min="0" step="0.0001" value="${esc(edit?.price||"")}" required></label><label>交易幣別<select name="currency">${option("TWD","台幣 TWD",edit?.currency||(["US","USD_FUND"].includes(edit?.market)?"USD":"TWD"))}${option("USD","美元 USD",edit?.currency||(["US","USD_FUND"].includes(edit?.market)?"USD":"TWD"))}</select></label><label>手續費<input name="fee" type="number" min="0" step="0.01" value="${esc(edit?.fee||0)}"></label><label>交易稅<input name="tax" type="number" min="0" step="0.01" value="${esc(edit?.tax||0)}"></label><label class="wide">現金帳戶<select name="cashAccount"><option value="">不連動帳戶</option>${accountOptions(edit?.cashAccount||"",true)}</select></label><label class="wide">備註<input name="note" value="${esc(edit?.note||"")}"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">${edit?"儲存修改":"儲存交易"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-trade>取消編輯</button>`:""}</form><section class="panel"><div class="panel-head"><div><h3>詳細交易紀錄</h3><p>${rows.length} 筆買賣｜賣出後即時計算盈虧</p></div></div><div class="inline-list">${tradeCards}</div></section></div>`;
     }
     function renderInvestmentsNative() {
+      if(["review","history","journal","exposure","health"].includes(state.tab)) return pageHeading("Investment Workspace","投資工作台","每日摘要、資料核對、決策與服務狀態。");
       const a=current.assetsSummary,titles={portfolio:"資產配置",holdings:"持有部位",trades:"投資交易",dividends:"股息收入"},head=pageHeading("Investment Portfolio",titles[state.tab]||"投資資產","持倉、買賣與股息均直接連動統一帳戶與現金流。");
       if(state.tab==="portfolio") return `${head}${marketPanel()}<div class="four-col grid">${metric("投資資產",money(a.investment),"依最新股價與匯率計算","tone-blue")}${metric("現金資產",money(a.cash),"整合記帳帳戶與外幣匯率","tone-green")}${metric("總資產",money(a.totalAssets),"尚未扣除負債","tone-teal")}${metric("負債",money(a.liabilities),"信用卡與待繳款","tone-purple")}</div><div class="two-col grid" style="margin-top:16px"><section class="panel"><div class="panel-head"><div><h3>目前配置</h3><p>依持倉市值與帳戶餘額計算</p></div><button class="action-btn green" data-create-snapshot>建立今日快照</button></div><div class="allocation-list">${allocationRows()}</div></section><section class="panel"><div class="panel-head"><div><h3>配置提醒</h3><p>集中度與安全水位</p></div></div>${alertList(current.alerts.filter(row=>/配置|集中|現金/.test(row.title)))}</section></div>`;
       if(state.tab==="holdings") return renderUnifiedHoldings(head);
@@ -707,6 +709,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       app.innerHTML = content;
       window.FubonReview?.decorate(app,state);
       window.InvestmentOperations?.decorate(app,state);
+      window.PortfolioLab?.decorate(app,state);
       window.FinanceExperience?.decorate(app,state,current);
       decorateLookupPaymentStatus();
       app.querySelectorAll('.account-card [data-edit-account]').forEach(button=>{const action=document.createElement('button');action.type='button';action.className='action-btn';action.dataset.accountHistory=button.dataset.editAccount;action.textContent='查看消費紀錄';button.before(action)});
@@ -957,6 +960,8 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     async function loadCloudVersions(){try{const row=await fetchCloudRow();ui.cloudVersions=row?.data?.financeCenterCloudHistory||[];FinanceSync.setRemoteVersions(ui.cloudVersions);showToast(`已讀取 ${ui.cloudVersions.length} 個雲端歷史版本`);render()}catch(error){showToast(error.message||"無法讀取雲端版本")}}
     async function restoreCloudVersion(index){try{const row=await fetchCloudRow(),version=(row?.data?.financeCenterCloudHistory||[])[index];if(!version?.data)throw new Error("找不到此雲端版本");await FinanceIntelligenceUI.restore(version.data,"還原雲端歷史版本預覽");}catch(error){showToast(error.message||"還原失敗");}}
     document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");cloudStatus.addEventListener("click",()=>refreshCloudSession({notify:true,force:true}));cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();refreshCloudSession({notify:true,force:true})}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
+    window.addEventListener("portfolio-lab-ready",()=>render());
+    window.PortfolioLab?.init();
     const startupCardRepair=FinanceCore.repairCreditBillPayments(),startupRecurringRepair=FinanceCore.repairRecurringEntries(),startupFeeRepair=FinanceCore.repairOrphanForeignCardFees();
     if(startupCardRepair.changed||startupRecurringRepair.changed||startupFeeRepair.changed)current=FinanceCore.insights();
     FinanceIntelligenceUI.init({refresh,toast:showToast});
