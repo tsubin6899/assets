@@ -1010,7 +1010,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     async function fetchCloudRow(){if(!supabaseClient||!cloudUser)throw new Error("請先登入才能讀取雲端");const {data:row,error}=await supabaseClient.from("asset_dashboard_profiles").select("data,updated_at").eq("user_id",cloudUser.id).maybeSingle();if(error)throw error;return row}
     let cloudSyncBusy=false;
     async function saveCloud(silent=false){
-      if(cloudSyncBusy)return false;
+      if(cloudSyncBusy){if(!silent)showToast("同步流程仍在進行，請完成目前的確認視窗；若持續沒有回應，請重新開啟頁面後再試。");return false;}
       if(silent&&!FinanceSync.hasPending())return false;
       if(!supabaseClient||!cloudUser){if(!silent)showToast("請先登入才能同步");return false;}
       cloudSyncBusy=true;
