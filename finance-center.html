@@ -8,6 +8,7 @@
   <meta name="theme-color" content="#17284b">
   <meta name="application-name" content="個人財務中心">
   <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="investment-cards.css?v=20261002-cards1">
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <style>
     :root {
@@ -286,6 +287,7 @@
   <script src="fubon-portfolio.js?v=20261002-phase3"></script>
   <script src="investment-operations.js?v=20261002"></script>
   <script src="portfolio-lab.js?v=20261002-lab4"></script>
+  <script src="investment-cards.js?v=20261002-cards1"></script>
   <script src="finance-experience.js?v=1"></script>
   <style>
     .experience-dialog{width:min(960px,calc(100% - 24px));max-height:85dvh;padding:18px;border:0;border-radius:16px;color:var(--ink);background:#fff;overflow:auto}
@@ -710,6 +712,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       window.FubonReview?.decorate(app,state);
       window.InvestmentOperations?.decorate(app,state);
       window.PortfolioLab?.decorate(app,state);
+      window.InvestmentCards?.decorate(app,state);
       window.FinanceExperience?.decorate(app,state,current);
       decorateLookupPaymentStatus();
       app.querySelectorAll('.account-card [data-edit-account]').forEach(button=>{const action=document.createElement('button');action.type='button';action.className='action-btn';action.dataset.accountHistory=button.dataset.editAccount;action.textContent='查看消費紀錄';button.before(action)});
