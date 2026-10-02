@@ -74,7 +74,7 @@
     if (!fills.length) throw new Error('請勾選要匯入的成交');
     return core.importBrokerFills({mode:'LIVE',fills});
   }
-  let snapshot = null, quotes = {};
+  let snapshot = null, quotes = {}, chosenAccount='', accountConfirmed=false, importMessage='';
   function decorate(app, state) {
     if (state.domain !== 'investments' || !['portfolio','trades','holdings'].includes(state.tab)) return;
     const section = document.createElement('section'); section.className='panel'; section.id='fubonReview'; section.style.marginTop='16px';
@@ -84,6 +84,8 @@
       <label><input type="checkbox" id="fubonConfirmed">我已核對券商遮罩帳號與此財務帳戶的對應</label>
       <p id="fubonReviewMessage"></p><section id="fubonPortfolio" style="margin:16px 0"></section><div id="fubonReviewRows"></div>`;
     app.append(section);
+    section.querySelector('#fubonAccount').value=chosenAccount;
+    section.querySelector('#fubonConfirmed').checked=accountConfirmed;
     const render = () => {
       const message=section.querySelector('#fubonReviewMessage'), target=section.querySelector('#fubonReviewRows');
       if (!snapshot) return;
@@ -92,21 +94,21 @@
       const bundle=window.FinanceCore.load(); window.FubonPortfolio?.render(section.querySelector('#fubonPortfolio'),snapshot,bundle,account,confirmed,quotes); const diffs=reconcile(snapshot,bundle,account,confirmed), rows=preview(snapshot,bundle,account);
       target.innerHTML=`<h4>持股核對</h4><div style="overflow:auto"><table><thead><tr><th>代號</th><th>帳本</th><th>券商一般股數</th><th>差額</th><th>結果</th></tr></thead><tbody>${diffs.map(r=>`<tr><td>${esc(r.code)}</td><td>${r.book}</td><td>${r.quantity}</td><td>${r.difference}</td><td>${esc(r.status)}</td></tr>`).join('')}</tbody></table></div>${diffs.length?'':'<p>目前沒有可核對持股；空清單不代表帳戶對帳已通過。</p>'}
         <h4>成交匯入預覽</h4><p>勾選後填入實際費稅；疑似手動紀錄請先在交易管理核對，不自動重複匯入。</p>
-        <form id="fubonImport"><div style="overflow:auto"><table><thead><tr><th>選取</th><th>成交</th><th>股數 × 價格</th><th>狀態</th><th>手續費</th><th>交易稅</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td><input type="checkbox" data-select="${i}" ${r.status==='待補費稅'?'':'disabled'}></td><td>${esc(r.fill.date)} ${esc(r.fill.code)} ${esc(r.fill.type)}</td><td>${r.fill.shares} × ${r.fill.price}</td><td>${esc(r.status)}</td><td><input aria-label="手續費 ${esc(r.fill.code)}" data-fee="${i}" type="number" min="0" step="0.01" style="width:90px"></td><td><input aria-label="交易稅 ${esc(r.fill.code)}" data-tax="${i}" type="number" min="0" step="0.01" style="width:90px"></td></tr>`).join('')}</tbody></table></div><button class="action-btn" type="submit">確認費稅並匯入勾選成交</button></form>`;
+        <form id="fubonImport"><div style="overflow:auto"><table><thead><tr><th>選取</th><th>成交</th><th>股數 × 價格</th><th>狀態</th><th>手續費</th><th>交易稅</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td><input type="checkbox" data-select="${i}" ${r.status==='待補費稅'?'':'disabled'}></td><td>${esc(r.fill.date)} ${esc(r.fill.code)} ${esc(r.fill.type)}</td><td>${r.fill.shares} × ${r.fill.price}</td><td>${esc(r.status)}</td><td><input aria-label="手續費 ${esc(r.fill.code)}" data-fee="${i}" type="number" min="0" step="0.01" style="width:90px"></td><td><input aria-label="交易稅 ${esc(r.fill.code)}" data-tax="${i}" type="number" min="0" step="0.01" style="width:90px"></td></tr>`).join('')}</tbody></table></div><p id="fubonImportMessage" role="status" aria-live="polite">${esc(!rows.length?`此快照在 ${snapshot.startDate}～${snapshot.endDate} 沒有回傳成交資料，無法匯入。這與目前有沒有持股無關。請在交易中心確認成交查詢期間與結果，再重新載入快照；庫存快照不會補回歷史買進紀錄。`:importMessage||'請勾選成交並填妥實際費稅，再匯入。')}</p><button class="action-btn" type="submit" ${rows.some(r=>r.status==='待補費稅')?'':'disabled'}>${rows.length?'確認費稅並匯入勾選成交':'此快照無成交可匯入'}</button></form>`;
       target.querySelector('form').onsubmit=e=>{e.preventDefault();try{
         const selections=rows.flatMap((r,i)=>target.querySelector(`[data-select="${i}"]`).checked?[{id:r.fill.brokerFillId,fee:target.querySelector(`[data-fee="${i}"]`).value,tax:target.querySelector(`[data-tax="${i}"]`).value}]:[]);
-        const result=importSelected(snapshot,selections,account,confirmed); window.dispatchEvent(new CustomEvent('finance-broker-fills-imported',{detail:result}));
-      }catch(error){message.textContent=error.message;}};
+        const result=importSelected(snapshot,selections,account,confirmed);importMessage=`已匯入 ${result.imported||0} 筆成交；請回交易紀錄核對。`;window.dispatchEvent(new CustomEvent('finance-broker-fills-imported',{detail:result}));
+      }catch(error){target.querySelector('#fubonImportMessage').textContent=error.message;}};
     };
     section.querySelector('#fubonLoad').onclick=async()=>{try{
       const response=await fetch(new URL('../auto_trading/data/fubon-preview.json',location.href),{cache:'no-store'});
       if(!response.ok)throw new Error('沒有本機快照，請先在交易中心重新查詢；雲端頁面可使用下方檔案載入');
-      const value=await response.json();validSnapshot(value);snapshot=value;quotes={};try { const q=await fetch(new URL('../auto_trading/data/quotes.json',location.href),{cache:'no-store'}); if(q.ok) quotes=(await q.json()).quotes||{}; } catch {} render();
+      const value=await response.json();validSnapshot(value);if(snapshot?.accountRef!==value.accountRef){accountConfirmed=false;section.querySelector('#fubonConfirmed').checked=false;}snapshot=value;importMessage='';quotes={};try { const q=await fetch(new URL('../auto_trading/data/quotes.json',location.href),{cache:'no-store'}); if(q.ok) quotes=(await q.json()).quotes||{}; } catch {} render();
     }catch(error){section.querySelector('#fubonReviewMessage').textContent=error.message;}};
     const input=document.createElement('input');input.type='file';input.accept='.json';input.setAttribute('aria-label','載入交易中心下載的富邦預覽 JSON');section.querySelector('#fubonLoad').after(input);
-    input.onchange=async()=>{try{const value=JSON.parse(await input.files[0].text());validSnapshot(value);snapshot=value;quotes={};render();}catch(error){section.querySelector('#fubonReviewMessage').textContent=error.message;}};
-    section.querySelector('#fubonAccount').onchange=()=>{section.querySelector('#fubonConfirmed').checked=false;render();};
-    section.querySelector('#fubonConfirmed').onchange=render;
+    input.onchange=async()=>{try{const value=JSON.parse(await input.files[0].text());validSnapshot(value);if(snapshot?.accountRef!==value.accountRef){accountConfirmed=false;section.querySelector('#fubonConfirmed').checked=false;}snapshot=value;importMessage='';quotes={};render();}catch(error){section.querySelector('#fubonReviewMessage').textContent=error.message;}};
+    section.querySelector('#fubonAccount').onchange=()=>{chosenAccount=section.querySelector('#fubonAccount').value;accountConfirmed=false;section.querySelector('#fubonConfirmed').checked=false;render();};
+    section.querySelector('#fubonConfirmed').onchange=()=>{accountConfirmed=section.querySelector('#fubonConfirmed').checked;render();};
     render();
   }
   window.FubonReview={preview,reconcile,importSelected,decorate};
