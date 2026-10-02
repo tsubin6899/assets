@@ -57,7 +57,7 @@
   function setRemoteVersions(versions = []) { const state=read();return write({ ...state, remoteVersions:versions.map(({ data, ...meta })=>meta).slice(0,5) }); }
 
   const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","loanPayments","goals","goalAllocationHistory","importTemplates","importReconciliations","annualPlans","monthCloseouts","categoryRules"];
-  const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots","financialSnapshots","investmentSchedule","investmentDailySnapshots","investmentJournal","etfReferences"];
+  const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots","financialSnapshots","investmentSchedule","investmentDailySnapshots","investmentJournal","etfReferences","stockHoldingCorrections"];
   const RECYCLE_KIND_BY_COLLECTION = { entries:"entry", transfers:"transfer", accounts:"account", creditBills:"creditBill", creditInstallments:"installment", templates:"template", recurringRules:"recurring", budgets:"budget", reconciliations:"reconciliation", creditStatementChecks:"creditStatementCheck", loans:"loan",goals:"goal",loanPayments:"loanPayment",importReconciliations:"importReconciliation" };
   function clone(value) { return JSON.parse(JSON.stringify(value ?? {})); }
   function stable(value) { if(Array.isArray(value))return value.map(stable);if(value&&typeof value==="object")return Object.fromEntries(Object.keys(value).sort().map(key=>[key,stable(value[key])]));return value; }
@@ -143,6 +143,7 @@
     for(const date of Object.keys(assets.fxHistory))assets.fxHistory[date]={...(remoteAssets.fxHistory?.[date]||{}),...(localAssets.fxHistory?.[date]||{})};
     ledger.categories={income:[...new Set([...(remoteLedger.categories?.income||[]),...(localLedger.categories?.income||[])])],expense:[...new Set([...(remoteLedger.categories?.expense||[]),...(localLedger.categories?.expense||[])])]};
     ledger.items={...(remoteLedger.items||{}),...(localLedger.items||{})};
+    window.FinanceCore?.applyLegacyStockZero?.(assets);
     return { ledger, assets };
   }
   function label(state = read()) {

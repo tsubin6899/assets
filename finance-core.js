@@ -233,7 +233,25 @@
     const paper = result.purchaseRecords.filter(row => /^(AI-)?PAPER-/.test(row.brokerFillId || '') || row.externalSource === 'auto-trading-center');
     result.paperPurchaseRecords = [...new Map([...(Array.isArray(value.paperPurchaseRecords) ? value.paperPurchaseRecords : []), ...paper].map(row => [row.brokerFillId || row.id, row])).values()];
     result.purchaseRecords = result.purchaseRecords.filter(row => !paper.includes(row));
+    applyLegacyStockZero(result);
     return result;
+  }
+
+  function applyLegacyStockZero(assets) {
+    const directive=(assets.stockHoldingCorrections||[]).find(r=>r.id==='legacy-stock-zero'&&r.scope==='tw-us');
+    const cutoff=Date.parse(directive?.updatedAt||'');if(!Number.isFinite(cutoff))return assets;
+    for(const group of ['tw','us'])for(const row of assets[group]||[]){
+      const time=Math.max(0,...[row.updatedAt,row.createdAt,row.reconciledAt].map(v=>Date.parse(v||'')||0));
+      if(time>cutoff)continue;
+      const fields=['shares','units','quantity','marketValue','value','currentValue'];
+      if(fields.some(f=>number(row[f])!==0)){
+        if(row.legacyBeforeZero===undefined)row.legacyBeforeZero=Object.fromEntries(fields.filter(f=>f in row).map(f=>[f,row[f]]));
+        if(row.legacySharesBeforeTradeSync===undefined)row.legacySharesBeforeTradeSync=number(row.shares??row.units??row.quantity);
+      }
+      row.shares=0;for(const f of fields)if(f in row)row[f]=0;
+      row.tradeManaged=true;row.reconciledAt=directive.updatedAt;row.updatedAt=directive.updatedAt;
+    }
+    return assets;
   }
 
   function normalizeLedgerDates(ledger) {
@@ -1673,6 +1691,7 @@
   }
   function zeroLegacyStockHoldings() {
     const {ledger,assets}=load();let changed=0;
+    const correctedAt=nowIso();
     for(const assetClass of ['tw','us'])for(const row of assets[assetClass]||[]){
       const fields=['shares','units','quantity','marketValue','value','currentValue'];
       if(!fields.some(field=>number(row[field])!==0))continue;
@@ -1680,9 +1699,10 @@
       if(row.legacySharesBeforeTradeSync===undefined)row.legacySharesBeforeTradeSync=number(row.shares??row.units??row.quantity);
       if(!row.id)row.id=uid('holding');
       row.shares=0;for(const field of fields)if(field in row)row[field]=0;
-      row.tradeManaged=true;row.reconciledAt=nowIso();row.updatedAt=row.reconciledAt;row.zeroReason='使用者確認目前沒有持有股票';changed++;
+      row.tradeManaged=true;row.reconciledAt=correctedAt;row.updatedAt=row.reconciledAt;row.zeroReason='使用者確認目前沒有持有股票';changed++;
     }
-    if(changed)persist(ledger,assets,'使用者確認全部舊股票持倉歸零');
+    assets.stockHoldingCorrections=[...(assets.stockHoldingCorrections||[]).filter(r=>r.id!=='legacy-stock-zero'),{id:'legacy-stock-zero',scope:'tw-us',updatedAt:correctedAt,reason:'使用者確認目前沒有持有股票'}];
+    persist(ledger,assets,'使用者確認全部舊股票持倉歸零');
     return {changed};
   }
   function addAssetSnapshot(values={}) { const {ledger,assets}=load(); const summary=assetSummary(ledger,assets); const date=values.date||localDate(); assets.assetSnapshots=assets.assetSnapshots.filter(row=>row.date!==date); assets.assetSnapshots.push({id:uid("snapshot"),date,total:summary.totalAssets,liabilities:summary.liabilities,net:summary.netWorth,createdAt:nowIso()}); return persist(ledger,assets,"建立資產快照"); }
@@ -1834,7 +1854,7 @@
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
-    addHolding, updateHolding, removeHolding, syncLegacyHolding, zeroLegacyStockHoldings, addAssetSnapshot, stockPositionSummary,
+    addHolding, updateHolding, removeHolding, syncLegacyHolding, zeroLegacyStockHoldings, applyLegacyStockZero, addAssetSnapshot, stockPositionSummary,
     marketSymbols, applyMarketSnapshot,
     createBackup, listBackups, readBackup, restoreBackup, importBundle, previewBundle,
     exportBundle, localDate, monthOf, fxRate, roundMoney, sumMoney, financialForecast, investmentPerformance, financialHealth
