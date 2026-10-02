@@ -104,7 +104,7 @@
   function mergeLegacyWatchlist(localRows = [], remoteRows = []) {
     const merged=new Map(),keyOf=(row,index)=>String(row?.code||row?.symbol||row?.ticker||row?.id||row?.name||index).trim().toUpperCase();
     remoteRows.forEach((row,index)=>merged.set(keyOf(row,index),clone(row)));
-    localRows.forEach((row,index)=>{const key=keyOf(row,index),remote=merged.get(key);if(!remote||recordTime(row)>=recordTime(remote))merged.set(key,clone(row));});
+    localRows.forEach((row,index)=>{const key=keyOf(row,index),remote=merged.get(key);if(!remote||(!marketOnly(row,remote)&&recordTime(row)>=recordTime(remote))||(marketOnly(row,remote)&&(new Date(row.priceUpdatedAt||0).getTime()||0)>(new Date(remote.priceUpdatedAt||0).getTime()||0)))merged.set(key,clone(row));});
     return [...merged.values()];
   }
   function mergeBundles(localBundle = {}, remoteBundle = {}) {
@@ -175,7 +175,7 @@
       if((scope==='ledger'?LEDGER_COLLECTIONS:ASSET_COLLECTIONS).includes(key)||['recycleBin','auditJournal','twWatchlist','usWatchlist'].includes(key))continue;
       const a=local[scope]?.[key],b=remote[scope]?.[key];if(Array.isArray(a)&&Array.isArray(b)&&a.length&&b.length&&!equalData(a,b))legacy.push({scope,collection:key,id:key,title:key,before:a,after:b,whole:true});
     }
-    return [...legacy,...diffBundles(local,remote).filter(r=>!(r.scope==='assets'&&ASSET_COLLECTIONS.includes(r.collection)&&marketOnly(r.before,r.after))&&!legacy.some(x=>x.scope===r.scope&&x.collection===r.collection)&&r.before!==null&&r.after!==null&&
+    return [...legacy,...diffBundles(local,remote).filter(r=>!(r.scope==='assets'&&[...ASSET_COLLECTIONS,'twWatchlist','usWatchlist'].includes(r.collection)&&marketOnly(r.before,r.after))&&!legacy.some(x=>x.scope===r.scope&&x.collection===r.collection)&&r.before!==null&&r.after!==null&&
       (Array.isArray(local[r.scope]?.[r.collection])?recordTime(r.before)===recordTime(r.after):!['updatedAt','version','categories','items','fxHistory','fxRates','rates','marketPrices','marketDataMeta','valuationCache'].includes(r.collection)))];
   }
   function resolveBundles(local,remote,decisions) {
@@ -196,3 +196,4 @@
   }
   window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, conflictRows, resolveBundles, log, fingerprint, label });
 })();
+
