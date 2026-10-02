@@ -25,6 +25,22 @@
   function decorate(app,state){
     const summary=app.querySelector('#portfolioLab');if(summary&&state.tab==='portfolio'){const first=app.querySelector('#fubonReview, #investmentOperations');if(first)first.before(summary);}
     for(const id of Object.keys(titles)){const section=app.querySelector('#'+id);layout(section,state);if(section&&!section._cardObserver){section._cardObserver=new MutationObserver(()=>{if(!section.querySelector(':scope > .investment-card')){delete section.dataset.cardsReady;layout(section,state);}});section._cardObserver.observe(section,{childList:true});}}
+    if(state.domain==='investments'&&state.tab==='portfolio')overview(app);
+  }
+  function overview(app){
+    if(app.querySelector('#investmentOverviewTools'))return;
+    const b=window.FinanceCore.load(),issues=window.PortfolioLab.quality(b),plans=window.InvestmentOperations.calendar(b).filter(r=>r.source==='手動確認日程'&&!r.completed);
+    const host=document.createElement('section');host.id='investmentOverviewTools';host.className='portfolio-overview-tools';
+    const head=document.createElement('div');head.className='portfolio-attention';
+    const title=document.createElement('h3');title.textContent='投資管理';
+    const note=document.createElement('p');note.textContent=`${issues.length?`有 ${issues.length} 項資料待核對`:'目前沒有資料核對待辦'} · ${plans.length} 筆未完成日程`;
+    head.append(title,note);host.append(head);
+    const grid=document.createElement('nav');grid.className='portfolio-tool-grid';grid.setAttribute('aria-label','投資管理工具');
+    const links=[['review','資料核對','處理缺漏、重複與股數差異','✓'],['history','資產歷史','查看估值與資金流變化','↗'],['journal','決策日誌','記錄投資理由與事後檢討','≡'],['exposure','產業與 ETF','查看集中度與共同持股','◫'],['health','服務與備份','查看連線狀態與保存資料','◎'],['trades','交易紀錄','查閱買賣與成交匯入','⇄']];
+    for(const [route,label,desc,icon] of links){const a=document.createElement('a');a.href='#investments/'+route;const mark=document.createElement('span');mark.className='portfolio-tool-icon';mark.textContent=icon;const text=document.createElement('div'),strong=document.createElement('strong'),small=document.createElement('small');strong.textContent=label;small.textContent=desc;text.append(strong,small);a.append(mark,text);grid.append(a);}host.append(grid);
+    const sections=[['portfolioLab','每日摘要與行情','損益、待辦數字及持股行情更新'],['fubonReview','富邦持股對帳','載入快照、確認帳戶與預覽成交匯入'],['investmentOperations','日程、績效與提醒','交割股息、費用明細及完整提醒清單']];
+    const first=app.querySelector('#portfolioLab, #fubonReview, #investmentOperations');if(first)first.before(host);else app.append(host);
+    for(const [id,label,desc] of sections){const section=app.querySelector('#'+id);if(!section)continue;const details=document.createElement('details');details.className='portfolio-overview-disclosure';const summary=document.createElement('summary'),text=document.createElement('div'),strong=document.createElement('strong'),small=document.createElement('small');strong.textContent=label;small.textContent=desc;text.append(strong,small);const arrow=document.createElement('span');arrow.className='portfolio-disclosure-arrow';arrow.textContent='＋';arrow.setAttribute('aria-hidden','true');summary.append(text,arrow);details.append(summary,section);details.addEventListener('toggle',()=>{arrow.textContent=details.open?'−':'＋';});host.append(details);section.style.marginTop='0';}
   }
   window.InvestmentCards={decorate};
 })();
