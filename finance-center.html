@@ -8,7 +8,7 @@
   <meta name="theme-color" content="#17284b">
   <meta name="application-name" content="個人財務中心">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="investment-cards.css?v=20261002-cards2">
+
   <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
   <style>
     :root {
@@ -287,7 +287,91 @@
   <script src="fubon-portfolio.js?v=20261002-phase3"></script>
   <script src="investment-operations.js?v=20261002"></script>
   <script src="portfolio-lab.js?v=20261002-lab4"></script>
-  <script src="investment-cards.js?v=20261002-cards2"></script>
+  <style id="investmentCardsStyles">
+.investment-card-layout.panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:0;border:0;background:transparent;box-shadow:none;min-width:0}
+.investment-card{min-width:0;padding:24px;border:1px solid #dce5ef;border-radius:20px;background:#fff;box-shadow:0 6px 20px rgba(28,48,81,.045);display:flex;flex-wrap:wrap;align-content:flex-start;align-items:center;gap:14px}
+.investment-card-intro{grid-column:1/-1;background:linear-gradient(120deg,#f5f3ff,#f0f7ff);border-color:#dce1f4;border-left:4px solid #7665c4}
+.investment-card h3,.investment-card h4{width:100%;margin:0;font-size:18px;line-height:1.5;color:#253657}
+.investment-card h4{font-size:15px;font-weight:800;letter-spacing:.025em}
+.investment-card p{width:100%;color:#617087;line-height:1.8;font-size:13px;overflow-wrap:anywhere}
+.investment-card p:empty{display:none}
+.investment-card-data,.investment-card-form,.investment-card-actions,.investment-metrics{grid-column:1/-1}
+.investment-card-data{padding:22px 0 0;display:block;overflow:hidden}
+.investment-card-data>h4{padding:0 24px 16px}
+.investment-table-scroll{max-width:100%;overflow:auto;overscroll-behavior-x:contain}
+.investment-card-layout table{width:100%;border-collapse:collapse;font-size:13px}
+.investment-card-layout th{background:#f6f8fc;color:#64748b;font-size:12px;letter-spacing:.02em;padding:13px 18px;text-align:left;white-space:nowrap}
+.investment-card-layout td{padding:16px 18px;line-height:1.7;vertical-align:top;border-bottom:1px solid #edf1f6;overflow-wrap:anywhere}
+.investment-card-layout tr:last-child td{border-bottom:0}
+.investment-card-layout tbody tr:hover{background:#fafbff}
+.investment-card-layout a{color:#5367b5;font-size:13px;font-weight:700;line-height:1.7}
+.investment-card-layout button{border:1px solid #dce3ef;border-radius:11px;padding:10px 15px;background:#f3f6fc;color:#3d5184;font-weight:700;font-size:12px;cursor:pointer;white-space:normal;line-height:1.5}
+.investment-card-layout button:hover{background:#e9eefb;border-color:#bdcae5}
+.investment-card-layout button:disabled{opacity:.55;cursor:wait}
+.investment-card-layout button:focus-visible,.investment-card-layout a:focus-visible,.investment-card-layout summary:focus-visible{outline:3px solid #a5b8ff;outline-offset:3px}
+.investment-card-layout details{width:100%;margin:0}
+.investment-card-layout summary{cursor:pointer;font-size:13px;font-weight:800;color:#425579;line-height:1.6}
+.investment-card-layout details[open]>summary{margin-bottom:18px}
+.investment-card-layout .form-grid{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.investment-card-layout label{font-size:12px;font-weight:700;color:#607087;display:grid;gap:8px;min-width:0}
+.investment-card-layout input,.investment-card-layout select,.investment-card-layout textarea{width:100%;min-width:0;border:1px solid #dce4ee;border-radius:11px;padding:11px;background:#fafbfd;color:#253657;font-size:13px}
+.investment-card-layout textarea{min-height:100px;resize:vertical}
+.investment-card-layout pre{max-width:100%;overflow:auto;font-size:12px}
+.investment-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));align-items:stretch;padding:0;border:0;background:transparent;box-shadow:none;gap:14px}
+.investment-metric{background:white;border:1px solid #e0e6f0;border-radius:16px;padding:20px;color:#364e79;font-size:15px;font-weight:750;line-height:1.8;box-shadow:0 5px 16px rgba(28,48,81,.035);overflow-wrap:anywhere;border-top:3px solid #a2afd9}
+.investment-card-layout #repairEditor:empty{display:none}
+.investment-card-layout input[type="checkbox"]{width:auto;min-width:auto;accent-color:#6675bc}
+.investment-card-data>details{padding:0 24px 20px}
+.investment-card-data>details[open] .investment-table-scroll{margin:0 -24px;max-width:calc(100% + 48px)}
+.investment-card-layout #repairEditor{width:100%;padding-top:10px}
+.investment-card-layout #repairEditor h4{margin-bottom:16px}
+.investment-card-layout #tradeRepairPreview:not(:empty){padding:18px;margin-top:18px;background:#f4f8ff;border-radius:14px}
+@media(max-width:760px){.investment-card-layout.panel{grid-template-columns:minmax(0,1fr);gap:14px}.investment-card{padding:18px;border-radius:16px}.investment-card-data{padding:18px 0 0}.investment-card-data>h4{padding:0 18px 14px}.investment-card-layout .form-grid{grid-template-columns:minmax(0,1fr)}.investment-metrics{padding:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.investment-metric{padding:14px;font-size:13px}.investment-card-layout td{min-width:135px;padding:13px}.investment-card-layout th{padding:12px 13px}}
+@media(max-width:380px){.investment-metrics{grid-template-columns:minmax(0,1fr)}}
+.portfolio-overview-tools{display:grid;gap:16px;margin-top:24px;min-width:0}
+.portfolio-attention{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:0 4px}
+.portfolio-attention h3{font-size:18px;color:#293a57}
+.portfolio-attention p{font-size:13px;color:#718098}
+.portfolio-tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.portfolio-tool-grid>a{display:flex;align-items:center;gap:14px;padding:20px;background:#fff;border:1px solid #e0e6ef;border-radius:16px;transition:background .15s,border-color .15s;min-width:0}
+.portfolio-tool-grid>a:hover{background:#f5f7ff;border-color:#bdc9ea}
+.portfolio-tool-grid>a:focus-visible,.portfolio-overview-disclosure>summary:focus-visible{outline:3px solid #9eb3ef;outline-offset:3px}
+.portfolio-tool-icon{display:grid;place-items:center;flex-shrink:0;width:42px;height:42px;border-radius:12px;background:#edf1fb;color:#6577b4;font-size:22px}
+.portfolio-tool-grid strong{display:block;font-size:14px;color:#324669;line-height:1.7}
+.portfolio-tool-grid small{display:block;font-size:12px;color:#7a879b;line-height:1.7;margin-top:3px}
+.portfolio-overview-disclosure{background:#fff;border:1px solid #dfe6ef;border-radius:16px;overflow:hidden;min-width:0}
+.portfolio-overview-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;cursor:pointer;list-style:none}
+.portfolio-overview-disclosure>summary::-webkit-details-marker{display:none}
+.portfolio-overview-disclosure>summary strong{display:block;font-size:15px;color:#33496f}
+.portfolio-overview-disclosure>summary small{display:block;color:#7b879a;font-size:12px;margin-top:5px;line-height:1.6}
+.portfolio-disclosure-arrow{font-size:22px;color:#7387b5}
+.portfolio-overview-disclosure[open]>summary{background:#f7f9fd;border-bottom:1px solid #e3e9f2}
+.portfolio-overview-disclosure>.investment-card-layout.panel{padding:20px;background:#f7f9fc;gap:12px;margin-bottom:0}
+.portfolio-overview-disclosure .investment-card{box-shadow:none}
+@media(max-width:760px){.portfolio-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.portfolio-tool-grid>a{padding:15px;gap:10px}.portfolio-tool-icon{width:32px;height:32px;font-size:18px}.portfolio-attention{display:block}.portfolio-attention p{margin-top:8px}.portfolio-overview-disclosure>summary{padding:18px}.portfolio-overview-disclosure>.investment-card-layout.panel{padding:12px}}
+@media(max-width:420px){.portfolio-tool-grid>a{align-items:flex-start}.portfolio-tool-grid small{font-size:11px}.portfolio-tool-icon{display:none}}
+.workspace-empty{padding:26px!important;margin:0;color:#7a879b;text-align:center;background:#fafbfd;border-top:1px solid #e8edf5;font-size:13px;line-height:1.8}
+.workspace-list-toolbar{display:flex;align-items:center;gap:10px;padding:0 24px 18px;flex-wrap:wrap}
+.workspace-list-toolbar input{flex:1;min-width:180px;max-width:360px}
+.workspace-list-toolbar span{margin-left:auto;font-size:12px;color:#6e7e94}
+.workspace-exposure>.investment-card-data{grid-column:auto}
+.workspace-exposure>.investment-card-intro{grid-column:1/-1}
+.workspace-exposure>.investment-card-data table{font-size:12px}
+.workspace-journal>.investment-card-form{max-width:960px;justify-self:center;width:100%;border-top:3px solid #7287bd}
+.workspace-journal .form-grid>button{grid-column:1/-1;justify-self:end;min-width:180px;background:#5d70af;color:white;border-color:#5d70af}
+.closed-position-grid.inline-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.closed-position-grid .inline-item{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:18px;border-radius:14px;background:#f9fbfd;min-width:0}
+.closed-position-grid .inline-item>div{width:100%;min-width:0;text-align:left}
+.closed-position-grid .inline-item small{display:block;line-height:1.8;margin-top:8px;overflow-wrap:anywhere}
+.closed-position-grid .inline-item>div:last-child{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e3e9f0;padding-top:12px}
+.closed-position-grid .inline-item>div:last-child>.money-value{font-size:12px;color:#8793a5}
+@media(max-width:1000px){.closed-position-grid.inline-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.workspace-exposure>.investment-card-data{grid-column:1/-1}.workspace-list-toolbar{padding:0 18px 14px}.workspace-list-toolbar input{max-width:none;flex-basis:100%}.workspace-list-toolbar span{margin-left:0;margin-right:auto}.closed-position-grid.inline-list{grid-template-columns:minmax(0,1fr)}}
+
+.workspace-journal>.investment-card-intro{display:none}
+
+  </style>
+  <script src="investment-cards.js?v=20261002-cards3"></script>
   <script src="finance-experience.js?v=1"></script>
   <style>
     .experience-dialog{width:min(960px,calc(100% - 24px));max-height:85dvh;padding:18px;border:0;border-radius:16px;color:var(--ink);background:#fff;overflow:auto}
@@ -648,7 +732,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       return `${head}<div class="three-col grid" style="margin-bottom:16px">${metric("累計投入成本",money(buyTotal),"含買入手續費","tone-blue")}${metric("累計賣出收入",money(sellTotal),"已扣除手續費與交易稅","tone-amber")}${metric("已實現盈虧",`${realizedTotal>=0?"+":"−"}${money(Math.abs(realizedTotal))}`,"依加權平均成本計算",realizedTotal>=0?"tone-green":"tone-coral")}</div><div class="two-col grid"><form id="tradeForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}交易</h3><p>台股、美股、基金與美元基金都使用同一套交易紀錄</p></div></div><div class="form-grid"><label>買賣<select name="type">${option("buy","買入",edit?.type||"buy")}${option("sell","賣出",edit?.type)}</select></label><label>日期<input name="date" type="date" value="${esc(edit?.date||FinanceCore.localDate())}"></label><label>資產類型<select name="market">${option("TW","台股",edit?.market||"TW")}${option("US","美股",edit?.market)}${option("FUND","台幣基金",edit?.market)}${option("USD_FUND","美元基金",edit?.market)}</select></label><label>代號<input name="code" value="${esc(edit?.code||"")}" required></label><label>名稱<input name="name" value="${esc(edit?.name||"")}"></label><label>股數／單位<input name="shares" type="number" min="0" step="0.0001" value="${esc(edit?.shares||"")}" required></label><label>成交價／淨值<input name="price" type="number" min="0" step="0.0001" value="${esc(edit?.price||"")}" required></label><label>交易幣別<select name="currency">${option("TWD","台幣 TWD",edit?.currency||(["US","USD_FUND"].includes(edit?.market)?"USD":"TWD"))}${option("USD","美元 USD",edit?.currency||(["US","USD_FUND"].includes(edit?.market)?"USD":"TWD"))}</select></label><label>手續費<input name="fee" type="number" min="0" step="0.01" value="${esc(edit?.fee||0)}"></label><label>交易稅<input name="tax" type="number" min="0" step="0.01" value="${esc(edit?.tax||0)}"></label><label class="wide">現金帳戶<select name="cashAccount"><option value="">不連動帳戶</option>${accountOptions(edit?.cashAccount||"",true)}</select></label><label class="wide">備註<input name="note" value="${esc(edit?.note||"")}"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">${edit?"儲存修改":"儲存交易"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-trade>取消編輯</button>`:""}</form><section class="panel"><div class="panel-head"><div><h3>詳細交易紀錄</h3><p>${rows.length} 筆買賣｜賣出後即時計算盈虧</p></div></div><div class="inline-list">${tradeCards}</div></section></div>`;
     }
     function renderInvestmentsNative() {
-      if(["review","history","journal","exposure","health"].includes(state.tab)) return pageHeading("Investment Workspace","投資工作台","每日摘要、資料核對、決策與服務狀態。");
+      if(["review","history","journal","exposure","health"].includes(state.tab)) return pageHeading("Investment Workspace",({review:"資料核對",history:"投資歷史",journal:"決策日誌",exposure:"產業與 ETF 分析",health:"服務與備份"})[state.tab],({review:"先處理資料缺漏，再確認修正內容。",history:"追蹤每日估值與資金變動。",journal:"留下當時想法，累積可回顧的決策紀錄。",exposure:"從產業與共同持股檢視投資集中度。",health:"確認服務連線與備份狀態。"})[state.tab]);
       const a=current.assetsSummary,titles={portfolio:"資產配置",holdings:"持有部位",trades:"投資交易",dividends:"股息收入"},head=pageHeading("Investment Portfolio",titles[state.tab]||"投資資產","持倉、買賣與股息均直接連動統一帳戶與現金流。");
       if(state.tab==="portfolio") return `${head}${marketPanel()}<div class="four-col grid">${metric("投資資產",money(a.investment),"依最新股價與匯率計算","tone-blue")}${metric("現金資產",money(a.cash),"整合記帳帳戶與外幣匯率","tone-green")}${metric("總資產",money(a.totalAssets),"尚未扣除負債","tone-teal")}${metric("負債",money(a.liabilities),"信用卡與待繳款","tone-purple")}</div><div class="two-col grid" style="margin-top:16px"><section class="panel"><div class="panel-head"><div><h3>目前配置</h3><p>依持倉市值與帳戶餘額計算</p></div><button class="action-btn green" data-create-snapshot>建立今日快照</button></div><div class="allocation-list">${allocationRows()}</div></section><section class="panel"><div class="panel-head"><div><h3>配置提醒</h3><p>集中度與安全水位</p></div></div>${alertList(current.alerts.filter(row=>/配置|集中|現金/.test(row.title)))}</section></div>`;
       if(state.tab==="holdings") return renderUnifiedHoldings(head);

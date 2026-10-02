@@ -60,3 +60,22 @@
 .portfolio-overview-disclosure .investment-card{box-shadow:none}
 @media(max-width:760px){.portfolio-tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.portfolio-tool-grid>a{padding:15px;gap:10px}.portfolio-tool-icon{width:32px;height:32px;font-size:18px}.portfolio-attention{display:block}.portfolio-attention p{margin-top:8px}.portfolio-overview-disclosure>summary{padding:18px}.portfolio-overview-disclosure>.investment-card-layout.panel{padding:12px}}
 @media(max-width:420px){.portfolio-tool-grid>a{align-items:flex-start}.portfolio-tool-grid small{font-size:11px}.portfolio-tool-icon{display:none}}
+.workspace-empty{padding:26px!important;margin:0;color:#7a879b;text-align:center;background:#fafbfd;border-top:1px solid #e8edf5;font-size:13px;line-height:1.8}
+.workspace-list-toolbar{display:flex;align-items:center;gap:10px;padding:0 24px 18px;flex-wrap:wrap}
+.workspace-list-toolbar input{flex:1;min-width:180px;max-width:360px}
+.workspace-list-toolbar span{margin-left:auto;font-size:12px;color:#6e7e94}
+.workspace-exposure>.investment-card-data{grid-column:auto}
+.workspace-exposure>.investment-card-intro{grid-column:1/-1}
+.workspace-exposure>.investment-card-data table{font-size:12px}
+.workspace-journal>.investment-card-form{max-width:960px;justify-self:center;width:100%;border-top:3px solid #7287bd}
+.workspace-journal .form-grid>button{grid-column:1/-1;justify-self:end;min-width:180px;background:#5d70af;color:white;border-color:#5d70af}
+.closed-position-grid.inline-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.closed-position-grid .inline-item{display:flex;flex-direction:column;align-items:stretch;gap:16px;padding:18px;border-radius:14px;background:#f9fbfd;min-width:0}
+.closed-position-grid .inline-item>div{width:100%;min-width:0;text-align:left}
+.closed-position-grid .inline-item small{display:block;line-height:1.8;margin-top:8px;overflow-wrap:anywhere}
+.closed-position-grid .inline-item>div:last-child{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid #e3e9f0;padding-top:12px}
+.closed-position-grid .inline-item>div:last-child>.money-value{font-size:12px;color:#8793a5}
+@media(max-width:1000px){.closed-position-grid.inline-list{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.workspace-exposure>.investment-card-data{grid-column:1/-1}.workspace-list-toolbar{padding:0 18px 14px}.workspace-list-toolbar input{max-width:none;flex-basis:100%}.workspace-list-toolbar span{margin-left:0;margin-right:auto}.closed-position-grid.inline-list{grid-template-columns:minmax(0,1fr)}}
+
+.workspace-journal>.investment-card-intro{display:none}

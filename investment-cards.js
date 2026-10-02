@@ -26,6 +26,19 @@
     const summary=app.querySelector('#portfolioLab');if(summary&&state.tab==='portfolio'){const first=app.querySelector('#fubonReview, #investmentOperations');if(first)first.before(summary);}
     for(const id of Object.keys(titles)){const section=app.querySelector('#'+id);layout(section,state);if(section&&!section._cardObserver){section._cardObserver=new MutationObserver(()=>{if(!section.querySelector(':scope > .investment-card')){delete section.dataset.cardsReady;layout(section,state);}});section._cardObserver.observe(section,{childList:true});}}
     if(state.domain==='investments'&&state.tab==='portfolio')overview(app);
+    if(state.domain==='investments')refine(app,state);
+  }
+  function refine(app,state){
+    const section=app.querySelector('#portfolioLab');if(section){section.classList.add('workspace-'+state.tab);
+      for(const table of section.querySelectorAll('.investment-card-data table')){const headers=[...table.querySelectorAll('thead th')].map(th=>th.textContent);for(const row of table.querySelectorAll('tbody tr'))[...row.cells].forEach((cell,i)=>cell.dataset.label=headers[i]||'');const body=table.querySelector('tbody');if(body&&!body.rows.length&&!table.parentElement.querySelector('.workspace-empty')){const empty=document.createElement('p');empty.className='workspace-empty';empty.textContent=state.tab==='journal'?'尚未建立決策紀錄。填寫上方表單，保存第一筆投資想法。':state.tab==='exposure'?'目前沒有可呈現的資料。請先確認持股估值與來源連線。':'目前沒有紀錄。';table.after(empty);}}
+      if(state.tab==='review'){const table=section.querySelector('.investment-card-data table');if(table)paginate(table);}
+    }
+    if(state.tab==='holdings'){for(const panel of app.querySelectorAll('section.panel'))if(panel.querySelector('h3')?.textContent==='已出清部位'){panel.classList.add('closed-position-panel');const list=panel.querySelector('.inline-list');if(list)list.classList.add('closed-position-grid');}}
+  }
+  function paginate(table){
+    if(table.dataset.paged)return;table.dataset.paged='1';const rows=[...table.querySelectorAll('tbody tr')];if(rows.length<1)return;
+    const bar=document.createElement('div');bar.className='workspace-list-toolbar';const input=document.createElement('input');input.placeholder='搜尋標的或待辦原因';input.setAttribute('aria-label','搜尋待核對事項');const count=document.createElement('span'),prev=document.createElement('button'),next=document.createElement('button');prev.type=next.type='button';prev.textContent='上一頁';next.textContent='下一頁';bar.append(input,count,prev,next);table.parentElement.before(bar);let page=0;
+    const draw=()=>{const query=input.value.trim().toLowerCase(),filtered=rows.filter(row=>row.textContent.toLowerCase().includes(query)),pages=Math.max(1,Math.ceil(filtered.length/12));page=Math.min(page,pages-1);const visible=new Set(filtered.slice(page*12,page*12+12));rows.forEach(row=>row.hidden=!visible.has(row));count.textContent=`${filtered.length} 項 · 第 ${page+1} / ${pages} 頁`;prev.disabled=page===0;next.disabled=page===pages-1;};input.addEventListener('input',()=>{page=0;draw();});prev.onclick=()=>{page--;draw();};next.onclick=()=>{page++;draw();};draw();
   }
   function overview(app){
     if(app.querySelector('#investmentOverviewTools'))return;
