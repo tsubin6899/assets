@@ -480,6 +480,7 @@
         oversold: position.rawShares < -epsilon,
         manualId: manualRow?.manualId || "",
         manualAssetClass: manualRow?.assetClass || position.assetClass,
+        reconciledAt: manualRow?.reconciledAt || "",
         discrepancy: Boolean(manualRow && Math.abs(manualShares - shares) > epsilon),
         source: "trades"
       };
@@ -1667,6 +1668,7 @@
     if ("quantity" in row) row.quantity = position.shares;
     row.tradeManaged = true;
     row.reconciledAt = nowIso();
+    row.updatedAt = row.reconciledAt;
     return persist(ledger, assets, position.closed ? "同步已出清持倉" : "同步交易持股");
   }
   function addAssetSnapshot(values={}) { const {ledger,assets}=load(); const summary=assetSummary(ledger,assets); const date=values.date||localDate(); assets.assetSnapshots=assets.assetSnapshots.filter(row=>row.date!==date); assets.assetSnapshots.push({id:uid("snapshot"),date,total:summary.totalAssets,liabilities:summary.liabilities,net:summary.netWorth,createdAt:nowIso()}); return persist(ledger,assets,"建立資產快照"); }
