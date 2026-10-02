@@ -1671,6 +1671,20 @@
     row.updatedAt = row.reconciledAt;
     return persist(ledger, assets, position.closed ? "同步已出清持倉" : "同步交易持股");
   }
+  function zeroLegacyStockHoldings() {
+    const {ledger,assets}=load();let changed=0;
+    for(const assetClass of ['tw','us'])for(const row of assets[assetClass]||[]){
+      const fields=['shares','units','quantity','marketValue','value','currentValue'];
+      if(!fields.some(field=>number(row[field])!==0))continue;
+      if(row.legacyBeforeZero===undefined)row.legacyBeforeZero=Object.fromEntries(fields.filter(field=>field in row).map(field=>[field,row[field]]));
+      if(row.legacySharesBeforeTradeSync===undefined)row.legacySharesBeforeTradeSync=number(row.shares??row.units??row.quantity);
+      if(!row.id)row.id=uid('holding');
+      row.shares=0;for(const field of fields)if(field in row)row[field]=0;
+      row.tradeManaged=true;row.reconciledAt=nowIso();row.updatedAt=row.reconciledAt;row.zeroReason='使用者確認目前沒有持有股票';changed++;
+    }
+    if(changed)persist(ledger,assets,'使用者確認全部舊股票持倉歸零');
+    return {changed};
+  }
   function addAssetSnapshot(values={}) { const {ledger,assets}=load(); const summary=assetSummary(ledger,assets); const date=values.date||localDate(); assets.assetSnapshots=assets.assetSnapshots.filter(row=>row.date!==date); assets.assetSnapshots.push({id:uid("snapshot"),date,total:summary.totalAssets,liabilities:summary.liabilities,net:summary.netWorth,createdAt:nowIso()}); return persist(ledger,assets,"建立資產快照"); }
 
   function listBackups() { return readJson(KEYS.backups, []).map(({ data, ...meta }) => meta); }
@@ -1820,7 +1834,7 @@
     addRecurring, updateRecurring, removeRecurring, saveCategory, removeCategory, saveItem, removeItem, saveExpenseCategory, removeExpenseCategory, saveExpenseItem, removeExpenseItem, saveCategoryRule, removeCategoryRule, upsertBudget, removeBudget,
     addInstallment, updateInstallment, removeInstallment, addReconciliation, removeReconciliation, closeMonth, reopenMonth, isMonthClosed,
     saveCreditStatementCheck, removeCreditStatementCheck, updatePurchase, removePurchase, updateDividend, removeDividend,
-    addHolding, updateHolding, removeHolding, syncLegacyHolding, addAssetSnapshot, stockPositionSummary,
+    addHolding, updateHolding, removeHolding, syncLegacyHolding, zeroLegacyStockHoldings, addAssetSnapshot, stockPositionSummary,
     marketSymbols, applyMarketSnapshot,
     createBackup, listBackups, readBackup, restoreBackup, importBundle, previewBundle,
     exportBundle, localDate, monthOf, fxRate, roundMoney, sumMoney, financialForecast, investmentPerformance, financialHealth
