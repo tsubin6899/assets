@@ -1,0 +1,18 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const store=new Map(),window={dispatchEvent(){}};const context={window,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)},CustomEvent:class {},console,Date,Intl,JSON,Math,Number,Object,String,Array,Map,Set};vm.createContext(context);
+for(const f of ['finance-core.js','fubon-review.js','fubon-portfolio.js'])vm.runInContext(fs.readFileSync(f,'utf8'),context);
+const core=window.FinanceCore;core.addAccount({name:'測試',type:'銀行',currency:'TWD',openingBalance:100000});
+let bundle=core.load();bundle.assets.purchaseRecords=[{code:'2330',market:'TW',currency:'TWD',type:'buy',date:'2026-01-01',shares:100,price:500,fee:20,tax:0,cashAccount:'測試'}];
+const now=Date.now(),snap={mode:'READ_ONLY_PREVIEW',accountRef:'a'.repeat(24),queriedAt:new Date(now).toISOString(),holdings:[{code:'2330',type:'Stock',quantity:100,oddQuantity:0}],fills:[]},quotes={'2330':{price:600,quoteTime:new Date(now).toISOString(),source:'test'}};
+const run=(confirmed=true,q=quotes)=>window.FubonPortfolio.analyze(snap,bundle,'測試',confirmed,q,now);
+assert.equal(run().total,60000);assert.equal(run().basis,50020);assert.equal(run().pnl,9980);assert.equal(run().rows[0].weight,100);assert(run().warnings.some(x=>x.includes('集中度')));
+assert.equal(run(false).pnl,null);assert.equal(run(true,{}).total,null);assert.equal(run(true,{}).pnl,null);
+snap.holdings[0].quantity=200;assert.equal(run().basis,null);assert.equal(run().pnl,null);snap.holdings[0].quantity=100;
+bundle.assets.purchaseRecords.unshift({code:'2330',market:'TW',type:'sell',date:'2025-01-01',shares:10,price:500,cashAccount:'測試'});snap.holdings[0].quantity=90;assert.equal(run().basis,null);bundle.assets.purchaseRecords.shift();snap.holdings[0].quantity=100;
+bundle.assets.purchaseRecords[0].price=0;assert.equal(run().basis,null);bundle.assets.purchaseRecords[0].price=500;
+bundle.assets.purchaseRecords.push({...bundle.assets.purchaseRecords[0],shares:900,cashAccount:'別的券商'});assert.equal(run().basis,50020);
+bundle.assets.purchaseRecords.push({...bundle.assets.purchaseRecords[0],brokerFillId:'PAPER-1'});assert.equal(run().basis,50020);
+snap.holdings[0].oddQuantity=2;assert.equal(run().total,null);snap.holdings[0].oddQuantity=0;
+assert.equal(run(true,{'2330':{price:600,quoteTime:new Date(now-600000).toISOString()}}).rows[0].stale,true);
+assert.equal(run(true,{'2330':{price:600,quoteTime:new Date(now+600000).toISOString()}}).total,null);
+console.log('Fubon portfolio regression OK: basis, fees, account isolation, paper exclusion, missing data, mismatch, oversold, odd lots, stale/future quotes');

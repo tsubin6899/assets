@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsubin-finance-center-v146";
+const CACHE_NAME = "tsubin-finance-center-v147";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -58,7 +58,7 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
   const url = new URL(event.request.url);
-  if (url.pathname.includes("/api/")) return;
+  if (url.pathname.includes("/api/") || url.pathname.includes("/auto_trading/data/")) return;
   if (url.pathname.endsWith("/latest-prices.json") || url.pathname.endsWith("/latest-rates.json") || url.pathname.endsWith("/latest-valuations.json")) {
     event.respondWith(fetch(event.request, { cache: "no-store" }).catch(() => caches.match(event.request)));
     return;

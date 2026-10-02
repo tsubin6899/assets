@@ -282,7 +282,9 @@
   <script src="finance-import.js?v=2"></script>
   <script src="finance-intelligence-ui.js?v=2"></script>
   <script src="finance-trade-sync.js?v=1"></script>
-  <script src="fubon-review.js?v=20261002"></script>
+  <script src="fubon-review.js?v=20261002-phase3"></script>
+  <script src="fubon-portfolio.js?v=20261002-phase3"></script>
+  <script src="investment-operations.js?v=20261002"></script>
   <script src="finance-experience.js?v=1"></script>
   <style>
     .experience-dialog{width:min(960px,calc(100% - 24px));max-height:85dvh;padding:18px;border:0;border-radius:16px;color:var(--ink);background:#fff;overflow:auto}
@@ -704,6 +706,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       if(state.domain==="analysis"&&state.tab==="data")content+=FinanceIntelligenceUI.sync(current);
       app.innerHTML = content;
       window.FubonReview?.decorate(app,state);
+      window.InvestmentOperations?.decorate(app,state);
       window.FinanceExperience?.decorate(app,state,current);
       decorateLookupPaymentStatus();
       app.querySelectorAll('.account-card [data-edit-account]').forEach(button=>{const action=document.createElement('button');action.type='button';action.className='action-btn';action.dataset.accountHistory=button.dataset.editAccount;action.textContent='查看消費紀錄';button.before(action)});

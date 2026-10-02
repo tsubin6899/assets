@@ -1,0 +1,17 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');const store=new Map(),window={dispatchEvent(){}};const c={window,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)},CustomEvent:class{},console,Date,Intl,JSON,Math,Number,Object,String,Array,Map,Set};vm.createContext(c);
+for(const f of ['finance-core.js','finance-intelligence.js','investment-operations.js'])vm.runInContext(fs.readFileSync(f,'utf8'),c);
+const core=window.FinanceCore,ops=window.InvestmentOperations;core.addAccount({name:'日程測試',type:'銀行',currency:'TWD',openingBalance:10000});
+const before=JSON.stringify(core.accountBalances(core.load().ledger,core.load().assets));
+const row=ops.savePlan({date:core.localDate(),kind:'PAY',title:'測試交割',amount:1000,account:'日程測試'});
+assert.equal(JSON.stringify(core.accountBalances(core.load().ledger,core.load().assets)),before);
+assert.equal(ops.calendar(core.load()).length,1);assert.equal(ops.alerts(core.load(),null,null).filter(r=>r.id===row.id).length,1);
+ops.completePlan(row.id);assert.equal(ops.alerts(core.load(),null,null).filter(r=>r.id===row.id).length,0);assert.equal(JSON.stringify(core.accountBalances(core.load().ledger,core.load().assets)),before);
+ops.completePlan(row.id);assert.equal(core.load().assets.investmentSchedule[0].completed,false);
+assert.throws(()=>ops.savePlan({date:'2026-02-30',kind:'PAY',title:'x',amount:1,account:'日程測試'}));
+assert.throws(()=>ops.savePlan({date:core.localDate(),kind:'PAY',title:'x',amount:1,account:'不存在'}));
+const b=core.load();b.assets.purchaseRecords=[{id:'paper',brokerFillId:'PAPER-1',market:'TW',type:'buy',date:'2026-01-01',shares:1,price:1,fee:999,tax:0},{id:'real',market:'TW',type:'buy',date:'2026-01-01',shares:1,price:100,fee:20,tax:0}];
+assert.equal(ops.performance(b,'2026').costs[0][1].fee,20);
+b.assets.purchaseRecords[1].fee=undefined;assert.equal(ops.performance(b,'2026').realized,null);
+const old={generatedAt:'2020-01-01',events:[{id:1,kind:'ABOVE',detail:'condition',code:'2330',name:'x',quote_time:'2020-01-01',acknowledged:0},{id:2,kind:'ABOVE',detail:'condition',acknowledged:1}]};
+assert(ops.alerts(core.load(),old,null).some(r=>r.title==='盤中提醒資料過期'));assert.equal(ops.alerts(core.load(),old,null).filter(r=>r.id.startsWith('monitor:')).length,1);
+console.log('Investment operations OK: schedules persist without moving cash, reversible completion, invalid dates/accounts, real fees, missing data, stale alerts, acknowledged exclusion');
