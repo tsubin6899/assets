@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-08T12:12:42+00:00",
+  "generatedAt": "2026-10-09T12:02:27+00:00",
   "prices": {
     "TW:0050": {
       "symbol": "0050",
@@ -12,7 +12,7 @@
       "change": -1.1,
       "changePercent": -0.9479,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:40+00:00"
+      "fetchedAt": "2026-10-09T12:01:55+00:00"
     },
     "TW:009816": {
       "symbol": "009816",
@@ -25,7 +25,7 @@
       "change": -0.17,
       "changePercent": -0.9977,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:41+00:00"
+      "fetchedAt": "2026-10-09T12:01:56+00:00"
     },
     "TW:00981A": {
       "symbol": "00981A",
@@ -38,7 +38,7 @@
       "change": -0.02,
       "changePercent": -0.062,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:43+00:00"
+      "fetchedAt": "2026-10-09T12:01:57+00:00"
     },
     "TW:00988A": {
       "symbol": "00988A",
@@ -51,7 +51,7 @@
       "change": -0.27,
       "changePercent": -1.535,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:46+00:00"
+      "fetchedAt": "2026-10-09T12:01:58+00:00"
     },
     "TW:00991A": {
       "symbol": "00991A",
@@ -64,7 +64,7 @@
       "change": -0.26,
       "changePercent": -1.3549,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:48+00:00"
+      "fetchedAt": "2026-10-09T12:01:58+00:00"
     },
     "TW:2330": {
       "symbol": "2330",
@@ -77,7 +77,7 @@
       "change": -35.0,
       "changePercent": -1.354,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:50+00:00"
+      "fetchedAt": "2026-10-09T12:01:59+00:00"
     },
     "TW:00919": {
       "symbol": "00919",
@@ -90,7 +90,33 @@
       "change": -0.29,
       "changePercent": -0.908,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:10:56+00:00"
+      "fetchedAt": "2026-10-09T12:02:00+00:00"
+    },
+    "TW:00937B": {
+      "symbol": "00937B",
+      "twseChannel": "otc_00937B.tw",
+      "market": "TW",
+      "instrumentType": "ETF",
+      "price": 13.6,
+      "currency": "TWD",
+      "previousClose": 13.58,
+      "change": 0.02,
+      "changePercent": 0.1473,
+      "source": "TWSE MIS official API",
+      "fetchedAt": "2026-10-09T12:02:01+00:00"
+    },
+    "TW:00940": {
+      "symbol": "00940",
+      "twseChannel": "tse_00940.tw",
+      "market": "TW",
+      "instrumentType": "ETF",
+      "price": 13.21,
+      "currency": "TWD",
+      "previousClose": 13.28,
+      "change": -0.07,
+      "changePercent": -0.5271,
+      "source": "TWSE MIS official API",
+      "fetchedAt": "2026-10-09T12:02:03+00:00"
     },
     "TW:00878": {
       "symbol": "00878",
@@ -103,7 +129,7 @@
       "change": -0.23,
       "changePercent": -0.653,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:04+00:00"
+      "fetchedAt": "2026-10-09T12:02:03+00:00"
     },
     "TW:2603": {
       "symbol": "2603",
@@ -116,7 +142,7 @@
       "change": 0.0,
       "changePercent": 0.0,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:06+00:00"
+      "fetchedAt": "2026-10-09T12:02:04+00:00"
     },
     "TW:2617": {
       "symbol": "2617",
@@ -129,7 +155,7 @@
       "change": -0.05,
       "changePercent": -0.1558,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:09+00:00"
+      "fetchedAt": "2026-10-09T12:02:05+00:00"
     },
     "TW:3013": {
       "symbol": "3013",
@@ -142,7 +168,7 @@
       "change": 1.6,
       "changePercent": 1.6615,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:11+00:00"
+      "fetchedAt": "2026-10-09T12:02:06+00:00"
     },
     "TW:2344": {
       "symbol": "2344",
@@ -155,7 +181,7 @@
       "change": -2.5,
       "changePercent": -1.3928,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:13+00:00"
+      "fetchedAt": "2026-10-09T12:02:07+00:00"
     },
     "TW:1799": {
       "symbol": "1799",
@@ -168,7 +194,7 @@
       "change": 0.6,
       "changePercent": 2.1429,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:14+00:00"
+      "fetchedAt": "2026-10-09T12:02:08+00:00"
     },
     "TW:00999A": {
       "symbol": "00999A",
@@ -181,7 +207,7 @@
       "change": -0.09,
       "changePercent": -0.7739,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:15+00:00"
+      "fetchedAt": "2026-10-09T12:02:09+00:00"
     },
     "TW:00403A": {
       "symbol": "00403A",
@@ -194,7 +220,7 @@
       "change": -0.07,
       "changePercent": -0.6162,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:16+00:00"
+      "fetchedAt": "2026-10-09T12:02:09+00:00"
     },
     "TW:00993A": {
       "symbol": "00993A",
@@ -207,7 +233,7 @@
       "change": -0.19,
       "changePercent": -1.2996,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:17+00:00"
+      "fetchedAt": "2026-10-09T12:02:10+00:00"
     },
     "TW:2317": {
       "symbol": "2317",
@@ -220,7 +246,7 @@
       "change": -3.0,
       "changePercent": -1.1905,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:18+00:00"
+      "fetchedAt": "2026-10-09T12:02:11+00:00"
     },
     "TW:2454": {
       "symbol": "2454",
@@ -233,7 +259,7 @@
       "change": -145.0,
       "changePercent": -2.999,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:19+00:00"
+      "fetchedAt": "2026-10-09T12:02:12+00:00"
     },
     "TW:2382": {
       "symbol": "2382",
@@ -246,7 +272,7 @@
       "change": -9.5,
       "changePercent": -2.8358,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:20+00:00"
+      "fetchedAt": "2026-10-09T12:02:13+00:00"
     },
     "TW:2408": {
       "symbol": "2408",
@@ -259,7 +285,7 @@
       "change": 18.0,
       "changePercent": 3.5019,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:22+00:00"
+      "fetchedAt": "2026-10-09T12:02:14+00:00"
     },
     "TW:2337": {
       "symbol": "2337",
@@ -272,7 +298,7 @@
       "change": -2.0,
       "changePercent": -1.6949,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:23+00:00"
+      "fetchedAt": "2026-10-09T12:02:14+00:00"
     },
     "TW:3376": {
       "symbol": "3376",
@@ -285,7 +311,7 @@
       "change": 0.5,
       "changePercent": 0.2959,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:25+00:00"
+      "fetchedAt": "2026-10-09T12:02:15+00:00"
     },
     "TW:2303": {
       "symbol": "2303",
@@ -298,7 +324,7 @@
       "change": -1.0,
       "changePercent": -0.6734,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:27+00:00"
+      "fetchedAt": "2026-10-09T12:02:16+00:00"
     },
     "TW:3231": {
       "symbol": "3231",
@@ -311,7 +337,7 @@
       "change": 3.5,
       "changePercent": 1.8919,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:29+00:00"
+      "fetchedAt": "2026-10-09T12:02:16+00:00"
     },
     "TW:2308": {
       "symbol": "2308",
@@ -324,7 +350,7 @@
       "change": -25.0,
       "changePercent": -1.2563,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:30+00:00"
+      "fetchedAt": "2026-10-09T12:02:17+00:00"
     },
     "TW:2327": {
       "symbol": "2327",
@@ -337,7 +363,7 @@
       "change": -12.0,
       "changePercent": -1.8547,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:31+00:00"
+      "fetchedAt": "2026-10-09T12:02:18+00:00"
     },
     "TW:3037": {
       "symbol": "3037",
@@ -350,7 +376,7 @@
       "change": -35.0,
       "changePercent": -2.682,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:33+00:00"
+      "fetchedAt": "2026-10-09T12:02:19+00:00"
     },
     "TW:1802": {
       "symbol": "1802",
@@ -363,7 +389,7 @@
       "change": -1.8,
       "changePercent": -2.7397,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:34+00:00"
+      "fetchedAt": "2026-10-09T12:02:20+00:00"
     },
     "TW:4958": {
       "symbol": "4958",
@@ -376,253 +402,242 @@
       "change": -3.0,
       "changePercent": -0.5042,
       "source": "TWSE MIS official API",
-      "fetchedAt": "2026-10-08T12:12:35+00:00"
+      "fetchedAt": "2026-10-09T12:02:21+00:00"
     },
     "US:AMAT": {
       "symbol": "AMAT",
       "yahooSymbol": "AMAT",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 520.65,
+      "price": 509.57,
       "currency": "USD",
-      "previousClose": 530.27,
-      "change": -9.62,
-      "changePercent": -1.8142,
+      "previousClose": 520.65,
+      "change": -11.08,
+      "changePercent": -2.1281,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:35+00:00"
+      "fetchedAt": "2026-10-09T12:02:21+00:00"
     },
     "US:SPCX": {
       "symbol": "SPCX",
       "yahooSymbol": "SPCX",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 167.6,
+      "price": 160.57,
       "currency": "USD",
-      "previousClose": 171.92,
-      "change": -4.32,
-      "changePercent": -2.5128,
+      "previousClose": 167.6,
+      "change": -7.03,
+      "changePercent": -4.1945,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:36+00:00"
+      "fetchedAt": "2026-10-09T12:02:22+00:00"
     },
     "US:TSM": {
       "symbol": "TSM",
       "yahooSymbol": "TSM",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 472.2,
+      "price": 457.99,
       "currency": "USD",
-      "previousClose": 482.3,
-      "change": -10.1,
-      "changePercent": -2.0941,
+      "previousClose": 472.2,
+      "change": -14.21,
+      "changePercent": -3.0093,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:36+00:00"
+      "fetchedAt": "2026-10-09T12:02:22+00:00"
     },
     "US:UMC": {
       "symbol": "UMC",
       "yahooSymbol": "UMC",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 23.31,
+      "price": 22.82,
       "currency": "USD",
-      "previousClose": 23.19,
-      "change": 0.12,
-      "changePercent": 0.5175,
+      "previousClose": 23.31,
+      "change": -0.49,
+      "changePercent": -2.1021,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:37+00:00"
+      "fetchedAt": "2026-10-09T12:02:22+00:00"
     },
     "US:NVDA": {
       "symbol": "NVDA",
       "yahooSymbol": "NVDA",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 237.47,
+      "price": 230.48,
       "currency": "USD",
-      "previousClose": 239.24,
-      "change": -1.77,
-      "changePercent": -0.7398,
+      "previousClose": 237.47,
+      "change": -6.99,
+      "changePercent": -2.9435,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:37+00:00"
+      "fetchedAt": "2026-10-09T12:02:23+00:00"
     },
     "US:AAPL": {
       "symbol": "AAPL",
       "yahooSymbol": "AAPL",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 336.67,
+      "price": 340.42,
       "currency": "USD",
-      "previousClose": 333.63,
-      "change": 3.04,
-      "changePercent": 0.9112,
+      "previousClose": 336.67,
+      "change": 3.75,
+      "changePercent": 1.1139,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:37+00:00"
+      "fetchedAt": "2026-10-09T12:02:23+00:00"
     },
     "US:GOOG": {
       "symbol": "GOOG",
       "yahooSymbol": "GOOG",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 347.37,
+      "price": 344.86,
       "currency": "USD",
-      "previousClose": 344.59,
-      "change": 2.78,
-      "changePercent": 0.8068,
+      "previousClose": 347.37,
+      "change": -2.51,
+      "changePercent": -0.7226,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:38+00:00"
+      "fetchedAt": "2026-10-09T12:02:23+00:00"
     },
     "US:MSFT": {
       "symbol": "MSFT",
       "yahooSymbol": "MSFT",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 529.76,
+      "price": 522.61,
       "currency": "USD",
-      "previousClose": 529.3,
-      "change": 0.46,
-      "changePercent": 0.0869,
+      "previousClose": 529.76,
+      "change": -7.15,
+      "changePercent": -1.3497,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:38+00:00"
+      "fetchedAt": "2026-10-09T12:02:24+00:00"
     },
     "US:INTC": {
       "symbol": "INTC",
       "yahooSymbol": "INTC",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 113.12,
+      "price": 107.08,
       "currency": "USD",
-      "previousClose": 112.5,
-      "change": 0.62,
-      "changePercent": 0.5511,
+      "previousClose": 113.12,
+      "change": -6.04,
+      "changePercent": -5.3395,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:39+00:00"
+      "fetchedAt": "2026-10-09T12:02:24+00:00"
     },
     "US:MU": {
       "symbol": "MU",
       "yahooSymbol": "MU",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 1088.0,
+      "price": 1035.84,
       "currency": "USD",
-      "previousClose": 1045.56,
-      "change": 42.44,
-      "changePercent": 4.0591,
+      "previousClose": 1088.0,
+      "change": -52.16,
+      "changePercent": -4.7941,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:39+00:00"
+      "fetchedAt": "2026-10-09T12:02:24+00:00"
     },
     "US:SNDK": {
       "symbol": "SNDK",
       "yahooSymbol": "SNDK",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 1692.42,
+      "price": 1609.46,
       "currency": "USD",
-      "previousClose": 1660.46,
-      "change": 31.96,
-      "changePercent": 1.9248,
+      "previousClose": 1692.42,
+      "change": -82.96,
+      "changePercent": -4.9019,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:39+00:00"
+      "fetchedAt": "2026-10-09T12:02:25+00:00"
     },
     "US:META": {
       "symbol": "META",
       "yahooSymbol": "META",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 721.31,
+      "price": 720.89,
       "currency": "USD",
-      "previousClose": 738.88,
-      "change": -17.57,
-      "changePercent": -2.3779,
+      "previousClose": 721.31,
+      "change": -0.42,
+      "changePercent": -0.0582,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:40+00:00"
+      "fetchedAt": "2026-10-09T12:02:25+00:00"
     },
     "US:TSLA": {
       "symbol": "TSLA",
       "yahooSymbol": "TSLA",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 377.81,
+      "price": 375.0,
       "currency": "USD",
-      "previousClose": 380.68,
-      "change": -2.87,
-      "changePercent": -0.7539,
+      "previousClose": 377.81,
+      "change": -2.81,
+      "changePercent": -0.7438,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:40+00:00"
+      "fetchedAt": "2026-10-09T12:02:25+00:00"
     },
     "US:AMZN": {
       "symbol": "AMZN",
       "yahooSymbol": "AMZN",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 259.92,
+      "price": 254.06,
       "currency": "USD",
-      "previousClose": 256.29,
-      "change": 3.63,
-      "changePercent": 1.4164,
+      "previousClose": 259.92,
+      "change": -5.86,
+      "changePercent": -2.2545,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:40+00:00"
+      "fetchedAt": "2026-10-09T12:02:25+00:00"
     },
     "US:AMD": {
       "symbol": "AMD",
       "yahooSymbol": "AMD",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 645.86,
+      "price": 620.68,
       "currency": "USD",
-      "previousClose": 649.42,
-      "change": -3.56,
-      "changePercent": -0.5482,
+      "previousClose": 645.86,
+      "change": -25.18,
+      "changePercent": -3.8987,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:41+00:00"
+      "fetchedAt": "2026-10-09T12:02:26+00:00"
     },
     "US:VT": {
       "symbol": "VT",
       "yahooSymbol": "VT",
       "market": "US",
       "instrumentType": "ETF",
-      "price": 159.64,
+      "price": 158.73,
       "currency": "USD",
-      "previousClose": 160.7,
-      "change": -1.06,
-      "changePercent": -0.6596,
+      "previousClose": 159.64,
+      "change": -0.91,
+      "changePercent": -0.57,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:41+00:00"
+      "fetchedAt": "2026-10-09T12:02:26+00:00"
     },
     "US:QQQ": {
       "symbol": "QQQ",
       "yahooSymbol": "QQQ",
       "market": "US",
       "instrumentType": "ETF",
-      "price": 757.73,
+      "price": 747.58,
       "currency": "USD",
-      "previousClose": 759.66,
-      "change": -1.93,
-      "changePercent": -0.2541,
+      "previousClose": 757.73,
+      "change": -10.15,
+      "changePercent": -1.3395,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:42+00:00"
+      "fetchedAt": "2026-10-09T12:02:26+00:00"
     },
     "US:SKHY": {
       "symbol": "SKHY",
       "yahooSymbol": "SKHY",
       "market": "US",
       "instrumentType": "EQUITY",
-      "price": 178.25,
+      "price": 170.5,
       "currency": "USD",
-      "previousClose": 182.56,
-      "change": -4.31,
-      "changePercent": -2.3609,
+      "previousClose": 178.25,
+      "change": -7.75,
+      "changePercent": -4.3478,
       "source": "Yahoo Finance chart API",
-      "fetchedAt": "2026-10-08T12:12:42+00:00"
+      "fetchedAt": "2026-10-09T12:02:27+00:00"
     }
   },
-  "errors": [
-    {
-      "market": "TW",
-      "symbol": "00937B",
-      "error": "The read operation timed out"
-    },
-    {
-      "market": "TW",
-      "symbol": "00940",
-      "error": "The read operation timed out"
-    }
-  ]
+  "errors": []
 }
