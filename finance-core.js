@@ -429,7 +429,11 @@
     const epsilon = 0.000001;
     const manual = manualStockRows(assets);
     const manualByKey = new Map();
-    manual.forEach(row => { if (row.key && !manualByKey.has(row.key)) manualByKey.set(row.key, row); });
+    manual.forEach(row => {
+      if (!row.key || row.consolidatedIntoHoldingId) return;
+      const previous=manualByKey.get(row.key);
+      if (!previous || (Date.parse(row.reconciledAt||'')||0)>(Date.parse(previous.reconciledAt||'')||0)) manualByKey.set(row.key,row);
+    });
     const positions = new Map();
     const tradeDetails = [];
     (assets.purchaseRecords || []).map((row, index) => ({ row, index })).filter(({row})=>!row.date||row.date<=localDate()).sort((a, b) => String(a.row.date || "").localeCompare(String(b.row.date || "")) || a.index - b.index).forEach(({ row, index }) => {
@@ -1686,6 +1690,7 @@
     if ("units" in row) row.units = position.shares;
     if ("quantity" in row) row.quantity = position.shares;
     row.tradeManaged = true;
+    delete row.consolidatedIntoHoldingId;
     row.reconciledAt = nowIso();
     row.updatedAt = row.reconciledAt;
     for (const duplicate of matches) {
