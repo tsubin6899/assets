@@ -1610,7 +1610,8 @@
     if(row.date>localDate()||!Number.isFinite(Number(row.actualBalance)))throw new Error('盤點日期或實際餘額無效');
     const entry=ledger.entries.find(e=>e.id===row.entryId),clean={...ledger,entries:ledger.entries.filter(e=>e.id!==row.entryId)},account=accountBalances(clean,assets,row.date).find(a=>a.name===row.account);
     if(!account)throw new Error('找不到盤點帳戶');
-    if(row.entryId&&(!entry||entry.reconciliationId!==id||!entry.isReconciliationAdjustment))throw new Error('盤點調整連結異常，請先核對');
+    const legacyEntry=entry&&!entry.reconciliationId&&entry.account===row.account&&entry.date===row.date&&entry.merchant==='帳戶盤點'&&['現金盤點調整','信用卡負債盤點調整'].includes(entry.category)&&Math.abs(Number(entry.amount)-Math.abs(Number(row.diff)))<0.005&&entry.type===((account.type==='信用卡'?row.diff<0:row.diff>0)?'income':'expense');
+    if(row.entryId&&(!entry||!((entry.reconciliationId===id&&entry.isReconciliationAdjustment)||legacyEntry)))throw new Error('盤點調整連結異常，請先核對');
     const book=number(account.balance),diff=roundMoney(Number(row.actualBalance)-book),change=roundMoney(diff-number(row.diff)),current=accountBalances(ledger,assets).find(a=>a.name===row.account).balance;
     return {id,account:row.account,currency:account.currency,date:row.date,actual:Number(row.actualBalance),book,diff,change,current,after:roundMoney(current+change),fingerprint:JSON.stringify([ledger,assets])};
   }
