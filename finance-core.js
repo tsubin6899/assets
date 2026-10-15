@@ -1678,7 +1678,6 @@
     if (!position) throw new Error("找不到可同步的交易持倉");
     const rows = holdingCollection(assets, position.manualAssetClass);
     const matches = rows.filter(item => stockTradeKey({...item,market:position.market,currency:item.currency||position.currency})===key);
-    if(matches.length>1)throw new Error("同一標的有多筆舊持倉，請先核對後再同步");
     const row = position.manualId ? rows.find(item => item.id === position.manualId) : matches[0];
     if (!row) throw new Error("找不到舊持倉資料");
     if(!row.id)row.id=uid("holding");
@@ -1689,6 +1688,16 @@
     row.tradeManaged = true;
     row.reconciledAt = nowIso();
     row.updatedAt = row.reconciledAt;
+    for (const duplicate of matches) {
+      if (duplicate === row) continue;
+      if (!duplicate.id) duplicate.id=uid('holding');
+      if (duplicate.legacyBeforeTradeSync===undefined) duplicate.legacyBeforeTradeSync=clone(duplicate);
+      if (duplicate.legacySharesBeforeTradeSync===undefined) duplicate.legacySharesBeforeTradeSync=number(duplicate.shares??duplicate.units??duplicate.quantity);
+      duplicate.shares=0;
+      for(const field of ['units','quantity','marketValue','value','currentValue'])if(field in duplicate)duplicate[field]=0;
+      duplicate.tradeManaged=true;duplicate.reconciledAt=row.reconciledAt;duplicate.updatedAt=row.reconciledAt;
+      duplicate.consolidatedIntoHoldingId=row.id;
+    }
     return persist(ledger, assets, position.closed ? "同步已出清持倉" : "同步交易持股");
   }
   function zeroLegacyStockHoldings() {
