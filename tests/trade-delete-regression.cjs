@@ -1,0 +1,13 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const data=new Map(),window={dispatchEvent(){}},context={window,localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,String(v)),removeItem:k=>data.delete(k)},CustomEvent:class{},console,Date,Intl};
+for(const file of ['finance-core.js','finance-sync.js'])vm.runInNewContext(fs.readFileSync(file,'utf8'),context);
+const core=window.FinanceCore,sync=window.FinanceSync;
+const fill={brokerFillId:'FUBON-test',code:'0050',date:core.localDate(),market:'TW',type:'buy',shares:100,price:100,fee:155.5,tax:0};
+assert.equal(core.importBrokerFills({fills:[fill]}).imported,1);
+const stale=core.exportBundle(),trade=stale.assets.purchaseRecords[0];assert.equal(trade.fee,155.5);
+core.removePurchase(trade.id);
+assert.equal(core.importBrokerFills({fills:[fill]}).imported,0);
+assert.equal(sync.mergeBundles(core.exportBundle(),stale).assets.purchaseRecords.length,0);
+core.addPurchase({...fill,code:'2330',brokerFillId:undefined});
+assert.equal(core.importBrokerFills({fills:[{...fill,brokerFillId:'another',code:'2330'}]}).imported,0);
+console.log('trade deletion OK: cloud resurrection blocked, broker reimport blocked, manual duplicate blocked, fractional fee retained');

@@ -415,7 +415,7 @@
     let privacyTimer = 0;
 
     function esc(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" })[char]); }
-    function money(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${Math.round(Number(value) || 0).toLocaleString("zh-TW")}`; }
+    function money(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${(Number(value) || 0).toLocaleString("zh-TW",{maximumFractionDigits:2})}`; }
     function sumCurrencyAmounts(rows, valueOf) { return Math.round(rows.reduce((total,row)=>total+Math.round((Number(valueOf(row)||0)+Number.EPSILON)*100),0)/100); }
     function unitPrice(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${(Number(value)||0).toLocaleString("zh-TW",{minimumFractionDigits:2,maximumFractionDigits:4})}`; }
     function signed(value) { const n = Math.round(Number(value) || 0); return `${n >= 0 ? "+" : "−"}${Math.abs(n).toLocaleString("zh-TW")}`; }

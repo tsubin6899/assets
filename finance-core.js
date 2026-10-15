@@ -1093,6 +1093,7 @@
     const fills = Array.isArray(payload) ? payload : (Array.isArray(payload?.fills) ? payload.fills : []);
     const { ledger, assets } = load();
     const existing = new Set((assets.purchaseRecords || []).map(row => String(row.brokerFillId || "")).filter(Boolean));
+    for (const removed of ledger.recycleBin || []) if (removed.kind==='purchase' && removed.row?.brokerFillId) existing.add(String(removed.row.brokerFillId));
     let imported = 0, duplicates = 0, invalid = 0;
     fills.forEach(fill => {
       const brokerFillId = String(fill?.brokerFillId || "").trim();
@@ -1103,6 +1104,7 @@
       if (!brokerFillId || !code || shares <= 0 || price <= 0) { invalid += 1; return; }
       if (existing.has(brokerFillId)) { duplicates += 1; return; }
       const market = normalizeInvestmentMarket(fill.market);
+      if (assets.purchaseRecords.some(row=>!row.brokerFillId&&row.date===(fill.date||localDate())&&row.code===code&&row.market===market&&row.type===(fill.type==='sell'?'sell':'buy')&&number(row.shares)===shares&&number(row.price)===price&&(row.cashAccount||'')===(fill.cashAccount||''))) { duplicates += 1; return; }
       assets.purchaseRecords.push({
         id: uid("trade"), date: fill.date || localDate(), type: fill.type === "sell" ? "sell" : "buy",
         market, code, name: fill.name || "", shares, price,
@@ -1661,7 +1663,7 @@
     return persist(ledger, assets, "修改投資交易");
   }
 
-  function removePurchase(id) { const { ledger, assets } = load(); const index=assets.purchaseRecords.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆投資交易"); assets.purchaseRecords.splice(index,1); return persist(ledger,assets,"刪除投資交易"); }
+  function removePurchase(id) { const { ledger, assets } = load(); const index=assets.purchaseRecords.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆投資交易"); recycle(ledger,'purchase',assets.purchaseRecords[index]);assets.purchaseRecords.splice(index,1); return persist(ledger,assets,"刪除投資交易"); }
   function updateDividend(id, values) { const { ledger, assets }=load(); const row=assets.dividends.find(item=>item.id===id); if(!row)throw new Error("找不到這筆股息"); Object.assign(row,{date:values.date||localDate(),source:values.source||"",currency:normalizeCurrency(values.currency||"TWD"),amount:Math.max(0,number(values.amount)),cashAccount:values.cashAccount||"",note:values.note||"",updatedAt:nowIso()}); return persist(ledger,assets,"修改股息收入"); }
   function removeDividend(id) { const {ledger,assets}=load(); const index=assets.dividends.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆股息"); assets.dividends.splice(index,1); return persist(ledger,assets,"刪除股息收入"); }
 
