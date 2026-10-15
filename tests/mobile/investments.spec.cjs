@@ -1,0 +1,16 @@
+const {test,expect}=require('@playwright/test');
+for(const width of [390,1280])test('investment tabs and workflows '+width,async({page})=>{
+ await page.setViewportSize({width,height:900});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.route('**/*',route=>new URL(route.request().url()).hostname==='127.0.0.1'?route.continue():route.abort());
+ await page.goto('/finance-center.html#investments/holdings');await page.locator('#holdingForm').waitFor();
+ await page.evaluate(()=>{FinanceCore.addAccount({name:'測試證券',type:'銀行帳戶',currency:'TWD',openingBalance:100000});for(const code of ['0050','2330'])FinanceCore.addPurchase({date:FinanceCore.localDate(),code,market:'TW',currency:'TWD',type:'buy',shares:10,price:100,fee:1,tax:0,cashAccount:'測試證券'});PortfolioLab.saveJournal({date:FinanceCore.localDate(),code:'0050',thesis:'測試決策'});PortfolioLab.captureDaily(true);});
+ await page.reload();await page.locator('[data-trade-code="0050"]').first().click();await expect(page.locator('#investmentTradeFilter [name=code]')).toHaveValue('0050');await expect(page.locator('.trade-detail-card')).toHaveCount(1);
+ await page.locator('[data-clear-trade-filter]').click();await expect(page.locator('.trade-detail-card')).toHaveCount(2);
+ await page.locator('#investmentTradeFilter [name=type]').selectOption('sell');await page.locator('#investmentTradeFilter button').first().click();await expect(page.locator('.trade-detail-card')).toHaveCount(0);
+ for(const tab of ['portfolio','holdings','trades','dividends','review','history','journal','exposure','health']){await page.goto('/finance-center.html#investments/'+tab);await page.waitForTimeout(100);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),tab+' horizontal overflow').toBeTruthy();}
+ await page.goto('/finance-center.html#investments/history');await expect(page.locator('svg[aria-label="已保存日期的投資市值走勢"]')).toBeVisible();
+ await page.goto('/finance-center.html#investments/review');await expect(page.locator('[data-clean-confirmed-holdings]')).toBeHidden();
+ await page.goto('/finance-center.html#investments/journal');await page.locator('[data-edit-journal]').first().click();await expect(page.locator('[data-cancel-journal]')).toBeVisible();await page.locator('[data-cancel-journal]').click();await expect(page.locator('#decisionJournalForm [name=id]')).toHaveValue('');
+ await page.locator('[data-edit-journal]').first().click();await page.locator('#decisionJournalForm [name=thesis]').fill('修改後理由');await page.locator('[data-journal-submit]').click();await expect(page.getByText('查看修改前紀錄（1 版）')).toBeVisible();
+ await page.screenshot({path:'test-results/investments-'+width+'.png',fullPage:true});expect(errors).toEqual([]);
+});

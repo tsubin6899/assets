@@ -1,0 +1,1 @@
+const config=require('../playwright.config.cjs');module.exports={...config,testDir:require('path').resolve(__dirname,'../tests/mobile'),use:{...config.use,baseURL:'http://127.0.0.1:4187'},webServer:{...config.webServer,url:'http://127.0.0.1:4187/finance-center.html',cwd:require('path').resolve(__dirname,'..'),env:{PORT:'4187'}}};
