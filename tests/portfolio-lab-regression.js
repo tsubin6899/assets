@@ -8,6 +8,9 @@ lab.applyRepair(preview);assert.equal(core.load().assets.purchaseRecords[0].fee,
 assert.throws(()=>lab.prepareRepair(id,{fee:'',tax:'0'}));
 const journal=lab.saveJournal({date:core.localDate(),code:'2330',thesis:'原始理由',exitCondition:'核對條件',tradeId:id});lab.reviewJournal(journal.id,'檢討');assert.equal(core.load().assets.investmentJournal[0].thesis,'原始理由');assert.equal(core.load().assets.investmentJournal[0].review,'檢討');
 assert.throws(()=>lab.saveJournal({date:core.localDate(),code:'9999',thesis:'x',tradeId:id}));
+const named=core.load();named.assets.purchaseRecords.find(r=>r.id===id).name='台積電';core.persist(named.ledger,named.assets,'名稱測試');
+assert.equal(lab.saveJournal({date:core.localDate(),code:'台積電',thesis:'以名稱關聯今日交易',tradeId:id}).code,'2330');
+assert.throws(()=>lab.saveJournal({date:core.localDate(),code:'2330',thesis:'x',tradeId:'missing'}),/重新選擇/);
 lab.captureDaily();const first=core.load().assets.investmentDailySnapshots[0];lab.captureDaily();assert.equal(core.load().assets.investmentDailySnapshots.length,1);assert.equal(lab.history(core.load())[0].gain,null);
 const meta={securities:{'2330':{industry:'半導體',name:'台積電'},'0050':{type:'ETF'},'006208':{type:'ETF'}}};
 const fund=(code,weight)=>({code,asOf:'2026-01-01',source:'test',sourceUrl:'https://example.com/data',partial:true,holdings:[{code:'2330',market:'TW',weight}]});
