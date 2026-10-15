@@ -1602,6 +1602,26 @@
     return persist(ledger, assets, "建立帳戶盤點");
   }
 
+  function previewReconciliationRefresh(id) {
+    const {ledger,assets}=load(),row=ledger.reconciliations.find(r=>r.id===id);
+    if(!row)throw new Error('找不到盤點紀錄');
+    if(ledger.reconciliations.some(r=>r.account===row.account&&r.id!==id&&r.date>=row.date))throw new Error('請使用此帳戶最新一筆、日期唯一的盤點紀錄');
+    if(isMonthClosed(row.date.slice(0,7)))throw new Error('盤點月份已關帳，請先重新開帳');
+    if(row.date>localDate()||!Number.isFinite(Number(row.actualBalance)))throw new Error('盤點日期或實際餘額無效');
+    const entry=ledger.entries.find(e=>e.id===row.entryId),clean={...ledger,entries:ledger.entries.filter(e=>e.id!==row.entryId)},account=accountBalances(clean,assets,row.date).find(a=>a.name===row.account);
+    if(!account)throw new Error('找不到盤點帳戶');
+    if(row.entryId&&(!entry||entry.reconciliationId!==id||!entry.isReconciliationAdjustment))throw new Error('盤點調整連結異常，請先核對');
+    const book=number(account.balance),diff=roundMoney(Number(row.actualBalance)-book),change=roundMoney(diff-number(row.diff)),current=accountBalances(ledger,assets).find(a=>a.name===row.account).balance;
+    return {id,account:row.account,currency:account.currency,date:row.date,actual:Number(row.actualBalance),book,diff,change,current,after:roundMoney(current+change),fingerprint:JSON.stringify([ledger,assets])};
+  }
+  function applyReconciliationRefresh(preview) {
+    const fresh=previewReconciliationRefresh(preview?.id);if(fresh.fingerprint!==preview.fingerprint)throw new Error('預覽後資料已改變，請重新預覽');if(!fresh.change)return fresh;
+    const {ledger,assets}=load(),row=ledger.reconciliations.find(r=>r.id===fresh.id),account=ledger.accounts.find(a=>a.name===row.account),entry=ledger.entries.find(e=>e.id===row.entryId),{refreshHistory,...original}=row;
+    createBackup('重新核算歷史盤點前');row.refreshHistory=[...(refreshHistory||[]),{record:original,entry:entry?{...entry}:null,at:nowIso()}];
+    const adjusted={id:entry?.id||uid('entry'),reconciliationId:row.id,type:(account.type==='信用卡'?fresh.diff<0:fresh.diff>0)?'income':'expense',date:row.date,amount:Math.abs(fresh.diff),category:account.type==='信用卡'?'信用卡負債盤點調整':'現金盤點調整',item:'歷史盤點重新核算',isReconciliationAdjustment:true,account:row.account,merchant:'帳戶盤點',note:'依原已確認實際餘額重新核算；補登歷史交易後修復',createdAt:entry?.createdAt||nowIso(),updatedAt:nowIso()};
+    if(entry)Object.assign(entry,adjusted);else ledger.entries.push(adjusted);
+    Object.assign(row,{entryId:adjusted.id,bookBalance:fresh.book,diff:fresh.diff,updatedAt:nowIso()});persist(ledger,assets,'依既有盤點修復歷史交易現金影響');return fresh;
+  }
   function removeReconciliation(id) {
     const { ledger, assets } = load();
     const index = ledger.reconciliations.findIndex(item => item.id === id);
@@ -1864,7 +1884,7 @@
   }
 
   window.FinanceCore = {
-    VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
+    previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, repairOrphanForeignCardFees, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
