@@ -13,6 +13,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: market-data-update
+  cancel-in-progress: false
+
 jobs:
   update-market-data:
     runs-on: ubuntu-latest
@@ -21,6 +25,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -37,7 +44,14 @@ jobs:
         run: python update_prices.py
 
       - name: Commit updated data
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "Update market data"
-          file_pattern: price-symbols.json latest-prices.json latest-rates.json latest-valuations.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add price-symbols.json latest-prices.json latest-rates.json latest-valuations.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update market data"
+          for attempt in 1 2 3; do
+            git pull --rebase -X theirs origin main
+            if git push origin HEAD:main; then exit 0; fi
+          done
+          exit 1
