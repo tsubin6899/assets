@@ -95,7 +95,7 @@
       notify("waiting", immediate ? "正在套用最新行情…" : "更新已送出，正在等待市場資料…", { busy: true });
       const payload = immediate ? await fetchLatest() : await waitForFresh(before ? stamp(before) : "");
       if (!payload) {
-        const fallback = before ? apply(before) : { pricesUpdated: 0, ratesUpdated: 0, pending: true };
+        const fallback = { ...(before ? apply(before) : { pricesUpdated: 0, ratesUpdated: 0 }), pending: true };
         notify("pending", "更新已送出，稍後可再按一次讀取最新資料", { busy: false, lastResult: fallback });
         return fallback;
       }
