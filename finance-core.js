@@ -548,7 +548,7 @@
       const currentPrice = number(quote?.price) || number(manualRow?.currentPrice ?? manualRow?.price ?? manualRow?.marketPrice ?? manualRow?.nav ?? manualRow?.unitPrice) || position.lastPrice;
       const averageCost = shares > epsilon ? position.basis / shares : 0;
       return {
-        ...position, shares, manualShares, currentPrice, averageCost,
+        ...position, shares, manualShares, currentPrice, averageCost, quoteFetchedAt:quote?.fetchedAt||manualRow?.priceUpdatedAt||'', quoteSource:quote?.source||'',
         value: shares * currentPrice * fxRate(assets, position.currency),
         closed: position.bought > 0 && shares <= epsilon,
         oversold: position.rawShares < -epsilon,
@@ -565,7 +565,7 @@
       const quote = marketQuote(assets, row.market, row.code);
       const currentPrice = number(quote?.price) || number(row.currentPrice ?? row.price ?? row.marketPrice ?? row.nav ?? row.unitPrice);
       const directValue = number(row.marketValue ?? row.value ?? row.currentValue);
-      return { ...row, shares, currentPrice, value: (directValue || shares * currentPrice) * fxRate(assets, row.currency), closed: shares <= epsilon && directValue <= epsilon, source: "manual" };
+      return { ...row, shares, currentPrice, quoteFetchedAt:quote?.fetchedAt||row.priceUpdatedAt||'', quoteSource:quote?.source||'', value: (directValue || shares * currentPrice) * fxRate(assets, row.currency), closed: shares <= epsilon && directValue <= epsilon, source: "manual" };
     });
     return {
       active: rows.filter(row => !row.closed),

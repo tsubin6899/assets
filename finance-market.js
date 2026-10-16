@@ -68,12 +68,17 @@
       body: JSON.stringify(symbols)
     });
   }
-  async function waitForFresh(previousStamp) {
-    const deadline = Date.now() + 90000;
+  function priceStamp(payload) {
+    return payload?.prices?.generatedAt || JSON.stringify(payload?.prices?.prices || {});
+  }
+  async function waitForFresh(previousPayload) {
+    const previousStamp = previousPayload ? priceStamp(previousPayload) : '';
+    const deadline = Date.now() + 240000;
     while (Date.now() < deadline) {
       await wait(4000);
-      const payload = await fetchLatest();
-      if (!previousStamp || stamp(payload) !== previousStamp) return payload;
+      let payload;
+      try { payload = await fetchLatest(); } catch { continue; }
+      if (!previousStamp || priceStamp(payload) !== previousStamp) return payload;
     }
     return null;
   }
@@ -84,6 +89,8 @@
     notify("triggering", "正在更新股價與匯率…", { busy: true });
     try {
       const before = await fetchLatest().catch(() => null);
+      const available = before ? apply(before) : null;
+      if (available) notify('applied', '已套用目前可取得的行情，正在要求新一輪報價…', {busy:true,lastResult:available});
       const symbols = FinanceCore.marketSymbols();
       let immediate = false;
       try {
@@ -92,11 +99,11 @@
       } catch {
         await postUpdate(updateEndpoint(), symbols);
       }
-      notify("waiting", immediate ? "正在套用最新行情…" : "更新已送出，正在等待市場資料…", { busy: true });
-      const payload = immediate ? await fetchLatest() : await waitForFresh(before ? stamp(before) : "");
+      notify("waiting", immediate ? "正在套用最新行情…" : "背景抓價與網站發布中，完成後將自動更新畫面（可能需數分鐘）", { busy: true });
+      const payload = immediate ? await fetchLatest() : await waitForFresh(before);
       if (!payload) {
-        const fallback = { ...(before ? apply(before) : { pricesUpdated: 0, ratesUpdated: 0 }), pending: true };
-        notify("pending", "更新已送出，稍後可再按一次讀取最新資料", { busy: false, lastResult: fallback });
+        const fallback = { ...(available || { pricesUpdated: 0, ratesUpdated: 0 }), pending: true };
+        notify("pending", "背景更新尚未發布，已保留目前可取得行情；稍後再按更新行情讀取", { busy: false, lastResult: fallback });
         return fallback;
       }
       const result = apply(payload);

@@ -27,3 +27,10 @@ test('foreign receipt actual debit and historic TWD cost on mobile',async({page}
  await page.goto('/finance-center.html#investments/holdings');const card=page.locator('.holding-position-card').filter({hasText:'AMAT'});await expect(card).toContainText('台幣持有成本（含費稅）');await expect(card).toContainText('135,919');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBeTruthy();await page.screenshot({path:'test-results/foreign-settlement-mobile.png',fullPage:true});
  await page.goto('/finance-center.html#accounts/accounts');await expect(page.locator('.account-card').filter({hasText:'交割測試'})).toContainText('1,319,810');expect(errors).toEqual([]);
 });
+
+test('refresh shows available prices before the background job finishes',async({page})=>{
+ let fresh=false,release;const gate=new Promise(r=>release=r);await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await page.route('**/latest-prices.json?*',r=>r.fulfill({json:{generatedAt:fresh?'2026-10-16T06:00:00Z':'2026-10-15T06:00:00Z',prices:{'TW:0050':{market:'TW',symbol:'0050',price:fresh?109:100,currency:'TWD',fetchedAt:fresh?'2026-10-16T05:59:38Z':'2026-10-15T06:00:00Z',source:'TWSE MIS official API'}}}}));
+ await page.route('**/api/update-prices',r=>r.fulfill({status:404,json:{}}));await page.route('**/api/trigger-price-update',async r=>{await gate;await r.fulfill({status:202,json:{mode:'github-actions'}}).catch(()=>{});});
+ await page.goto('/finance-center.html#investments/holdings');await page.locator('#holdingForm').waitFor();await page.evaluate(()=>FinanceCore.addPurchase({date:'2026-10-15',market:'TW',code:'0050',currency:'TWD',shares:10,price:100,fee:0,tax:0}));await page.reload();const card=page.locator('.holding-position-card').filter({hasText:'0050'});await expect(card).toContainText('NT$ 100');fresh=true;await page.locator('#marketRefresh').click();await expect(card).toContainText('NT$ 109');await expect(card).toContainText('行情取得：');await expect(card).toContainText('TWSE MIS official API');await expect(page.locator('#marketRefresh')).toBeDisabled();release();
+});
