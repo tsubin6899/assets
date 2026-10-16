@@ -388,7 +388,11 @@
       }
     });
     (ledger.loanPayments || []).filter(row=>row.date<=asOf).forEach(row=>{if(balances.has(row.account))balances.set(row.account,number(balances.get(row.account))-number(row.amount));});
-    return (ledger.accounts || []).map(account => ({ ...account, balance: number(balances.get(account.name)), twdBalance: number(balances.get(account.name)) * fxRate(assets, account.currency) }));
+    return (ledger.accounts || []).map(account => {
+      let pendingBuy=0,pendingSell=0;
+      for(const r of assets.purchaseRecords||[]){if(r.cashAccount!==account.name||r.settlementStatus!=='pending'||r.date>asOf)continue;const currency=normalizeCurrency(r.currency||marketCurrency(r.market)),rate=(number(r.bookedFxRate)||number(assets.fxHistory?.[r.date]?.[currency])||fxRate(assets,currency))/(number(r.bookedAccountFxRate)||number(assets.fxHistory?.[r.date]?.[account.currency])||fxRate(assets,account.currency||'TWD')),gross=number(r.price)*number(r.shares),fees=number(r.fee)+number(r.tax);if(r.type==='buy')pendingBuy+=(gross+fees)*rate;else if(r.type==='sell')pendingSell+=(gross-fees)*rate;}
+      const balance=number(balances.get(account.name));return {...account,balance,twdBalance:balance*fxRate(assets,account.currency),pendingBuy:roundMoney(pendingBuy),pendingSell:roundMoney(pendingSell),settlementBalance:roundMoney(balance+pendingBuy-pendingSell),availableBalance:roundMoney(balance-pendingSell)};
+    });
   }
 
   function holdingValue(row, assets, fallbackCurrency) {
@@ -1694,6 +1698,14 @@
 
   function holdingCollection(assets, assetClass) { return ({tw:assets.tw,us:assets.us,funds:assets.funds,usdFunds:assets.usdFunds,gold:assets.gold,silver:assets.silver})[assetClass] || assets.tw; }
   function holdingCost(values) { if(values.cost===undefined)return {}; if(values.cost==='')return {cost:null}; const cost=Number(values.cost); if(!Number.isFinite(cost)||cost<0)throw new Error('平均成本必須是有效的非負數'); return {cost}; }
+  function setTradeSettlement(id,status){
+    if(!['pending','settled'].includes(status))throw new Error('交割狀態無效');const {ledger,assets}=load(),row=assets.purchaseRecords.find(r=>r.id===id);
+    if(!row||!['buy','sell'].includes(row.type)||/^(AI-)?PAPER-/.test(row.brokerFillId||'')||row.externalSource==='auto-trading-center')throw new Error('找不到真實交易');
+    if(!row.cashAccount||!ledger.accounts.some(a=>a.name===row.cashAccount&&a.type!=='信用卡'))throw new Error('請先指定有效交割帳戶');
+    if(row.date>localDate())throw new Error('未來交易尚未成交');
+    if(row.settlementStatus===status)return;
+    row.settlementStatus=status;row.settlementConfirmedAt=status==='settled'?nowIso():'';row.updatedAt=nowIso();return persist(ledger,assets,status==='pending'?'標記投資交易待交割':'確認投資交易已交割');
+  }
   function addHolding(values) { const {ledger,assets}=load(); const rows=holdingCollection(assets,values.assetClass); rows.push({...holdingCost(values),id:uid("holding"),code:String(values.code||"").trim().toUpperCase(),name:values.name||"",shares:Math.max(0,number(values.shares)),units:Math.max(0,number(values.shares)),price:Math.max(0,number(values.price)),currency:normalizeCurrency(values.currency||((values.assetClass==="us"||values.assetClass==="usdFunds")?"USD":"TWD")),createdAt:nowIso()}); return persist(ledger,assets,"新增投資持倉"); }
   function updateHolding(assetClass,id,values) { const {ledger,assets}=load(); const source=holdingCollection(assets,assetClass),index=source.findIndex(item=>item.id===id),row=source[index]; if(!row)throw new Error("找不到這筆持倉"); Object.assign(row,{...holdingCost(values),code:String(values.code||"").trim().toUpperCase(),name:values.name||"",shares:Math.max(0,number(values.shares)),units:Math.max(0,number(values.shares)),price:Math.max(0,number(values.price)),currency:normalizeCurrency(values.currency||row.currency||"TWD"),updatedAt:nowIso()}); if(values.assetClass&&values.assetClass!==assetClass){source.splice(index,1);holdingCollection(assets,values.assetClass).push(row);} return persist(ledger,assets,"修改投資持倉"); }
   function removeHolding(assetClass,id) { const {ledger,assets}=load(); const rows=holdingCollection(assets,assetClass),index=rows.findIndex(row=>row.id===id); if(index<0)throw new Error("找不到這筆持倉"); rows.splice(index,1); return persist(ledger,assets,"刪除投資持倉"); }
@@ -1885,7 +1897,7 @@
   }
 
   window.FinanceCore = {
-    previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
+    setTradeSettlement, previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, repairOrphanForeignCardFees, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
