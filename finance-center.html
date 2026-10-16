@@ -240,15 +240,18 @@
         <div><h1>個人財務中心 <span>┃ TSUBIN</span></h1><p>記帳、帳戶、投資、負債與分析，共用同一份財務資料。</p></div>
       </div>
       <div class="header-actions">
+        <span class="status-pill" id="cloudStatus" data-state="offline" role="status" aria-live="polite" tabindex="0" title="點擊重新檢查登入狀態">● 未登入</span>
+        <button class="header-btn" id="globalSearch" type="button" title="搜尋全部財務資料" aria-label="搜尋全部財務資料"><i data-lucide="search"></i><span class="desktop-only">搜尋</span></button>
+        <button class="header-btn market" id="marketRefresh" type="button" title="更新股價與匯率" aria-label="更新股價與匯率"><i data-lucide="refresh-cw"></i><span class="desktop-only">更新行情</span></button>
+        <button class="header-btn" id="privacyToggle" type="button" title="隱藏金額"><i data-lucide="eye-off"></i><span class="desktop-only">隱私</span></button>
+        <button class="header-btn" type="button" popovertarget="dataTools" aria-label="開啟資料工具"><i data-lucide="settings-2"></i><span class="desktop-only">工具</span></button>
+        <div id="dataTools" class="utility-popover" popover aria-label="資料工具"><h2>資料工具</h2><p>同步操作與資料維護</p>
         <input class="cloud-email" id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
         <button class="header-btn login" id="cloudLogin" type="button">登入同步</button>
         <button class="header-btn save" id="cloudSave" type="button" hidden>儲存</button>
         <button class="header-btn load" id="cloudLoad" type="button" hidden>載入</button>
         <button class="header-btn logout" id="cloudLogout" type="button" hidden>登出</button>
-        <span class="status-pill" id="cloudStatus" data-state="offline" role="status" aria-live="polite" tabindex="0" title="點擊重新檢查登入狀態">● 未登入</span>
-        <button class="header-btn" id="globalSearch" type="button" title="搜尋全部財務資料" aria-label="搜尋全部財務資料"><i data-lucide="search"></i><span class="desktop-only">搜尋</span></button>
-        <button class="header-btn market" id="marketRefresh" type="button" title="更新股價與匯率" aria-label="更新股價與匯率"><i data-lucide="refresh-cw"></i><span class="desktop-only">更新行情</span></button>
-        <button class="header-btn" id="privacyToggle" type="button" title="隱藏金額"><i data-lucide="eye-off"></i><span class="desktop-only">隱私</span></button>
+<button class="action-btn" type="button" data-market-refresh>更新股價與匯率</button><button class="action-btn" type="button" data-go="analysis/data">資料管理與匯入匯出</button><button class="action-btn" type="button" data-go="investments/health">服務與備份</button></div>
       </div>
     </div>
     <nav class="primary-nav" aria-label="主要功能">
@@ -394,6 +397,26 @@
     .quick-continue{display:flex!important;align-items:center;gap:8px;margin-top:8px;min-height:36px}.quick-continue input{width:18px!important;min-height:18px;height:18px}
     @media(max-width:760px){#quickEntryForm.quick-entry-page .form-grid input,#quickEntryForm.quick-entry-page .form-grid select{font-size:16px;min-height:44px;height:44px}.page:has(.quick-entry-layout){padding-top:10px}.quick-page-heading{margin-bottom:10px}.quick-page-heading .eyebrow{display:none}.experience-dialog input,.experience-dialog select,.experience-dialog textarea{font-size:16px}body:has(#quickEntryForm input:focus) .secondary-nav{display:none}}
   </style>
+
+  <style id="finance-design-refinement">
+    :root{--muted:#526178;--blue:#245fba;--green:#087b59;--danger:#b3443f;--radius:14px;--shadow:0 4px 16px #1932500d}
+    body{background:#f3f6f9}.app-header{background:linear-gradient(112deg,#142546,#214e9d 65%,#126a70);box-shadow:0 3px 12px #162b4514}.brand-row{min-height:84px}.brand h1{font-size:28px}.brand p,.brand h1 span{color:#d7e4f7}.cloud-email::placeholder{color:#e1eaf7}.header-actions:has(#cloudLogout:not([hidden]))>.cloud-email{display:none}
+    .header-btn,.status-pill{min-height:44px;font-size:13px}.status-pill[data-state="online"]{background:#076b4e;border-color:#8ed9bd;box-shadow:none}.secondary-nav{top:141px;background:#fff;backdrop-filter:none}.desktop-tabs{display:flex;align-items:center;gap:7px}.mobile-section-picker{display:none}
+    .utility-popover,.section-popover{position:fixed;inset:80px 20px auto auto;margin:0;width:min(340px,calc(100vw - 24px));max-height:calc(100dvh - 100px);overflow-y:auto;padding:16px;border:1px solid #d6e0eb;border-radius:14px;color:var(--ink);background:#fff;box-shadow:0 12px 30px #17223a26}.utility-popover .cloud-email{display:block;width:100%;color:var(--ink);background:#fff;border-color:#b9c8d9;margin:8px 0}.utility-popover .cloud-email::placeholder{color:#526178}.utility-popover h2{font-size:18px}.utility-popover p{margin:6px 0 12px;color:var(--muted);font-size:14px}.utility-popover button:not([hidden]),.section-popover button{display:flex;width:100%;min-height:44px;margin:4px 0;justify-content:flex-start;color:var(--ink);background:#f3f6fa;border:1px solid #dce5ed;border-radius:8px;padding:10px;font-size:14px}.section-popover{top:194px}
+    .page-heading h2{font-size:26px}.page-heading p,.panel-head p{font-size:14px;line-height:1.6}.eyebrow{display:none}.panel,.account-card,.metric-card{background:#fff;border-radius:14px;box-shadow:none}.metric-card{padding:16px;border-top-width:2px}.metric-card strong{font-size:24px;line-height:1.25;overflow-wrap:normal}.metric-card small{font-size:13px;color:var(--muted);line-height:1.5}.metric-card span,label{font-size:13px}.money-value,td,.trade-metrics{font-variant-numeric:tabular-nums}.money-value{line-height:1.4}
+    .action-btn.blue,.header-btn.login{background:#245fba;border-color:#245fba}.action-btn.green,.header-btn.save{background:#087b59;border-color:#087b59}.action-btn.danger{background:#b3443f;border-color:#b3443f}.action-btn{font-size:14px}.row-actions .action-btn{min-height:40px}.segmented input:checked+span{background:#b64e40}.segmented label:last-child input:checked+span{background:#087b59}.positive{color:#087b59}.negative{color:#b3443f}.account-group{background:transparent;border:0;padding:12px 0}.holding-position-card{box-shadow:none;border-radius:14px}.status-chip,.hero-metrics span,.template-strip-label{font-size:12px}.template-chip button{font-size:13px;min-height:40px}.secondary-track button{min-height:44px}.hero-metrics span{color:#d2e5e6}
+    :where(button,a,summary,input,select,textarea):focus-visible{outline:3px solid #245fba;outline-offset:3px}.app-header :focus-visible{outline-color:#fff}::selection{background:#c9dcfb;color:#17284b}input,textarea{caret-color:#245fba}
+    .snapshot-figure{margin:0}.snapshot-figure figcaption{font-size:14px;font-weight:700;line-height:1.6}.chart-caption{font-size:13px;color:var(--muted);line-height:1.6;margin:6px 0 12px}.snapshot-figure svg{width:100%;height:auto;overflow:visible}.snapshot-figure svg text{font-size:12px;fill:#526178}.snapshot-details summary{cursor:pointer;padding:12px 0;font-size:14px;color:#245fba}.snapshot-details table{margin-top:8px}.snapshot-details td:last-child{text-align:right}.holding-calculation{margin-top:14px;font-size:13px;line-height:1.6;color:var(--muted)}.holding-calculation summary{cursor:pointer;padding:8px 0}.holding-calculation small{display:block;font-size:13px}.historical-maintenance>summary{cursor:pointer;min-height:44px;padding:10px 0}.historical-maintenance>.panel{border:0;padding:0;margin-top:8px!important}
+    @media(max-width:760px){
+      .app-header{overflow:visible}.brand-row{min-height:64px;gap:8px}.brand h1{font-size:18px}.header-actions{gap:4px}.header-btn{min-width:40px;min-height:44px;padding:6px}.status-pill{font-size:12px;padding:6px}.header-btn svg{width:19px}.brand-mark{display:none}
+      .secondary-nav{position:sticky!important;inset:auto!important;top:64px!important;padding:0 12px;overflow:visible;contain:none;background:#f3f6f9;border-bottom:1px solid #dce5ed;z-index:80}.secondary-track{padding:6px 0;min-height:56px;border:0;border-radius:0;box-shadow:none;background:transparent;overflow:visible;backdrop-filter:none}.desktop-tabs{display:none}.mobile-section-picker{display:flex;align-items:center;gap:12px;width:100%;font-size:13px;white-space:nowrap}.mobile-section-picker select{flex:1;min-height:44px;font-size:16px;background:#fff}
+      .page{padding-bottom:calc(88px + env(safe-area-inset-bottom));padding-top:16px}.page-heading{margin-bottom:14px}.page-heading h2{font-size:23px}.page-heading p{font-size:13px}.four-col,.three-col:has(>.metric-card){grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.metric-card{padding:12px;min-height:100px}.metric-card strong{font-size:17px;overflow-wrap:normal}.metric-card small{font-size:12px}.metric-card span{font-size:13px}
+      .mobile-nav{box-shadow:0 -3px 12px #17223a12;backdrop-filter:none;border-radius:14px 14px 0 0;background:#fff}.mobile-nav button,.mobile-nav button span{font-size:12px}.mobile-nav button.active{background:#245fba!important;box-shadow:none!important}.row-actions .action-btn,.audit-record-actions .action-btn,.holding-position-card .action-btn,.template-chip button,.account-picker-option{min-height:44px}.template-chip button:last-child{min-width:44px}.status-chip{font-size:12px}.utility-popover{top:64px}.holding-position-card .two-col{gap:12px}body:has(#quickEntryForm input:focus) .secondary-nav{display:block}
+      #quickEntryForm.quick-entry-page .template-chip button{min-height:36px}#quickEntryForm.quick-entry-page .exchange-note{font-size:12px}#quickEntryForm.quick-entry-page .quick-note summary{font-size:13px;padding:8px 0}#quickEntryForm.quick-entry-page label{font-size:13px}.quick-page-heading{position:absolute;width:1px!important;height:1px;overflow:hidden;clip-path:inset(50%)}.snapshot-figure svg text{font-size:24px}
+    }
+    @media(max-width:360px){.brand h1{font-size:16px;max-width:82px;white-space:normal;line-height:1.2}.header-actions{gap:2px}.header-btn{min-width:40px}.status-pill{font-size:11px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
+  </style>
   <script>
     const app = document.getElementById("app");
     const secondaryNav = document.getElementById("secondaryNav");
@@ -420,9 +443,9 @@
     let privacyTimer = 0;
 
     function esc(value) { return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" })[char]); }
-    function money(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${(Number(value) || 0).toLocaleString("zh-TW",{maximumFractionDigits:2})}`; }
+    function money(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${(Number(value) || 0).toLocaleString("zh-TW",{maximumFractionDigits:2})}`; }
     function sumCurrencyAmounts(rows, valueOf) { return Math.round(rows.reduce((total,row)=>total+Math.round((Number(valueOf(row)||0)+Number.EPSILON)*100),0)/100); }
-    function unitPrice(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${(Number(value)||0).toLocaleString("zh-TW",{minimumFractionDigits:2,maximumFractionDigits:4})}`; }
+    function unitPrice(value, currency = "TWD") { return `${currency === "TWD" ? "NT$" : esc(currency)} ${(Number(value)||0).toLocaleString("zh-TW",{minimumFractionDigits:2,maximumFractionDigits:4})}`; }
     function signed(value) { const n = Math.round(Number(value) || 0); return `${n >= 0 ? "+" : "−"}${Math.abs(n).toLocaleString("zh-TW")}`; }
     function pct(value) { return `${Math.round((Number(value) || 0) * 10) / 10}%`; }
     function dateTime(value) { try { return new Intl.DateTimeFormat("zh-TW", { dateStyle:"medium", timeStyle:"short" }).format(new Date(value)); } catch { return value || ""; } }
@@ -469,10 +492,13 @@
     function renderSecondary() {
       const route = routes[state.domain];
       secondaryNav.dataset.section = state.domain;
-      secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id === state.tab ? "active" : ""}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||"circle"}"></i>${label}</button>`).join("");
-      requestAnimationFrame(() => { const active=secondaryNav.querySelector("button.active");if(!active)return;const left=Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2);secondaryNav.scrollTo({left,behavior:"smooth"}) });
+      const frequent={home:["overview","actions"],daily:["quick","lookup","calendar"],accounts:["accounts","transfer","credit"],investments:["holdings","trades","portfolio"],analysis:["trends","forecast","spending"]}[state.domain];
+      const tabButton=([id,label])=>`<button type="button" class="${id===state.tab?"active":""}" aria-current="${id===state.tab?"page":"false"}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||"circle"}"></i>${esc(label)}</button>`;
+      secondaryNav.innerHTML=`<div class="desktop-tabs">${route.tabs.filter(([id])=>frequent.includes(id)||id===state.tab).map(tabButton).join("")}${route.tabs.length>3?`<button type="button" popovertarget="allSectionTabs">全部分頁 <i data-lucide="chevron-down"></i></button><div id="allSectionTabs" class="section-popover" popover aria-label="全部分頁">${route.tabs.map(tabButton).join("")}</div>`:""}</div><label class="mobile-section-picker">目前分頁<select id="sectionPicker" aria-label="切換目前領域分頁">${route.tabs.map(([id,label])=>`<option value="${id}" ${id===state.tab?"selected":""}>${esc(label)}</option>`).join("")}</select></label>`;
+      document.getElementById("sectionPicker").addEventListener("change",event=>setRoute(state.domain,event.target.value));
     }
-    function pageHeading(kicker, title, note, action = "") { return `<header class="page-heading ${title==="快速記帳"?"quick-page-heading":""}"><div><span class="eyebrow">${esc(kicker)}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`; }
+    function pageHeading(kicker,title,note,action=""){return `<header class="page-heading ${title==="快速記帳"?"quick-page-heading":""}"><div><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`;}
+
     function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value ${/負債/.test(label)?"negative":""}">${value}</strong><small>${esc(note)}</small></article>`; }
     function alertList(rows) {
       return rows.length ? `<div class="alert-list">${rows.map(row => `<article class="alert-card ${esc(row.level)}"><i class="alert-dot"></i><div><strong>${esc(row.title)}</strong><small>${esc(row.detail)}</small></div><span class="status-chip">${row.level === "danger" ? "需處理" : row.level === "warning" ? "留意" : "建議"}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有需要處理的財務提醒。</div>`;
@@ -503,10 +529,11 @@
     }
     function uniqueCategories() { return [...new Set([...(current.ledger.categories?.expense || []), ...(current.ledger.categories?.income || []), "未分類"])]; }
     function snapshotBars() {
-      const rows = [...(current.assets.assetSnapshots || [])].sort((a,b) => String(a.date).localeCompare(String(b.date))).slice(-12);
-      if (!rows.length) return `<div class="empty">建立資產快照後，這裡會顯示最近 12 次淨資產變化。</div>`;
-      const values = rows.map(row => Number(row.net ?? row.total) || 0); const min = Math.min(...values); const max = Math.max(...values); const span = Math.max(1,max-min);
-      return `<div class="trend">${rows.map((row,index) => `<div class="trend-bar" style="height:${28 + (values[index]-min)/span*72}%" title="${esc(row.date)}｜${money(values[index])}"><span>${esc(String(row.date).slice(5))}</span></div>`).join("")}</div>`;
+      const rows=[...(current.assets.assetSnapshots||[])].filter(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date)&&Number.isFinite(Number(row.net??row.total))).sort((a,b)=>a.date.localeCompare(b.date)).slice(-12);
+      if(!rows.length)return `<div class="empty">尚無資產快照。<button class="action-btn" data-go="investments/portfolio">前往資產配置建立快照</button></div>`;
+      const values=rows.map(row=>Number(row.net??row.total)),low=Math.min(0,...values),high=Math.max(1,...values),range=high-low,dates=rows.map(row=>Date.parse(row.date+"T00:00:00Z"));
+      const duration=Math.max(86400000,dates.at(-1)-dates[0]),x=i=>96+(dates[i]-dates[0])/duration*488,y=value=>150-(value-low)/range*128;
+      return `<figure class="snapshot-figure"><figcaption>最近 ${rows.length} 次快照｜<span class="money-value">首末差額 ${signed(values.at(-1)-values[0])}</span></figcaption><p class="chart-caption">單位：新台幣。依實際日期間隔排列；快照差額包含資金進出，不代表投資報酬。</p><svg viewBox="0 0 620 192" role="img" aria-label="淨資產快照走勢，日期與金額可展開明細查看">${[low,(low+high)/2,high].map(value=>`<line x1="96" y1="${y(value)}" x2="584" y2="${y(value)}" stroke="#dce5ed"/><text class="money-value" x="90" y="${y(value)+4}" text-anchor="end">${(value/10000).toFixed(1)}萬</text>`).join("")}<polyline points="${values.map((value,i)=>`${x(i)},${y(value)}`).join(" ")}" fill="none" stroke="#245fba" stroke-width="3"/>${values.map((value,i)=>`<circle cx="${x(i)}" cy="${y(value)}" r="4" fill="#245fba"><title>${esc(rows[i].date)}｜${money(value)}</title></circle>`).join("")}<text x="96" y="180">${esc(rows[0].date)}</text><text x="584" y="180" text-anchor="end">${rows.length>1?esc(rows.at(-1).date):""}</text></svg><details class="snapshot-details"><summary>查看日期與金額明細（${rows.length} 筆）</summary><table><thead><tr><th scope="col">快照日期</th><th scope="col">淨資產（TWD）</th></tr></thead><tbody>${rows.map((row,i)=>`<tr><td data-label="快照日期">${esc(row.date)}</td><td data-label="淨資產（TWD）" class="money-value">${money(values[i])}</td></tr>`).join("")}</tbody></table></details></figure>`;
     }
     function renderHome() {
       const a = current.assetsSummary, m = current.month, avg = current.averageMonthlyExpense;
@@ -649,7 +676,7 @@
     function renderDaily() {
       const m=current.month;
       const titles={quick:"快速記帳",lookup:"查帳",calendar:"月份行事曆",records:"收支明細",taxonomy:"分類與項目",budgets:"分類預算",recurring:"固定收支",closeout:"月結"};
-      const head=pageHeading("Daily Ledger",titles[state.tab]||"日常記帳","收支、預算與固定項目都可直接在財務中心完成，不必再切換舊頁面。");
+      const head=pageHeading("Daily Ledger",titles[state.tab]||"日常記帳","選擇金額、分類與帳戶，儲存後立即更新帳本。");
       if(state.tab==="quick") return `${head}<div class="two-col grid quick-entry-layout"><section>${quickEntryForm(false)}</section><section class="grid quick-entry-side"><div class="three-col grid">${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}</div><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>只顯示已入帳項目；未來收支請至月份行事曆查看</p></div></div>${eventRows(current.events.filter(row=>!row.pending&&["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
       if(state.tab==="lookup") return renderLedgerLookup(head);
       if(state.tab==="statistics") return renderDailyStatistics(pageHeading('Daily Ledger','收支統計','依月份查看每個分類的金額與占比。'));
@@ -821,7 +848,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     function goalFundingPanel() { return FinanceIntelligenceUI.goals(current); }
     function attributionPanel() { return FinanceIntelligenceUI.attribution(current); }
     function renderAnalysis() {
-      const titles={trends:"資產趨勢",forecast:"財務預測",spending:"支出分析",planning:"目標與年度計畫",tax:"稅務與投資基準",audit:"資料稽核",events:"統一財務事件",data:"資料管理"},head=pageHeading("Financial Intelligence",titles[state.tab]||"分析與報表","分析會說明原因與下一步，而不只是增加圖表。");
+      const titles={trends:"資產趨勢",forecast:"財務預測",spending:"支出分析",planning:"目標與年度計畫",tax:"稅務與投資基準",audit:"資料稽核",events:"統一財務事件",data:"資料管理"},head=pageHeading("Financial Intelligence",titles[state.tab]||"分析與報表","查看資產走勢、現金流與需要處理的財務事項。");
       if(state.tab==="trends") return `${head}<div class="four-col grid">${metric("目前淨資產",money(current.assetsSummary.netWorth),"資產－負債","tone-blue")}${metric("本月現金流",money(current.month.balance),"收入－一般支出",current.month.balance>=0?"tone-green":"tone-coral")}${metric("平均月支出",money(current.averageMonthlyExpense),"最近有資料的 3 個月","tone-amber")}${metric("現金安全月數",current.averageMonthlyExpense?`${(current.assetsSummary.cash/current.averageMonthlyExpense).toFixed(1)} 個月`:"待設定","建議至少 6 個月","tone-teal")}</div><div class="two-col grid" style="margin-top:16px"><section class="panel"><div class="panel-head"><div><h3>淨資產快照</h3><p>用於辨識長期方向與資產波動</p></div></div>${snapshotBars()}</section>${healthPanel()}</div><section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>診斷與建議</h3><p>由預算、帳單、安全水位與配置自動產生</p></div></div>${alertList(current.alerts)}</section>`;
       if(state.tab==="forecast") return forecastPanel(head);
       if(state.tab==="spending") { const fixed=current.forecast?.fixedMonthlyExpense||0,ratio=current.averageMonthlyExpense?fixed/current.averageMonthlyExpense*100:0;return `${head}<div class="three-col grid" style="margin-bottom:16px">${metric("本月支出",money(current.month.expense),"一般支出","tone-coral")}${metric("固定月支出",money(fixed),"依固定收支預估","tone-amber")}${metric("固定支出占比",pct(ratio),"固定支出／平均月支出",ratio>70?"tone-coral":"tone-green")}</div><div class="two-col grid"><section class="panel"><div class="panel-head"><div><h3>${esc(current.month.month)} 支出分類</h3><p>只計算一般支出，不含轉帳與投資</p></div></div>${categoryBars()}</section><section class="panel"><div class="panel-head"><div><h3>預算狀態</h3><p>達 80% 提醒、100% 標示超支</p></div></div>${alertList(current.alerts.filter(row=>/預算/.test(row.title)))}</section></div>`; }
@@ -846,6 +873,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       window.PortfolioLab?.decorate(app,state);
       window.InvestmentCards?.decorate(app,state);
       window.FinanceExperience?.decorate(app,state,current);
+      app.querySelectorAll('.holding-position-card>small:last-child').forEach(note=>{const details=document.createElement('details');details.className='holding-calculation';const summary=document.createElement('summary');summary.textContent='查看成本與損益計算方式';note.before(details);details.append(summary,note)});
       decorateLookupPaymentStatus();
       app.querySelectorAll('.account-card [data-edit-account]').forEach(button=>{const action=document.createElement('button');action.type='button';action.className='action-btn';action.dataset.accountHistory=button.dataset.editAccount;action.textContent='查看消費紀錄';button.before(action)});
       app.querySelector('#transferForm')?.parentElement.classList.add('transfer-layout');
@@ -875,9 +903,9 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     document.getElementById("marketRefresh").addEventListener("click",refreshMarketData);
     document.addEventListener("click", event => {
       const domainControl=event.target.closest(".primary-nav [data-domain],.mobile-nav [data-domain]");const domain=domainControl?.dataset.domain;if(domain){setRoute(domain);return}
-      const tab=event.target.closest("[data-tab]")?.dataset.tab;if(tab){setRoute(state.domain,tab);return}
+      const tab=event.target.closest("[data-tab]")?.dataset.tab;if(tab){document.querySelectorAll(":popover-open").forEach(node=>node.hidePopover());setRoute(state.domain,tab);return}
       const tradeCode=event.target.closest('[data-trade-code]')?.dataset.tradeCode;if(tradeCode){ui.tradeFilter={code:tradeCode,start:'',end:'',type:''};setRoute('investments','trades');return}if(event.target.closest('[data-clear-trade-filter]')){ui.tradeFilter={code:'',start:'',end:'',type:''};render();return}
-      const go=event.target.closest("[data-go]")?.dataset.go;if(go){const [d,t]=go.split("/");setRoute(d,t);return}
+      const go=event.target.closest("[data-go]")?.dataset.go;if(go){document.querySelectorAll(":popover-open").forEach(node=>node.hidePopover());const [d,t]=go.split("/");setRoute(d,t);return}
       const searchRoute=event.target.closest("[data-search-route]")?.dataset.searchRoute;if(searchRoute){document.getElementById("searchDialog").close();const [d,t]=searchRoute.split("/");setRoute(d,t);return}
       if(event.target.closest("[data-market-refresh]")){refreshMarketData();return}
       const useTemplate=event.target.closest("[data-use-template]")?.dataset.useTemplate;if(useTemplate){applyEntryTemplate(useTemplate);return}
