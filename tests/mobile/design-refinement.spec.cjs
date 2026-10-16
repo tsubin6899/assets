@@ -11,7 +11,7 @@ for(const width of [390,1280])test('design navigation, compact metrics and dated
 });
 test('all finance routes remain reachable without overflow',async({page})=>{
  await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.goto('/finance-center.html');await page.locator('#app h2').first().waitFor();const routes=await page.evaluate(()=>Object.entries(FinanceCenterRoutes).flatMap(([d,r])=>r.tabs.map(([t])=>d+'/'+t)));
- for(const width of [320,390,1280]){await page.setViewportSize({width,height:844});for(const route of routes){await page.goto('/finance-center.html#'+route);await page.locator('#app h2').first().waitFor();expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),width+' '+route).toBeTruthy();}}
+ for(const width of [320,390,1280]){await page.setViewportSize({width,height:844});for(const route of routes){await page.goto('/finance-center.html#'+route);await page.locator('#app h2').first().waitFor();await page.locator('#app details').evaluateAll(nodes=>nodes.forEach(node=>node.open=true));expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),width+' '+route+' expanded').toBeTruthy();const smallTargets=await page.locator('#app details>summary').evaluateAll(nodes=>nodes.filter(node=>node.getBoundingClientRect().height>0&&node.getBoundingClientRect().height<44).map(node=>node.textContent));expect(smallTargets,width+' '+route).toEqual([]);}}
  expect(errors).toEqual([]);
 });
 
