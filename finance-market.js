@@ -82,16 +82,24 @@
     }
     return null;
   }
+  function summarize(symbols,payload,previous,status='complete') {
+    const document=payload?.prices||{},quotes=document.prices||{},errors=document.errors||[],keys=[...(symbols.tw||[]).map(r=>'TW:'+r.code),...(symbols.us||[]).map(r=>'US:'+r.code)];
+    const items=[...new Set(keys)].map(key=>{const [market,code]=key.split(':'),quote=quotes[key],error=errors.find(e=>e.market===market&&e.symbol===code);const price=Number(quote?.price),old=Number(previous?.[key]?.price);if(error||!Number.isFinite(price)||price<=0)return {key,status:'failed',reason:error?.error||'本輪資料未提供有效價格，既有價格保留'};return {key,status:Number.isFinite(old)&&old===price?'same':'changed'};});
+    return {status,checkedAt:new Date().toISOString(),dataAt:document.generatedAt||'',checked:items.length,changed:items.filter(r=>r.status==='changed').length,same:items.filter(r=>r.status==='same').length,failed:items.filter(r=>r.status==='failed').length,items};
+  }
   async function refresh() {
     if (state.busy) return state.lastResult || { busy: true };
     if (!isHttp()) throw new Error("請從網站版執行行情更新");
     state.busy = true;
+    state.report=null;
+    let symbols={tw:[],us:[]},previous={};
     notify("triggering", "正在更新股價與匯率…", { busy: true });
     try {
+      symbols=FinanceCore.marketSymbols();previous=FinanceCore.load?.().assets?.marketPrices||{};
       const before = await fetchLatest().catch(() => null);
       const available = before ? apply(before) : null;
+      if(before)state.report=summarize(symbols,before,previous,'cached');
       if (available) notify('applied', '已套用目前可取得的行情，正在要求新一輪報價…', {busy:true,lastResult:available});
-      const symbols = FinanceCore.marketSymbols();
       let immediate = false;
       try {
         await postUpdate("/api/update-prices", symbols);
@@ -103,13 +111,16 @@
       const payload = immediate ? await fetchLatest() : await waitForFresh(before);
       if (!payload) {
         const fallback = { ...(available || { pricesUpdated: 0, ratesUpdated: 0 }), pending: true };
+        if(state.report)state.report={...state.report,status:'pending'};
         notify("pending", "背景更新尚未發布，已保留目前可取得行情；稍後再按更新行情讀取", { busy: false, lastResult: fallback });
         return fallback;
       }
       const result = apply(payload);
+      state.report=summarize(symbols,payload,previous);
       notify("ready", `行情完成：${result.pricesUpdated} 筆股價、${result.ratesUpdated} 個匯率`, { busy: false, lastResult: result });
       return result;
     } catch (error) {
+      state.report=state.report?{...state.report,status:'error'}:summarize(symbols,null,previous,'error');
       notify("error", error.message || "行情更新失敗", { busy: false });
       throw error;
     } finally {
@@ -117,5 +128,5 @@
     }
   }
 
-  window.FinanceMarket = Object.freeze({ fetchLatest, loadLatest, refresh, stamp, state });
+  window.FinanceMarket = Object.freeze({ fetchLatest, loadLatest, refresh, stamp, summarize, state });
 })();
