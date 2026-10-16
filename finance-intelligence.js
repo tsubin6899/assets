@@ -48,7 +48,8 @@
       const previous = new Map((oldAssets[key] || []).map(row => [row.id, row]));
       for (const row of assets[key] || []) {
         const currency = row.currency || (row.market === "US" || row.market === "USD_FUND" ? "USD" : "TWD"), old = previous.get(row.id);
-        if (old && (old.date !== row.date || old.currency !== row.currency)) { delete row.bookedFxRate; delete row.bookedAccountFxRate; }
+        if (old && (old.date !== row.date || old.currency !== row.currency) && !row.actualSettlementAmount && !row.tradeExchangeRate) { delete row.bookedFxRate; delete row.bookedAccountFxRate; }
+        if (row.tradeExchangeRate && !row.actualSettlementAmount) row.bookedFxRate = row.tradeExchangeRate;
         if (currency === "TWD") row.bookedFxRate = 1;
         if (!old && row.date === core.localDate() && !row.bookedFxRate) row.bookedFxRate = core.fxRate(assets, currency);
         const account = (ledger.accounts || []).find(a => a.name === row.cashAccount);

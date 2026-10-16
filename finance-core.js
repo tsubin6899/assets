@@ -327,7 +327,7 @@
         id: `trade:${row.id || [row.date, row.market, row.code, row.type, row.shares, row.price].join(":")}`,
         sourceId: row.id || "", kind: row.type === "sell" ? "investment_sell" : "investment_buy", date: row.date || "",
         title: `${row.type === "sell" ? "賣出" : "買入"} ${row.code || row.name || "投資標的"}`, category: "投資交易",
-        account: row.cashAccount || "", currency, amount: total, twdAmount: total * fxRate(assets, currency),
+        account: row.cashAccount || "", currency, amount: total, twdAmount: tradeTwdAmount(row,assets),
         direction: row.type === "sell" ? 1 : -1, note: row.note || "", raw: row
       };
     });
@@ -347,6 +347,52 @@
     return [...entries, ...transfers, ...investments, ...dividends, ...loanEvents].map(row=>({...row,pending:Boolean(row.date&&row.date>localDate())})).sort((a, b) => String(b.date).localeCompare(String(a.date)) || String(b.id).localeCompare(String(a.id)));
   }
 
+  function tradeNetAmount(row) {
+    const gross = number(row.price) * number(row.shares), fees = number(row.fee) + number(row.tax);
+    return row.type === 'sell' ? gross - fees : gross + fees;
+  }
+  function tradeTwdAmount(row, assets) {
+    const currency = normalizeCurrency(row.currency || marketCurrency(row.market));
+    if (row.actualSettlementCurrency === 'TWD' && Number(row.actualSettlementAmount) > 0) return Number(row.actualSettlementAmount);
+    return tradeNetAmount(row) * (number(row.bookedFxRate) || number(assets.fxHistory?.[row.date]?.[currency]) || fxRate(assets,currency));
+  }
+  function tradeAccountAmount(row, account, assets) {
+    if (row.actualSettlementCurrency === normalizeCurrency(account.currency) && Number(row.actualSettlementAmount) > 0) return Number(row.actualSettlementAmount);
+    return tradeTwdAmount(row, assets) / (number(row.bookedAccountFxRate) || number(assets.fxHistory?.[row.date]?.[account.currency]) || fxRate(assets,account.currency || 'TWD'));
+  }
+  function tradeSettlementFields(values, ledger, assets, old = {}) {
+    const row = {...old,...values}, result = {};
+    for (const key of ['actualSettlementAmount','tradeExchangeRate']) {
+      const value = row[key];
+      if (value !== undefined && value !== null && value !== '' && (!Number.isFinite(Number(value)) || Number(value) <= 0)) throw new Error('交割金額與匯率須為正數，未知請留空');
+      result[key] = value === undefined || value === null || value === '' ? null : Number(value);
+    }
+    const account = ledger.accounts.find(a=>a.name===row.cashAccount), currency = normalizeCurrency(row.currency || marketCurrency(row.market));
+    if (result.actualSettlementAmount !== null && (!account || account.type === '信用卡')) throw new Error('請先選擇有效的交割帳戶');
+    if (result.actualSettlementAmount !== null && old.actualSettlementAmount && old.cashAccount !== row.cashAccount && values.actualSettlementCurrency === undefined) throw new Error('變更交割帳戶時，請重新核對實際交割金額與幣別');
+    result.actualSettlementCurrency = result.actualSettlementAmount === null ? '' : normalizeCurrency(account.currency);
+    if (values.actualSettlementCurrency && values.actualSettlementCurrency !== result.actualSettlementCurrency && result.actualSettlementAmount !== null) throw new Error('交割金額幣別與帳戶不符，請重新輸入');
+    result.settlementDate = row.settlementDate || '';
+    if (result.settlementDate && (!/^\d{4}-\d{2}-\d{2}$/.test(result.settlementDate) || result.settlementDate < row.date)) throw new Error('交割日期不能早於成交日期');
+    result.settlementStatus = row.settlementStatus || '';
+    if (result.settlementStatus && !['pending','settled'].includes(result.settlementStatus)) throw new Error('交割狀態無效');
+    if (result.settlementStatus==='settled' && old.settlementStatus!=='settled') result.settlementConfirmedAt=nowIso();
+    if (result.settlementStatus==='pending') result.settlementConfirmedAt='';
+    if (values.fee !== undefined) result.feeConfirmed = values.fee !== '';
+    if (result.actualSettlementAmount !== null && !(tradeNetAmount(row)>0)) throw new Error('請先填寫有效成交金額與費稅');
+    if (result.actualSettlementAmount !== null && currency===normalizeCurrency(account.currency) && Math.abs(result.actualSettlementAmount-tradeNetAmount(row))>0.010001) throw new Error('同幣別交割金額應等於含費稅總額，請先核對成交價與費稅');
+    const accountRate = account ? (normalizeCurrency(account.currency)==='TWD'?1:number(row.bookedAccountFxRate)||number(assets.fxHistory?.[row.date]?.[account.currency])||fxRate(assets,account.currency)) : 1;
+    if (result.actualSettlementAmount !== null) {
+      result.bookedAccountFxRate = accountRate;
+      result.bookedFxRate = currency === normalizeCurrency(account.currency) ? accountRate : result.actualSettlementAmount * accountRate / tradeNetAmount(row);
+    } else if (result.tradeExchangeRate !== null) {
+      result.bookedFxRate = result.tradeExchangeRate;
+      result.bookedAccountFxRate = accountRate;
+    } else if (old.actualSettlementAmount || old.tradeExchangeRate) {
+      result.bookedFxRate = currency==='TWD'?1:number(assets.fxHistory?.[row.date]?.[currency])||fxRate(assets,currency);
+    }
+    return result;
+  }
   function accountBalances(ledger, assets, asOf = localDate()) {
     const balances = new Map();
     const accountMap = new Map();
@@ -374,10 +420,7 @@
     (assets.purchaseRecords || []).filter(row => row.cashAccount && (!row.date || String(row.date) <= asOf)).forEach(row => {
       if (!balances.has(row.cashAccount)) return;
       const account = accountMap.get(row.cashAccount);
-      const tradeCurrency = normalizeCurrency(row.currency || marketCurrency(row.market));
-      const gross = number(row.price) * number(row.shares);
-      const cashFlow = row.type === "sell" ? gross - number(row.fee) - number(row.tax) : -(gross + number(row.fee) + number(row.tax));
-      const accountAmount = cashFlow * (number(row.bookedFxRate) || number(assets.fxHistory?.[row.date]?.[tradeCurrency]) || fxRate(assets, tradeCurrency)) / (number(row.bookedAccountFxRate) || number(assets.fxHistory?.[row.date]?.[account?.currency]) || fxRate(assets, account?.currency || "TWD"));
+      const accountAmount = (row.type === 'sell' ? 1 : -1) * tradeAccountAmount(row,account,assets);
       balances.set(row.cashAccount, number(balances.get(row.cashAccount)) + accountAmount);
     });
     (assets.dividends || []).filter(row => row.cashAccount && (!row.date || String(row.date) <= asOf)).forEach(row => {
@@ -390,7 +433,7 @@
     (ledger.loanPayments || []).filter(row=>row.date<=asOf).forEach(row=>{if(balances.has(row.account))balances.set(row.account,number(balances.get(row.account))-number(row.amount));});
     return (ledger.accounts || []).map(account => {
       let pendingBuy=0,pendingSell=0;
-      for(const r of assets.purchaseRecords||[]){if(r.cashAccount!==account.name||r.settlementStatus!=='pending'||r.date>asOf)continue;const currency=normalizeCurrency(r.currency||marketCurrency(r.market)),rate=(number(r.bookedFxRate)||number(assets.fxHistory?.[r.date]?.[currency])||fxRate(assets,currency))/(number(r.bookedAccountFxRate)||number(assets.fxHistory?.[r.date]?.[account.currency])||fxRate(assets,account.currency||'TWD')),gross=number(r.price)*number(r.shares),fees=number(r.fee)+number(r.tax);if(r.type==='buy')pendingBuy+=(gross+fees)*rate;else if(r.type==='sell')pendingSell+=(gross-fees)*rate;}
+      for(const r of assets.purchaseRecords||[]){if(r.cashAccount!==account.name||r.settlementStatus!=='pending'||r.date>asOf)continue;const amount=tradeAccountAmount(r,account,assets);if(r.type==='buy')pendingBuy+=amount;else if(r.type==='sell')pendingSell+=amount;}
       const balance=number(balances.get(account.name));return {...account,balance,twdBalance:balance*fxRate(assets,account.currency),pendingBuy:roundMoney(pendingBuy),pendingSell:roundMoney(pendingSell),settlementBalance:roundMoney(balance+pendingBuy-pendingSell),availableBalance:roundMoney(balance-pendingSell)};
     });
   }
@@ -450,7 +493,7 @@
         key, market, assetClass: marketAssetClass(market),
         currency: normalizeCurrency(row.currency || marketCurrency(market)),
         code: String(row.code || "").trim().toUpperCase(), name: row.name || "", bought: 0, sold: 0,
-        rawShares: 0, basis: 0, realized: 0, lastPrice: 0, lastDate: ""
+        rawShares: 0, basis: 0, twdBasis: 0, twdBasisEstimated: false, realized: 0, lastPrice: 0, lastDate: ""
       };
       const gross = shares * Math.max(0, number(row.price));
       const fees = Math.max(0, number(row.fee)) + Math.max(0, number(row.tax));
@@ -462,29 +505,34 @@
         const appliedShares = Math.min(shares, available);
         const averageCost = available > epsilon ? position.basis / available : 0;
         const soldBasis = averageCost * appliedShares;
+        const twdSoldBasis = available > epsilon ? position.twdBasis / available * appliedShares : 0;
         const proceeds = Math.max(0, gross - fees);
         const realized = proceeds - soldBasis;
         position.sold += shares;
         position.rawShares -= shares;
         position.basis = Math.max(0, position.basis - soldBasis);
+        position.twdBasis = Math.max(0, position.twdBasis - twdSoldBasis);
         position.realized += realized;
         tradeDetails.push({
           ...row, currency: position.currency, sourceId: row.id || "", originalIndex: index, key, type, shares,
           price: Math.max(0, number(row.price)), fee: Math.max(0, number(row.fee)), tax: Math.max(0, number(row.tax)),
-          gross, fees, netAmount: proceeds, twdNetAmount: proceeds * fxRate(assets, position.currency), averageCost, soldBasis, realized,
-          twdRealized: realized * fxRate(assets, position.currency),
+          gross, fees, netAmount: proceeds, twdNetAmount: tradeTwdAmount(row,assets), averageCost, soldBasis, realized,
+          twdSoldBasis, twdRealized: tradeTwdAmount(row,assets) - twdSoldBasis,
           realizedRate: soldBasis > epsilon ? realized / soldBasis * 100 : 0,
           remainingShares: Math.max(0, position.rawShares), oversold: shares > available + epsilon
         });
       } else {
         const totalCost = gross + fees;
+        if (position.rawShares <= epsilon) position.twdBasisEstimated = false;
         position.bought += shares;
         position.rawShares += shares;
         position.basis += totalCost;
+        position.twdBasis += tradeTwdAmount(row,assets);
+        position.twdBasisEstimated ||= position.currency !== 'TWD' && !(number(row.bookedFxRate)>0 || number(assets.fxHistory?.[row.date]?.[position.currency])>0 || row.actualSettlementCurrency==='TWD'&&Number(row.actualSettlementAmount)>0);
         tradeDetails.push({
           ...row, currency: position.currency, sourceId: row.id || "", originalIndex: index, key, type, shares,
           price: Math.max(0, number(row.price)), fee: Math.max(0, number(row.fee)), tax: Math.max(0, number(row.tax)),
-          gross, fees, netAmount: totalCost, twdNetAmount: totalCost * fxRate(assets, position.currency),
+          gross, fees, netAmount: totalCost, twdNetAmount: tradeTwdAmount(row,assets),
           averageCost: position.rawShares > epsilon ? position.basis / position.rawShares : 0,
           soldBasis: 0, realized: null, realizedRate: null,
           remainingShares: Math.max(0, position.rawShares), oversold: false
@@ -664,7 +712,7 @@
   function investmentPerformance(assets) {
     const positions = stockPositionSummary(assets);
     const activeValue = [...positions.active, ...positions.manualOnly].reduce((sum, row) => sum + number(row.value), 0);
-    const managedCost = positions.active.reduce((sum, row) => sum + number(row.basis) * fxRate(assets, row.currency), 0);
+    const managedCost = positions.active.reduce((sum, row) => sum + number(row.twdBasis), 0);
     const manualCost = positions.manualOnly.reduce((sum, row) => sum + number(row.cost ?? row.totalCost ?? 0) * fxRate(assets, row.currency), 0);
     const cost = managedCost + manualCost;
     const realized = positions.trades.filter(row => row.type === "sell").reduce((sum, row) => sum + number(row.twdRealized), 0);
@@ -1091,7 +1139,7 @@
       market, code: String(values.code || "").trim().toUpperCase(), name: values.name || "",
       shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)),
       tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || marketCurrency(market)),
-      cashAccount: values.cashAccount || "", note: values.note || "", createdAt: nowIso()
+      cashAccount: values.cashAccount || "", note: values.note || "", ...tradeSettlementFields(values,ledger,assets), createdAt: nowIso()
     });
     return persist(ledger, assets, values.type === "sell" ? "新增投資賣出" : "新增投資買入");
   }
@@ -1688,7 +1736,8 @@
   function updatePurchase(id, values) {
     const { ledger, assets } = load(); const row = assets.purchaseRecords.find(item => item.id === id); if (!row) throw new Error("找不到這筆投資交易");
     const market = normalizeInvestmentMarket(values.market);
-    Object.assign(row, { date: values.date || localDate(), type: values.type === "sell" ? "sell" : "buy", market, code: String(values.code || "").trim().toUpperCase(), name: values.name || "", shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)), tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || marketCurrency(market)), cashAccount: values.cashAccount || "", note: values.note || "", updatedAt: nowIso() });
+    const settlement=tradeSettlementFields(values,ledger,assets,row);
+    Object.assign(row, { date: values.date || localDate(), type: values.type === "sell" ? "sell" : "buy", market, code: String(values.code || "").trim().toUpperCase(), name: values.name || "", shares: Math.max(0, number(values.shares)), price: Math.max(0, number(values.price)), fee: Math.max(0, number(values.fee)), tax: Math.max(0, number(values.tax)), currency: normalizeCurrency(values.currency || marketCurrency(market)), cashAccount: values.cashAccount || "", note: values.note || "", ...settlement, updatedAt: nowIso() });
     return persist(ledger, assets, "修改投資交易");
   }
 
@@ -1897,7 +1946,7 @@
   }
 
   window.FinanceCore = {
-    setTradeSettlement, previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
+    tradeNetAmount, tradeTwdAmount, tradeAccountAmount, setTradeSettlement, previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, repairOrphanForeignCardFees, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,

@@ -19,3 +19,11 @@ test('pending settlement changes cash display without changing ledger net',async
 
 
 
+
+test('foreign receipt actual debit and historic TWD cost on mobile',async({page})=>{
+ await page.setViewportSize({width:390,height:900});const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>new URL(r.request().url()).hostname==='127.0.0.1'?r.continue():r.abort());
+ await page.goto('/finance-center.html#investments/holdings');await page.locator('#holdingForm').waitFor();await page.evaluate(()=>FinanceCore.addAccount({name:'交割測試',type:'銀行帳戶',currency:'TWD',openingBalance:1455729}));
+ await page.goto('/finance-center.html#investments/trades');const form=page.locator('#tradeForm');await form.locator('[name=market]').selectOption('US');await form.locator('[name=date]').fill('2026-10-15');await form.locator('[name=code]').fill('AMAT');await form.locator('[name=shares]').fill('10');await form.locator('[name=price]').fill('418.8');await form.locator('[name=fee]').fill('2.51');await form.locator('[name=cashAccount]').selectOption({label:'交割測試　｜　TWD'});await form.locator('summary').click();await form.locator('[name=actualSettlementAmount]').fill('135919');await form.locator('[name=settlementDate]').fill('2026-10-16');await form.locator('[name=settlementStatus]').selectOption('settled');await expect(form.locator('#tradeSettlementPreview')).toContainText('USD 4,190.51');await expect(form.locator('#tradeSettlementPreview')).toContainText('135,919');await form.getByRole('button',{name:'儲存交易',exact:true}).click();await expect(page.locator('.trade-detail-card')).toContainText('台幣投入成本：NT$ 135,919');
+ await page.goto('/finance-center.html#investments/holdings');const card=page.locator('.holding-position-card').filter({hasText:'AMAT'});await expect(card).toContainText('台幣持有成本（含費稅）');await expect(card).toContainText('135,919');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBeTruthy();await page.screenshot({path:'test-results/foreign-settlement-mobile.png',fullPage:true});
+ await page.goto('/finance-center.html#accounts/accounts');await expect(page.locator('.account-card').filter({hasText:'交割測試'})).toContainText('1,319,810');expect(errors).toEqual([]);
+});
