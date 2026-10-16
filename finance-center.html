@@ -424,9 +424,20 @@
     .workflow-feedback{width:min(1500px,calc(100% - 40px));margin:12px auto 0;padding:12px 16px;border:1px solid #cbd9e8;border-radius:12px;background:#fff;font-size:14px;line-height:1.6;color:#344860;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.workflow-feedback small{display:block}.workflow-feedback p{margin:4px 0}.market-feedback{background:#eef5ff;align-items:flex-start}.market-feedback>div{flex:1;min-width:0}.home-tasks{margin-bottom:18px}.task-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #e1e8ef}.alert-card:has(>.action-btn){grid-template-columns:auto minmax(0,1fr) auto auto}.trade-cash-summary{margin:12px 0}.trade-cash-summary strong{display:block;font-size:19px}.trade-extra,.holding-native{margin-top:12px;border-top:1px solid #dce5ed;padding-top:4px;font-size:13px;line-height:1.6}.trade-extra summary,.holding-native summary{cursor:pointer;min-height:44px;padding:12px 0;color:#245fba;font-weight:700}.trade-extra p,.holding-native p{margin:6px 0 12px;color:#526178}.holding-primary{margin-top:14px;padding-top:12px;border-top:1px solid #c9d5e4}.holding-primary strong{display:block;font-size:18px}.holding-primary>div:last-child{grid-column:1/-1}.holding-native strong{display:block}.trade-detail-card{align-items:flex-start}
     @media(max-width:760px){.workflow-feedback{width:calc(100% - 24px);font-size:13px;padding:12px}.workflow-feedback .action-btn{min-height:44px}.task-row{align-items:flex-start;flex-direction:column}.task-row .action-btn{min-height:44px}.alert-card:has(>.action-btn){grid-template-columns:auto minmax(0,1fr)}.trade-extra .trade-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
   </style>
+
+  <style id="expanded-navigation">
+    @media(min-width:761px){.brand-row{flex-wrap:wrap;padding-block:12px;gap:12px}.secondary-nav{top:var(--header-height,141px)}.secondary-track{flex-wrap:wrap;overflow:visible;padding-block:6px;gap:6px}.secondary-track>button{min-height:44px}}
+    @media(max-width:760px){
+      .secondary-nav{position:fixed!important;inset:auto 0 calc(72px + env(safe-area-inset-bottom)) 0!important;padding:0 8px;border:0;background:transparent;z-index:218;overflow:hidden;contain:layout paint}
+      .secondary-track{display:flex;flex-wrap:nowrap;gap:6px;min-height:58px;padding:6px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;border:1px solid #dce5ed;border-radius:14px;background:#fff;scroll-padding-inline:8px;scroll-snap-type:x proximity}
+      .secondary-track>button{flex:0 0 auto;min-height:44px;padding:8px 12px;font-size:13px;scroll-snap-align:center}.secondary-track[data-section] button.active{background:#245fba;box-shadow:none;color:#fff}
+      .page{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
+    }
+  </style>
   <script>
     const app = document.getElementById("app");
     const secondaryNav = document.getElementById("secondaryNav");
+    new ResizeObserver(([entry])=>document.documentElement.style.setProperty('--header-height',entry.target.getBoundingClientRect().height+'px')).observe(document.querySelector('.app-header'));
     const routes = window.FinanceCenterRoutes;
     const tabIcons = {
       home:{overview:"layout-dashboard",actions:"list-checks"},
@@ -501,10 +512,9 @@
     function renderSecondary() {
       const route = routes[state.domain];
       secondaryNav.dataset.section = state.domain;
-      const frequent={home:["overview","actions"],daily:["quick","lookup","calendar"],accounts:["accounts","transfer","credit"],investments:["holdings","trades","portfolio"],analysis:["trends","forecast","spending"]}[state.domain];
-      const tabButton=([id,label])=>`<button type="button" class="${id===state.tab?"active":""}" aria-current="${id===state.tab?"page":"false"}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||"circle"}"></i>${esc(label)}</button>`;
-      secondaryNav.innerHTML=`<div class="desktop-tabs">${route.tabs.filter(([id])=>frequent.includes(id)||id===state.tab).map(tabButton).join("")}${route.tabs.length>3?`<button type="button" popovertarget="allSectionTabs">全部分頁 <i data-lucide="chevron-down"></i></button><div id="allSectionTabs" class="section-popover" popover aria-label="全部分頁">${route.tabs.map(tabButton).join("")}</div>`:""}</div><label class="mobile-section-picker">目前分頁<select id="sectionPicker" aria-label="切換目前領域分頁">${route.tabs.map(([id,label])=>`<option value="${id}" ${id===state.tab?"selected":""}>${esc(label)}</option>`).join("")}</select></label>`;
-      document.getElementById("sectionPicker").addEventListener("change",event=>setRoute(state.domain,event.target.value));
+      secondaryNav.innerHTML=route.tabs.map(([id,label])=>`<button type="button" class="${id===state.tab?'active':''}" aria-current="${id===state.tab?'page':'false'}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||'circle'}"></i>${esc(label)}</button>`).join('');
+      requestAnimationFrame(()=>{if(!matchMedia('(max-width:760px)').matches)return;const active=secondaryNav.querySelector('.active');if(active)secondaryNav.scrollTo({left:Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
+
     }
     function pageHeading(kicker,title,note,action=""){return `<header class="page-heading ${title==="快速記帳"?"quick-page-heading":""}"><div><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`;}
 

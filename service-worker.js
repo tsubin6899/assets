@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsubin-finance-center-v166";
+const CACHE_NAME = "tsubin-finance-center-v167";
 const CORE_ASSETS = [
   "./",
   "./index.html",
