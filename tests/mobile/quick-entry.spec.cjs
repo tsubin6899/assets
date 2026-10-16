@@ -12,7 +12,7 @@ for(const viewport of [{width:390,height:844},{width:360,height:800},{width:430,
   await page.locator('[data-experience-undo]').click();expect(await page.evaluate(()=>FinanceCore.load().ledger.entries.filter(r=>r.merchant==='測試早餐').length)).toBe(0);
   await page.evaluate(()=>FinanceStorage.save());await page.goto('/finance-center.html#analysis/data');await page.locator('[data-experience-verify]').click();await expect(page.locator('#toast')).toContainText('校驗');
   await page.goto('/finance-center.html#daily/quick');await page.screenshot({path:`test-results/mobile-${viewport.width}.png`,fullPage:true});
-  await page.setViewportSize({width:viewport.width,height:500});await page.locator('#quickEntryForm [name=amount]').focus();await expect(page.locator('.secondary-nav')).toBeHidden();await page.locator('#quickEntryForm [type=submit]').scrollIntoViewIfNeeded();await expect(page.locator('#quickEntryForm [type=submit]')).toBeInViewport();
+  await page.setViewportSize({width:viewport.width,height:500});await page.locator('#quickEntryForm [name=amount]').focus();await expect(page.locator('.secondary-nav')).toBeHidden();await page.locator('#quickEntryForm [type=submit]').scrollIntoViewIfNeeded();await expect(page.locator('#quickEntryForm [type=submit]')).toBeInViewport();await page.locator('#quickEntryForm [name=amount]').blur();await page.setViewportSize(viewport);await expect(page.locator('.secondary-nav')).toBeVisible();
 });
 
 test('bank pairing and conflict selection operate on synthetic data',async({page})=>{
@@ -25,10 +25,11 @@ test('bank pairing and conflict selection operate on synthetic data',async({page
     return {date,billId:FinanceCore.load().ledger.creditBills.at(-1).id};
   });
   await page.reload();await page.locator('#quickEntryForm [name=account]').selectOption({label:'測試卡片　｜　TWD'});await expect(page.locator('[data-card-region]')).toBeVisible();
-  await page.goto('/finance-center.html#accounts/credit');await page.locator(`[data-experience-bill="${details.billId}"]`).click();
+  page.once('dialog',async dialog=>{expect(dialog.message()).toContain('未儲存');await dialog.accept()});await page.getByRole('button',{name:'帳戶',exact:true}).click();await page.locator('#secondaryNav [data-tab=credit]').click();await page.locator(`[data-experience-bill="${details.billId}"]`).click();
   await page.locator('[data-experience-bank] [name=source]').fill(`日期,商家,金額\n${details.date},測試商店,100`);await page.locator('[data-experience-bank] button').click();
   await expect(page.locator('[data-experience-matches]')).toBeVisible();await page.locator('[data-experience-matches] button').click();
   expect(await page.evaluate(id=>Object.keys(FinanceCore.load().ledger.creditBills.find(r=>r.id===id).bankMatches).length,details.billId)).toBe(1);
   await page.evaluate(()=>{window.testResolution=FinanceExperience.resolveSync({ledger:{entries:[{id:'fixture',amount:100}]},assets:{}},{ledger:{entries:[{id:'fixture',amount:200}]},assets:{}});});
   await page.locator('[data-resolution] select').selectOption('remote');await page.locator('[data-resolution] button').click();expect(await page.evaluate(async()=> (await window.testResolution).ledger.entries[0].amount)).toBe(200);
 });
+
