@@ -1,0 +1,18 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const store=new Map(),w={dispatchEvent(){}};
+vm.runInNewContext(fs.readFileSync('finance-core.js','utf8'),{window:w,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,String(v))},CustomEvent:class{},console,Date,Intl});
+const c=w.FinanceCore,position=()=>c.stockPositionSummary(c.load().assets).active.find(r=>r.code==='00981A');
+const buy={date:'2026-10-19',type:'buy',market:'TW',currency:'TWD',code:'00981A',shares:7000,price:28.8,fee:287,tax:0};
+c.addPurchase(buy);
+assert.equal(position().basis,201887);
+c.addPurchase({...buy,date:'2026-10-22',shares:2000,price:28.16,fee:80});
+assert.equal(position().shares,9000);
+assert.equal(position().basis,258287);
+assert.equal(position().twdBasis,258287);
+assert.ok(Math.abs(position().averageCost-258287/9000)<1e-10);
+assert.notEqual(position().averageCost,201887/7000);
+c.addPurchase({...buy,date:'2026-10-22',type:'sell',shares:1000,price:29,fee:40});
+assert.equal(position().shares,8000);
+assert.ok(Math.abs(position().basis-258287*8/9)<1e-8);
+assert.ok(Math.abs(position().averageCost-258287/9000)<1e-10);
+console.log('Weighted additions OK: all buy fees included, average changes after adding shares, partial sale retains average');
