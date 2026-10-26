@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-10-25T03:31:50+00:00",
+  "generatedAt": "2026-10-26T11:24:49+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -35,8 +35,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:009816": {
       "assetType": "etf",
@@ -47,8 +47,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00981A": {
       "assetType": "etf",
@@ -59,8 +59,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00988A": {
       "assetType": "etf",
@@ -71,8 +71,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-21",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00991A": {
       "assetType": "etf",
@@ -83,8 +83,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2330": {
       "assetType": "stock",
@@ -106,8 +106,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00937B": {
       "assetType": "etf",
@@ -118,8 +118,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-21",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00940": {
       "assetType": "etf",
@@ -130,8 +130,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00878": {
       "assetType": "etf",
@@ -142,8 +142,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2603": {
       "assetType": "stock",
@@ -209,8 +209,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00403A": {
       "assetType": "etf",
@@ -221,8 +221,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:00993A": {
       "assetType": "etf",
@@ -233,8 +233,8 @@
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
       "asOf": "2026-10-22",
-      "dataStatus": "current",
-      "stale": false
+      "dataStatus": "stale",
+      "stale": true
     },
     "TW:2317": {
       "assetType": "stock",
@@ -612,9 +612,9 @@
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/VT",
       "referenceLabel": "CMoney ETF 資料",
-      "asOf": "2026-10-25",
+      "asOf": "2026-10-26",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-10-25T03:31:43+00:00",
+      "fetchedAt": "2026-10-26T11:24:45+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -626,9 +626,9 @@
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/QQQ",
       "referenceLabel": "CMoney ETF 資料",
-      "asOf": "2026-10-25",
+      "asOf": "2026-10-26",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-10-25T03:31:42+00:00",
+      "fetchedAt": "2026-10-26T11:24:44+00:00",
       "dataStatus": "current",
       "stale": false
     },
