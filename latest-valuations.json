@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-10-27T10:03:22+00:00",
+  "generatedAt": "2026-10-27T10:49:02+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -31,13 +31,13 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 106.41,
+      "nav": 106.53,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-10-22",
-      "dataStatus": "stale",
-      "stale": true
+      "asOf": "2026-10-27",
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:009816": {
       "assetType": "etf",
@@ -102,49 +102,49 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 32.48,
+      "nav": 32.91,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-10-22",
-      "dataStatus": "stale",
-      "stale": true
+      "asOf": "2026-10-27",
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:00937B": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 14.0266,
+      "nav": 14.2832,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-10-21",
-      "dataStatus": "stale",
-      "stale": true
+      "asOf": "2026-10-22",
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:00940": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 13.37,
+      "nav": 13.46,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-10-22",
-      "dataStatus": "stale",
-      "stale": true
+      "asOf": "2026-10-27",
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:00878": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 35.2,
+      "nav": 35.36,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-10-22",
-      "dataStatus": "stale",
-      "stale": true
+      "asOf": "2026-10-27",
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:2603": {
       "assetType": "stock",
@@ -629,7 +629,7 @@
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-10-27",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-10-27T10:03:12+00:00",
+      "fetchedAt": "2026-10-27T10:48:54+00:00",
       "dataStatus": "current",
       "stale": false
     },
