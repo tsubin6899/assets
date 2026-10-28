@@ -1140,8 +1140,18 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     async function sendCloudLogin(email){if(!supabaseClient||!cloudReady){showToast("雲端連線尚未完成，請重新整理後再試");return false}const normalized=String(email||"").trim();if(!/^\S+@\S+\.\S+$/.test(normalized)){showToast("請輸入有效的 Email");return false}const button=document.getElementById("cloudLoginSend");button.disabled=true;button.textContent="寄送中…";try{const {error}=await supabaseClient.auth.signInWithOtp({email:normalized,options:{emailRedirectTo:cloudRedirectUrl(),shouldCreateUser:true}});if(error)throw error;document.getElementById("cloudEmail").value=normalized;updateCloudUi("✉ 請查看信箱","checking");showToast("登入連結已寄出，請到信箱確認");return true}catch(error){updateCloudUi("! 寄送失敗","error");showToast(`登入信寄送失敗：${error.message||"請稍後再試"}`);return false}finally{button.disabled=false;button.textContent="寄送登入連結"}}
     async function loginCloud(){const email=document.getElementById("cloudEmail").value.trim();if(!email||matchMedia("(max-width:1100px)").matches){openCloudLoginDialog();return}await sendCloudLogin(email)}
     function cloudDataToBundle(data={}){const {accountingLedger,financeCenterMeta:_meta,financeCenterCloudHistory:_history,...assetPayload}=data;return{assets:assetPayload,ledger:accountingLedger||{}}}
-    function sameCloudVersion(left,right){const a=Date.parse(left||""),b=Date.parse(right||"");return Number.isFinite(a)&&Number.isFinite(b)?a===b:Boolean(left&&left===right)}
-    async function fetchCloudRow(){if(!supabaseClient||!cloudUser)throw new Error("請先登入才能讀取雲端");const {data:row,error}=await supabaseClient.from("asset_dashboard_profiles").select("data,updated_at").eq("user_id",cloudUser.id).maybeSingle();if(error)throw error;return row}
+    function sameCloudVersion(left,right){const a=Date.parse(left||""),b=Date.parse(right||"");if(!Number.isFinite(a)||!Number.isFinite(b))return Boolean(left&&left===right);const submillisecond=value=>(String(value).match(/\.(\d+)(?:Z|[+-]\d{2}(?::?\d{2})?)$/)?.[1]||'').padEnd(6,'0').slice(3).replace(/0+$/,'');return a===b&&submillisecond(left)===submillisecond(right)}
+    let cloudRowCache=null;
+    async function fetchCloudRow(){
+      if(!supabaseClient||!cloudUser)throw new Error("請先登入才能讀取雲端");
+      if(cloudRowCache?.userId===cloudUser.id){
+        const {data:version,error}=await supabaseClient.from("asset_dashboard_profiles").select("updated_at").eq("user_id",cloudUser.id).maybeSingle();
+        if(error)throw error;if(!version){cloudRowCache=null;return null;}
+        if(sameCloudVersion(version.updated_at,cloudRowCache.row.updated_at))return cloudRowCache.row;
+      }
+      const {data:row,error}=await supabaseClient.from("asset_dashboard_profiles").select("data,updated_at").eq("user_id",cloudUser.id).maybeSingle();
+      if(error)throw error;cloudRowCache=row?{userId:cloudUser.id,row}:null;return row;
+    }
     let cloudSyncBusy=false,cloudRetryCount=0;
     function queueCloudSync(delay=1800){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>saveCloud(true),delay);}
     async function saveCloud(silent=false){
@@ -1160,9 +1170,10 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
           if(FinanceSync.diffBundles(local,bundle).length&&!await FinanceIntelligenceUI.review(local,bundle,"同步預覽：即將套用至本機"))return false;
           if(!await FinanceIntelligenceUI.review(remote||{ledger:{},assets:{}},bundle,"同步預覽：即將寫入雲端"))return false;
         }
+        let history=[...(existing?.data?.financeCenterCloudHistory||[])];if(remote)history.unshift({id:"cloud-"+Date.now(),updatedAt:existing.updated_at,reason:"同步前版本",data:remote});history.splice(5);
+        history=await FinanceSync.packCloudHistory(history);
         if(FinanceSync.fingerprint(FinanceCore.exportBundle())!==fingerprint){if(silent){FinanceSync.markPending("同步期間有新資料，將同步最新版本");return false;}throw new Error("預覽期間本機資料已變更，請重新同步");}
         const sent=FinanceSync.markSyncing().inFlightIds,syncedAt=new Date().toISOString();
-        const history=[...(existing?.data?.financeCenterCloudHistory||[])];if(remote)history.unshift({id:"cloud-"+Date.now(),updatedAt:existing.updated_at,reason:"同步前版本",data:remote});history.splice(5);
         const data={...bundle.assets,accountingLedger:bundle.ledger,financeCenterCloudHistory:history,financeCenterMeta:{schemaVersion:FinanceCore.VERSION,updatedAt:syncedAt,deviceId:local.deviceId,mergeSummary:comparison}};
         const payload={user_id:cloudUser.id,data,updated_at:syncedAt};
         const request=existing
@@ -1173,6 +1184,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         if(FinanceSync.fingerprint(FinanceCore.exportBundle())===fingerprint&&FinanceSync.diffBundles(local,bundle).length){
           await FinanceStorage.prepareLocalWrite();if(FinanceSync.fingerprint(FinanceCore.exportBundle())===fingerprint){cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}}
         }
+        cloudRowCache={userId:cloudUser.id,row:{data,updated_at:result.data[0]?.updated_at||syncedAt}};
         ui.cloudVersions=history;FinanceSync.setRemoteVersions(history);
         FinanceSync.markSynced({remoteUpdatedAt:result.data[0]?.updated_at||syncedAt,comparison,acknowledgedIds:sent});
         try{refresh({background:true});updateAuthenticatedSyncUi();}catch(error){showToast("資料已同步，畫面更新未完成，請重新整理頁面");}
@@ -1202,7 +1214,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
       }catch(error){showToast(error.message||"載入失敗");}finally{cloudSyncBusy=false;}
     }
     async function loadCloudVersions(){try{const row=await fetchCloudRow();ui.cloudVersions=row?.data?.financeCenterCloudHistory||[];FinanceSync.setRemoteVersions(ui.cloudVersions);showToast(`已讀取 ${ui.cloudVersions.length} 個雲端歷史版本`);render()}catch(error){showToast(error.message||"無法讀取雲端版本")}}
-    async function restoreCloudVersion(index){try{const row=await fetchCloudRow(),version=(row?.data?.financeCenterCloudHistory||[])[index];if(!version?.data)throw new Error("找不到此雲端版本");await FinanceIntelligenceUI.restore(version.data,"還原雲端歷史版本預覽");}catch(error){showToast(error.message||"還原失敗");}}
+    async function restoreCloudVersion(index){try{const row=await fetchCloudRow(),version=(row?.data?.financeCenterCloudHistory||[])[index];const data=await FinanceSync.unpackCloudVersion(version);await FinanceIntelligenceUI.restore(data,"還原雲端歷史版本預覽");}catch(error){showToast(error.message||"還原失敗");}}
     document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");const retryOrVerifyCloud=()=>{if(cloudUser&&['error','pending'].includes(FinanceSync.read().phase)){cloudRetryCount=0;saveCloud(true)}else refreshCloudSession({notify:true,force:true})};cloudStatus.addEventListener("click",retryOrVerifyCloud);cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();retryOrVerifyCloud()}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
     window.addEventListener("portfolio-lab-ready",()=>render());
     const zeroStocksUrl=new URL(location.href);

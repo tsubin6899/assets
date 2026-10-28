@@ -16,7 +16,7 @@
     const state = { ...EMPTY, ...next, outbox: (next.outbox || []).slice(-50), remoteVersions:(next.remoteVersions || []).slice(0, 5) };
     // Sync status is bookkeeping, not the transaction store. A full browser
     // must not turn a successful login or cloud operation into an auth failure.
-    state.remoteVersions = state.remoteVersions.map(({data, ...meta}) => meta);
+    state.remoteVersions = state.remoteVersions.map(({data, compressedData, ...meta}) => meta);
     try {
       localStorage.setItem(KEY, JSON.stringify(state));
       memoryState = null;
@@ -55,7 +55,26 @@
   }
   function hasPending() { return read().outbox.length > 0; }
   function markReview(message) { const state=read();write({...state,phase:"review",lastError:String(message),inFlightIds:[]});return log('待核對',String(message)); }
-  function setRemoteVersions(versions = []) { const state=read();return write({ ...state, remoteVersions:versions.map(({ data, ...meta })=>meta).slice(0,5) }); }
+  function setRemoteVersions(versions = []) { const state=read();return write({ ...state, remoteVersions:versions.map(({ data, compressedData, ...meta })=>meta).slice(0,5) }); }
+  async function packCloudHistory(versions) {
+    const result=[];
+    for(const row of versions){
+      if(!row.data||typeof CompressionStream==='undefined'){result.push(row);continue;}
+      const json=JSON.stringify(row.data),bytes=new Uint8Array(await new Response(new Blob([json]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+      let binary='';for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+      const compressedData=btoa(binary);
+      if(compressedData.length>=json.length){result.push(row);continue;}
+      const {data,...meta}=row;result.push({...meta,encoding:'gzip-base64',compressedData});
+    }
+    return result;
+  }
+  async function unpackCloudVersion(row) {
+    if(row?.data)return row.data;
+    if(row?.encoding!=='gzip-base64'||!row.compressedData)throw new Error('找不到此雲端版本');
+    if(typeof DecompressionStream==='undefined')throw new Error('此瀏覽器無法解壓歷史版本，請更新瀏覽器後再試');
+    try{const bytes=Uint8Array.from(atob(row.compressedData),c=>c.charCodeAt(0));return JSON.parse(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text());}
+    catch{throw new Error('雲端歷史版本驗證失敗，未套用任何資料');}
+  }
 
   const LEDGER_COLLECTIONS = ["entries","transfers","accounts","creditBills","creditInstallments","templates","recurringRules","budgets","reconciliations","creditStatementChecks","loans","loanPayments","goals","goalAllocationHistory","importTemplates","importReconciliations","annualPlans","monthCloseouts","categoryRules"];
   const ASSET_COLLECTIONS = ["tw","us","cash","cards","gold","silver","funds","usdFunds","purchaseRecords","dividends","assetSnapshots","financialSnapshots","investmentSchedule","investmentDailySnapshots","investmentJournal","etfReferences","stockHoldingCorrections"];
@@ -195,6 +214,6 @@
     }
     return mergeBundles(left,right);
   }
-  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markPending, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, conflictRows, resolveBundles, log, fingerprint, label });
+  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markPending, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, packCloudHistory, unpackCloudVersion, compareBundles, mergeBundles, diffBundles, conflictRows, resolveBundles, log, fingerprint, label });
 })();
 
