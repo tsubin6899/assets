@@ -421,6 +421,7 @@
   </style>
 
   <style id="workflow-refinement">
+    .quick-draft-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;color:#526178}.quick-draft-note small{font-size:13px;line-height:1.5}.quick-draft-note button{flex-shrink:0}
     .workflow-feedback{width:min(1500px,calc(100% - 40px));margin:12px auto 0;padding:12px 16px;border:1px solid #cbd9e8;border-radius:12px;background:#fff;font-size:14px;line-height:1.6;color:#344860;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.workflow-feedback small{display:block}.workflow-feedback p{margin:4px 0}.market-feedback{background:#eef5ff;align-items:flex-start}.market-feedback>div{flex:1;min-width:0}.home-tasks{margin-top:18px;margin-bottom:18px}.task-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #e1e8ef}.alert-card:has(>.action-btn){grid-template-columns:auto minmax(0,1fr) auto auto}.trade-cash-summary{margin:12px 0}.trade-cash-summary strong{display:block;font-size:19px}.trade-extra,.holding-native{margin-top:12px;border-top:1px solid #dce5ed;padding-top:4px;font-size:13px;line-height:1.6}.trade-extra summary,.holding-native summary{cursor:pointer;min-height:44px;padding:12px 0;color:#245fba;font-weight:700}.trade-extra p,.holding-native p{margin:6px 0 12px;color:#526178}.holding-primary{margin-top:14px;padding-top:12px;border-top:1px solid #c9d5e4}.holding-primary strong{display:block;font-size:18px}.holding-primary>div:last-child{grid-column:1/-1}.holding-native strong{display:block}.trade-detail-card{align-items:flex-start}
     @media(max-width:760px){.workflow-feedback{width:calc(100% - 24px);font-size:13px;padding:12px}.workflow-feedback .action-btn{min-height:44px}.task-row{align-items:flex-start;flex-direction:column}.task-row .action-btn{min-height:44px}.alert-card:has(>.action-btn){grid-template-columns:auto minmax(0,1fr)}.trade-extra .trade-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
   </style>
@@ -508,7 +509,7 @@
     function recentAccountNames() { try { const rows=JSON.parse(localStorage.getItem(recentAccountsKey)||"[]"); return Array.isArray(rows)?rows.filter(Boolean):[]; } catch { return []; } }
     function rememberRecentAccount(name) { if(!name)return; const rows=[name,...recentAccountNames().filter(row=>row!==name)].slice(0,5);localStorage.setItem(recentAccountsKey,JSON.stringify(rows)); }
     function readQuickDraft() { try { const row=JSON.parse(localStorage.getItem(quickDraftKey)||"null"); return row&&typeof row==="object"?row:null; } catch { return null; } }
-    function saveQuickDraft(form) { if(!form||form.elements.id?.value)return; const draft={type:form.elements.type?.value||"expense",amount:form.elements.amount?.value||"",date:form.elements.date?.value||"",category:form.elements.category?.value||"",item:form.elements.item?.value||"",account:form.elements.account?.value||"",merchant:form.elements.merchant?.value||"",note:form.elements.note?.value||"",purchaseRegion:form.elements.purchaseRegion?.value||"",savedAt:Date.now()}; if(Object.values(draft).some(value=>value&&value!=="expense"&&value!=="domestic")){localStorage.setItem(quickDraftKey,JSON.stringify(draft));} }
+    function saveQuickDraft(form) { if(!form||form.elements.id?.value)return; const draft={type:form.elements.type?.value||"expense",amount:form.elements.amount?.value||"",date:form.elements.date?.value||"",category:form.elements.category?.value||"",item:form.elements.item?.value||"",account:form.elements.account?.value||"",merchant:form.elements.merchant?.value||"",note:form.elements.note?.value||"",purchaseRegion:form.elements.purchaseRegion?.value||"",savedAt:Date.now()}; draft.continuing=!(draft.amount||draft.merchant.trim()||draft.note.trim());try{localStorage.setItem(quickDraftKey,JSON.stringify(draft));}catch{/* Financial entries remain separate from optional draft storage. */} }
     function clearQuickDraft() { localStorage.removeItem(quickDraftKey); }
     function duplicateEntryCandidate(values) { return current.ledger.entries.find(row=>row.type===(values.type||"expense")&&String(row.date||"")===String(values.date||"")&&Number(row.amount||0)===Number(values.amount||0)&&String(row.account||"")===String(values.account||"")&&String(row.merchant||"").trim().toLowerCase()===String(values.merchant||"").trim().toLowerCase()); }
     const accountGroupDefinitions=[
@@ -532,7 +533,7 @@
       if(pendingHoldingSync!==row.key)return `<button type="button" class="action-btn green" data-sync-holding="${esc(row.key)}">${esc(label)}</button>`;
       return `<div class="holding-sync-preview" role="status"><p>舊持股 ${Number(row.manualShares||0).toLocaleString()} → ${Number(row.shares||0).toLocaleString()} 股。原股數會保留；交易紀錄不變。</p>${holdingSyncErrors.has(row.key)?`<p class="negative" role="alert">${esc(holdingSyncErrors.get(row.key))}</p>`:""}<button type="button" class="action-btn green" data-sync-holding="${esc(row.key)}" data-confirmed="1">確認同步</button> <button type="button" class="action-btn" data-cancel-holding-sync>取消</button></div>`;
     }
-    function refresh() { current = FinanceCore.insights(); render(); }
+    function refresh({background=false}={}) { current = FinanceCore.insights(); if(background&&FinanceWorkflow.isEditing())return; render(); }
     function setRoute(domain, tab = "") {
       if (!routes[domain]) domain = "home";
       const allowed = routes[domain].tabs.map(row => row[0]);
@@ -566,7 +567,7 @@
       const draft=!row?readQuickDraft():null,type=row?.type==="income"?"income":draft?.type==="income"?"income":"expense",categories=categoriesForType(type),category=row?.category||draft?.category||categories[0]||"未分類",items=itemsForCategory(type,category,row?.item||draft?.item||""),templates=current.ledger.templates||[],selectedAccount=row?.account||draft?.account||current.ledger.accounts[0]?.name||"",selectedAccountRow=current.ledger.accounts.find(account=>account.name===selectedAccount),accountCurrency=selectedAccountRow?.currency||"TWD",accountFx=Number(FinanceCore.fxRate(current.assets,accountCurrency)||0),creditAccount=selectedAccountRow?.type==="信用卡";
       return `<form id="quickEntryForm" class="${compact ? "" : "panel quick-entry-page"}">
         <input type="hidden" name="id" value="${esc(row?.id || "")}">
-        ${!row&&draft&&!draft.continuing?`<div class="alert-card warning" style="margin-bottom:12px"><i class="alert-dot"></i><div><strong>已恢復未完成草稿</strong><small>上次輸入於 ${new Date(draft.savedAt||Date.now()).toLocaleString("zh-TW")}</small></div><button class="action-btn" type="button" data-clear-draft>清除草稿</button></div>`:""}
+        ${!row&&draft&&!draft.continuing?`<div class="quick-draft-note"><small>已接續上次輸入，儲存後會自動清除草稿。</small><button class="action-btn" type="button" data-clear-draft>清除草稿</button></div>`:""}
         ${!row&&templates.length?`<div class="template-strip"><span class="template-strip-label">常用範本</span>${templates.map(template=>`<span class="template-chip"><button type="button" data-use-template="${esc(template.id)}">${esc(template.name)}</button><button type="button" data-delete-template="${esc(template.id)}" aria-label="刪除 ${esc(template.name)} 範本">×</button></span>`).join("")}</div>`:""}
         <div class="segmented"><label><input type="radio" name="type" value="expense" ${type!=="income"?"checked":""}><span>支出</span></label><label><input type="radio" name="type" value="income" ${type==="income"?"checked":""}><span>收入</span></label></div>
         <div class="form-grid">
@@ -1052,7 +1053,8 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       const restore=event.target.closest("[data-restore-backup]")?.dataset.restoreBackup;if(restore){FinanceIntelligenceUI.restore(FinanceCore.readBackup(restore),"還原備份預覽").catch(error=>showToast(error.message));return}
     });
     document.addEventListener("change",event=>{if(event.target.matches("[data-check-bill-entry]")){FinanceCore.setCreditStatementEntryChecked(event.target.dataset.checkBillEntry,event.target.dataset.billId,event.target.checked);showToast(event.target.checked?"已標記為核對完成":"已取消核對標記");refresh();return}if(event.target.matches("[data-taxonomy-type]")){ui.taxonomyType=event.target.value==="income"?"income":"expense";ui.editingCategory="";ui.editingItem=null;render();return}if(event.target.matches("select.account-select"))syncAccountSelectStyle(event.target);if(event.target.matches("[data-select-all-entries]")){document.querySelectorAll("[data-select-entry]").forEach(node=>{node.checked=event.target.checked});const count=document.querySelectorAll("[data-select-entry]:checked").length,node=document.querySelector("[data-selection-count]");if(node)node.textContent=count?`已選取 ${count} 筆`:"尚未選取";return}if(event.target.matches("[data-select-entry]")){const count=document.querySelectorAll("[data-select-entry]:checked").length,node=document.querySelector("[data-selection-count]");if(node)node.textContent=count?`已選取 ${count} 筆`:"尚未選取";return}const form=event.target.closest("#quickEntryForm");if(form&&event.target.name==="account"){syncQuickEntryAccount(form);return}if(form&&(event.target.name==="type"||event.target.name==="category")){refreshEntryTaxonomy(form);return}const ruleForm=event.target.closest("#categoryRuleForm");if(ruleForm&&event.target.name==="type"){ruleForm.elements.category.innerHTML=categoriesForType(event.target.value).map(row=>option(row,row)).join("");return}const trade=event.target.closest("#tradeForm");if(trade&&event.target.name==="market"){const currency=trade.elements.currency;if(currency)currency.value=["US","USD_FUND"].includes(event.target.value)?"USD":"TWD"}if(trade)updateTradeSettlementPreview(trade)});
-    document.addEventListener("click",event=>{if(event.target.closest("[data-clear-draft]")){clearQuickDraft();showToast("已清除未完成草稿");render();return}if(event.target.closest("[data-clear-ledger-lookup]")){ui.lookup={query:"",type:"expense",account:"all",startDate:"",endDate:""};render()}});
+    document.addEventListener("click",event=>{if(event.target.closest("[data-clear-draft]")){clearQuickDraft();FinanceWorkflow.saved("quickEntryForm");showToast("已清除未完成草稿");render();return}if(event.target.closest("[data-clear-ledger-lookup]")){ui.lookup={query:"",type:"expense",account:"all",startDate:"",endDate:""};render()}});
+    document.addEventListener("change",event=>{const form=event.target.closest("#quickEntryForm");if(form)saveQuickDraft(form)});
     document.addEventListener("input",event=>{const form=event.target.closest("#quickEntryForm");if(form)saveQuickDraft(form);const trade=event.target.closest("#tradeForm");if(trade)updateTradeSettlementPreview(trade)});
     document.addEventListener("submit", event => {
       const formId=event.target.getAttribute("id")||"";
@@ -1096,11 +1098,11 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     function armPrivacyTimer() { clearTimeout(privacyTimer); if (!state.privacy) privacyTimer = setTimeout(() => setPrivacy(true, true), 300000); }
     document.getElementById("privacyToggle").addEventListener("click",()=>{setPrivacy(!state.privacy);armPrivacyTimer()});
     ["pointerdown","keydown","touchstart"].forEach(type=>document.addEventListener(type,armPrivacyTimer,{passive:true}));
-    window.addEventListener("finance-core-change",event=>{if(cloudApplying)return;FinanceSync.enqueue(event.detail||{});clearTimeout(cloudSaveTimer);if(cloudUser)cloudSaveTimer=setTimeout(()=>saveCloud(true),1800)});
+    window.addEventListener("finance-core-change",event=>{if(cloudApplying)return;FinanceSync.enqueue(event.detail||{});cloudRetryCount=0;if(cloudUser)queueCloudSync()});
     window.addEventListener("finance-sync-status",()=>{updateAuthenticatedSyncUi();if(state.domain==="analysis"&&state.tab==="data")render()});
     window.addEventListener("finance-storage-status",()=>loadStorageRevisions(state.domain==="analysis"&&state.tab==="data"));
-    window.addEventListener("online",()=>{if(cloudUser&&FinanceSync.hasPending())saveCloud(true)});
-    window.addEventListener("storage",event=>{if([FinanceCore.KEYS.ledger,FinanceCore.KEYS.assets].includes(event.key))refresh();if(event.key==="tsubin-assets-auth")refreshCloudSession({force:true})});
+    window.addEventListener("online",()=>{if(cloudUser&&FinanceSync.hasPending()){cloudRetryCount=0;saveCloud(true)}});
+    window.addEventListener("storage",event=>{if([FinanceCore.KEYS.ledger,FinanceCore.KEYS.assets].includes(event.key))refresh({background:true});if(event.key==="tsubin-assets-auth")refreshCloudSession({force:true})});
     window.addEventListener("finance-broker-fills-imported",event=>{showToast(`已從自動交易中心匯入 ${event.detail?.imported||0} 筆成交`);refresh()});
     window.addEventListener("hashchange",readRoute);
     document.addEventListener("visibilitychange",()=>{if(document.hidden&&!state.privacy)setPrivacy(true,false);if(!document.hidden)refreshCloudSession({force:true})});
@@ -1108,7 +1110,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     function cloudRedirectUrl(){if(!location.protocol.startsWith("http")||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return "https://assets-olive-ten.vercel.app/finance-center.html";return `${location.origin}${location.pathname}`}
     function cleanCloudAuthUrl(){if(hasCloudAuthCallback())history.replaceState(null,"",location.pathname)}
     function updateCloudUi(message,stateName="offline") { const status=document.getElementById("cloudStatus");status.textContent=message;status.dataset.state=stateName;status.title=cloudUser?.email?`已登入：${cloudUser.email}｜點擊重新驗證`:stateName==="checking"?"正在驗證登入狀態":"目前未登入｜點擊重新檢查";status.setAttribute("aria-label",status.title);["cloudSave","cloudLoad","cloudLogout"].forEach(id=>document.getElementById(id).hidden=!cloudUser);const login=document.getElementById("cloudLogin");login.hidden=Boolean(cloudUser);login.disabled=!cloudReady&&!cloudUser; }
-    function updateAuthenticatedSyncUi() { if(!cloudUser)return;const sync=FinanceSync.read();if(sync.phase==="syncing")updateCloudUi("↻ 同步中","checking");else if(sync.phase==="review")updateCloudUi("● 待確認差異","checking");else if(sync.phase==="error")updateCloudUi("! 同步失敗","error");else if(sync.outbox.length)updateCloudUi(`● 待同步 ${sync.outbox.length}`,"checking");else updateCloudUi(sync.lastSyncedAt?"✓ 已同步":"✓ 已登入","online"); }
+    function updateAuthenticatedSyncUi() { if(!cloudUser)return;const sync=FinanceSync.read();if(sync.phase==="syncing")updateCloudUi("↻ 同步中","checking");else if(sync.phase==="review")updateCloudUi("● 待確認差異","checking");else if(sync.phase==="error"){updateCloudUi("! 同步失敗","error");const status=document.getElementById("cloudStatus");status.title=(sync.lastError||"同步未完成")+"｜點擊重試同步";status.setAttribute("aria-label",status.title);}else if(sync.outbox.length)updateCloudUi(`● 待同步 ${sync.outbox.length}`,"checking");else updateCloudUi(sync.lastSyncedAt?"✓ 已同步":"✓ 已登入","online"); }
     function authCallbackError(){const query=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,""));return query.get("error_description")||hash.get("error_description")||query.get("error")||hash.get("error")||""}
     async function refreshCloudSession({notify=false,force=false}={}){if(!supabaseClient||!cloudReady)return false;const now=Date.now();if(!force&&now-lastCloudSessionCheck<4000)return Boolean(cloudUser);lastCloudSessionCheck=now;updateCloudUi("… 驗證登入中","checking");try{const callbackError=authCallbackError();if(callbackError)throw new Error(decodeURIComponent(callbackError.replace(/\+/g," ")));let {data,error}=await supabaseClient.auth.getSession();if(error)throw error;if(!data.session){const code=new URLSearchParams(location.search).get("code");if(code){const exchanged=await supabaseClient.auth.exchangeCodeForSession(code);if(exchanged.error)throw exchanged.error;data={session:exchanged.data.session}}}cloudUser=data.session?.user||null;if(cloudUser){try{const verified=await supabaseClient.auth.getUser();if(verified.data?.user)cloudUser=verified.data.user}catch{}cleanCloudAuthUrl();updateAuthenticatedSyncUi();if(notify)showToast(`已登入：${cloudUser.email||"Email 帳號"}`);return true}updateCloudUi("● 未登入","offline");if(notify)showToast("目前尚未登入，請重新寄送登入連結");return false}catch(error){const hadCallback=hasCloudAuthCallback();cloudUser=null;const detail=/verifier/i.test(error.message||"")?"請在寄出登入信的同一個瀏覽器開啟連結":error.message||"請重新寄送登入連結";updateCloudUi("! 登入驗證失敗","error");if(notify||hadCallback)showToast(`登入驗證失敗：${detail}`);if(hadCallback)cleanCloudAuthUrl();return false}}
     function migrateLegacyAuthSession(config){try{if(localStorage.getItem("tsubin-assets-auth"))return;const projectRef=new URL(config.supabaseUrl).hostname.split(".")[0],legacyKey=`sb-${projectRef}-auth-token`,legacy=localStorage.getItem(legacyKey);if(!legacy)return;const parsed=JSON.parse(legacy);if(parsed?.access_token&&parsed?.refresh_token)localStorage.setItem("tsubin-assets-auth",legacy)}catch{}}
@@ -1131,7 +1133,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         migrateLegacyAuthSession(config);supabaseClient=supabase.createClient(config.supabaseUrl,config.supabaseAnonKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storageKey:"tsubin-assets-auth"}});cloudReady=true;
         supabaseClient.auth.onAuthStateChange((event,session)=>{cloudUser=session?.user||null;if(cloudUser){cleanCloudAuthUrl();updateAuthenticatedSyncUi();if(event==="SIGNED_IN")showToast(`Email 登入成功${cloudUser.email?`：${cloudUser.email}`:""}`)}else if(event==="SIGNED_OUT")updateCloudUi("● 未登入","offline")});
         const signedIn=await refreshCloudSession({force:true});if(!signedIn)return;
-        if(await applyNewerCloudSnapshot())refresh();if(FinanceSync.hasPending())cloudSaveTimer=setTimeout(()=>saveCloud(true),900);
+        if(await applyNewerCloudSnapshot())refresh({background:true});if(FinanceSync.hasPending())cloudSaveTimer=setTimeout(()=>saveCloud(true),900);
       }catch(error){cloudReady=false;updateCloudUi("! 雲端連線錯誤","error");showToast(`登入服務初始化失敗：${error.message||"請稍後再試"}`)}
     }
     function openCloudLoginDialog(){const dialog=document.getElementById("cloudLoginDialog"),email=document.getElementById("cloudEmail").value.trim();document.getElementById("cloudDialogEmail").value=email;if(typeof dialog.showModal==="function")dialog.showModal();else{const fallback=prompt("請輸入 Email",email);if(fallback)sendCloudLogin(fallback)}}
@@ -1140,7 +1142,8 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     function cloudDataToBundle(data={}){const {accountingLedger,financeCenterMeta:_meta,financeCenterCloudHistory:_history,...assetPayload}=data;return{assets:assetPayload,ledger:accountingLedger||{}}}
     function sameCloudVersion(left,right){const a=Date.parse(left||""),b=Date.parse(right||"");return Number.isFinite(a)&&Number.isFinite(b)?a===b:Boolean(left&&left===right)}
     async function fetchCloudRow(){if(!supabaseClient||!cloudUser)throw new Error("請先登入才能讀取雲端");const {data:row,error}=await supabaseClient.from("asset_dashboard_profiles").select("data,updated_at").eq("user_id",cloudUser.id).maybeSingle();if(error)throw error;return row}
-    let cloudSyncBusy=false;
+    let cloudSyncBusy=false,cloudRetryCount=0;
+    function queueCloudSync(delay=1800){clearTimeout(cloudSaveTimer);cloudSaveTimer=setTimeout(()=>saveCloud(true),delay);}
     async function saveCloud(silent=false){
       if(cloudSyncBusy){if(!silent)showToast("同步流程仍在進行，請完成目前的確認視窗；若持續沒有回應，請重新開啟頁面後再試。");return false;}
       if(silent&&!FinanceSync.hasPending())return false;
@@ -1157,7 +1160,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
           if(FinanceSync.diffBundles(local,bundle).length&&!await FinanceIntelligenceUI.review(local,bundle,"同步預覽：即將套用至本機"))return false;
           if(!await FinanceIntelligenceUI.review(remote||{ledger:{},assets:{}},bundle,"同步預覽：即將寫入雲端"))return false;
         }
-        if(FinanceSync.fingerprint(FinanceCore.exportBundle())!==fingerprint)throw new Error("預覽期間本機資料已變更，請重新同步");
+        if(FinanceSync.fingerprint(FinanceCore.exportBundle())!==fingerprint){if(silent){FinanceSync.markPending("同步期間有新資料，將同步最新版本");return false;}throw new Error("預覽期間本機資料已變更，請重新同步");}
         const sent=FinanceSync.markSyncing().inFlightIds,syncedAt=new Date().toISOString();
         const history=[...(existing?.data?.financeCenterCloudHistory||[])];if(remote)history.unshift({id:"cloud-"+Date.now(),updatedAt:existing.updated_at,reason:"同步前版本",data:remote});history.splice(5);
         const data={...bundle.assets,accountingLedger:bundle.ledger,financeCenterCloudHistory:history,financeCenterMeta:{schemaVersion:FinanceCore.VERSION,updatedAt:syncedAt,deviceId:local.deviceId,mergeSummary:comparison}};
@@ -1166,17 +1169,23 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
           ?supabaseClient.from("asset_dashboard_profiles").update(payload).eq("user_id",cloudUser.id).eq("updated_at",existing.updated_at).select("updated_at")
           :supabaseClient.from("asset_dashboard_profiles").insert(payload).select("updated_at");
         const result=await request;if(result.error)throw result.error;
-        if(!result.data?.length)throw new Error("其他裝置已更新雲端，請重新讀取並預覽");
+        if(!result.data?.length){const error=new Error("其他裝置已更新雲端，請重新讀取並預覽");error.retryable=true;throw error;}
         if(FinanceSync.fingerprint(FinanceCore.exportBundle())===fingerprint&&FinanceSync.diffBundles(local,bundle).length){
-          await FinanceStorage.prepareLocalWrite();cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}
+          await FinanceStorage.prepareLocalWrite();if(FinanceSync.fingerprint(FinanceCore.exportBundle())===fingerprint){cloudApplying=true;try{FinanceCore.importBundle(bundle);}finally{cloudApplying=false;}}
         }
         ui.cloudVersions=history;FinanceSync.setRemoteVersions(history);
         FinanceSync.markSynced({remoteUpdatedAt:result.data[0]?.updated_at||syncedAt,comparison,acknowledgedIds:sent});
-        try{refresh();updateAuthenticatedSyncUi();}catch(error){showToast("資料已同步，畫面更新未完成，請重新整理頁面");}
+        try{refresh({background:true});updateAuthenticatedSyncUi();}catch(error){showToast("資料已同步，畫面更新未完成，請重新整理頁面");}
         if(!silent)showToast(FinanceSync.hasPending()?"已上傳本次版本，新修改仍待同步":"已同步確認的版本");
+        cloudRetryCount=0;
         return true;
-      }catch(error){FinanceSync.markError(error);if(!silent)showToast(error.message||"同步失敗");return false;}
-      finally{cloudSyncBusy=false;}
+      }catch(error){
+        const transient=error.retryable||/fetch|network|timeout|連線|逾時/i.test(error.message||'');
+        if(silent&&transient&&++cloudRetryCount<=3)FinanceSync.markPending("連線或雲端版本暫時變動，將自動重試");
+        else{FinanceSync.markError(error);if(!silent)showToast(error.message||"同步失敗");}
+        return false;
+      }
+      finally{cloudSyncBusy=false;if(cloudUser&&FinanceSync.hasPending()&&FinanceSync.read().phase==='pending'&&navigator.onLine!==false)queueCloudSync(Math.min(30000,1200*2**cloudRetryCount));}
     }
     async function loadCloud(){
       if(cloudSyncBusy){showToast("同步進行中，請稍後載入");return;}
@@ -1194,7 +1203,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     }
     async function loadCloudVersions(){try{const row=await fetchCloudRow();ui.cloudVersions=row?.data?.financeCenterCloudHistory||[];FinanceSync.setRemoteVersions(ui.cloudVersions);showToast(`已讀取 ${ui.cloudVersions.length} 個雲端歷史版本`);render()}catch(error){showToast(error.message||"無法讀取雲端版本")}}
     async function restoreCloudVersion(index){try{const row=await fetchCloudRow(),version=(row?.data?.financeCenterCloudHistory||[])[index];if(!version?.data)throw new Error("找不到此雲端版本");await FinanceIntelligenceUI.restore(version.data,"還原雲端歷史版本預覽");}catch(error){showToast(error.message||"還原失敗");}}
-    document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");cloudStatus.addEventListener("click",()=>refreshCloudSession({notify:true,force:true}));cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();refreshCloudSession({notify:true,force:true})}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
+    document.getElementById("cloudLogin").addEventListener("click",loginCloud);document.getElementById("cloudLoginCancel").addEventListener("click",()=>document.getElementById("cloudLoginDialog").close());document.getElementById("cloudLoginForm").addEventListener("submit",async event=>{event.preventDefault();if(await sendCloudLogin(document.getElementById("cloudDialogEmail").value))document.getElementById("cloudLoginDialog").close()});document.getElementById("cloudSave").addEventListener("click",()=>saveCloud(false));document.getElementById("cloudLoad").addEventListener("click",loadCloud);document.getElementById("cloudLogout").addEventListener("click",async()=>{await supabaseClient?.auth.signOut();cloudUser=null;updateCloudUi("● 未登入")});const cloudStatus=document.getElementById("cloudStatus");const retryOrVerifyCloud=()=>{if(cloudUser&&['error','pending'].includes(FinanceSync.read().phase)){cloudRetryCount=0;saveCloud(true)}else refreshCloudSession({notify:true,force:true})};cloudStatus.addEventListener("click",retryOrVerifyCloud);cloudStatus.addEventListener("keydown",event=>{if(event.key==="Enter"||event.key===" "){event.preventDefault();retryOrVerifyCloud()}});window.addEventListener("pageshow",()=>refreshCloudSession({force:true}));window.addEventListener("focus",()=>refreshCloudSession());
     window.addEventListener("portfolio-lab-ready",()=>render());
     const zeroStocksUrl=new URL(location.href);
     if(zeroStocksUrl.searchParams.get("zeroLegacyStocks")==="20261002-authorized"){
@@ -1210,7 +1219,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     if(startupCardRepair.changed||startupRecurringRepair.changed||startupFeeRepair.changed)showToast(`已修復 ${startupCardRepair.removed+startupRecurringRepair.removed} 筆重複紀錄、${startupFeeRepair.removed} 筆重複或失去原交易的手續費，並校正 ${startupFeeRepair.recalculated||0} 筆台幣手續費；原資料已備份`);
     FinanceNotifications.check(current.alerts);
     FinanceNotifications.init();
-    FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh()}).catch(()=>{});
+    FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh({background:true})}).catch(()=>{});
     if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=144").catch(()=>{});
   </script>
 </body>

@@ -1,22 +1,26 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),path=require('path');
 const root=path.resolve(__dirname,'..'),html=fs.readFileSync(path.join(root,'finance-center.html'),'utf8');
-const source=html.slice(html.indexOf('    let cloudSyncBusy=false;'),html.indexOf('    async function loadCloud(){'));
+const source=html.slice(html.indexOf('    let cloudSyncBusy=false'),html.indexOf('    async function loadCloud(){'));
 const clone=value=>JSON.parse(JSON.stringify(value));
 function setup(options={}){
-  const storage=new Map(),window={dispatchEvent(){}};
+  const storage=new Map(),window={dispatchEvent(){}},scheduled=[];
   let local={ledger:{entries:[{id:'local',amount:10}]},assets:{}},imports=0,writes=0;
   const remote=options.remote||clone(local),reviews=[],filters=[];
-  const context=vm.createContext({window,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},CustomEvent:class{},Date,console});
+  const context=vm.createContext({window,localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},CustomEvent:class{},Date,console,navigator:{onLine:true},cloudSaveTimer:0,setTimeout:(fn,delay)=>{scheduled.push({fn,delay});return scheduled.length;},clearTimeout(){}});
   vm.runInContext(fs.readFileSync(path.join(root,'finance-sync.js'),'utf8'),context);
   const S=window.FinanceSync;S.enqueue({reason:'initial'});
-  Object.assign(context,{FinanceStorage:{prepareLocalWrite:async()=>{}},FinanceSync:S,FinanceCore:{VERSION:7,exportBundle:()=>clone(local),importBundle:b=>{imports++;local=clone(b);}},FinanceIntelligenceUI:{review:async(before,after,title)=>{reviews.push({before,after,title});return options.accept!==false;}},cloudUser:{id:'user'},cloudApplying:false,ui:{},showToast(){},refresh(){},updateAuthenticatedSyncUi(){},sameCloudVersion:(left,right)=>{const a=Date.parse(left||''),b=Date.parse(right||'');return Number.isFinite(a)&&Number.isFinite(b)?a===b:Boolean(left&&left===right);},fetchCloudRow:async()=>({data:remote,updated_at:options.remoteUpdatedAt||'remote-version'}),cloudDataToBundle:clone});
+  Object.assign(context,{FinanceStorage:{prepareLocalWrite:async()=>{if(options.duringPrepare){local.ledger.entries.push({id:"while-preparing",amount:30});S.enqueue({reason:"during-prepare"});}}},FinanceSync:S,FinanceCore:{VERSION:7,exportBundle:()=>clone(local),importBundle:b=>{imports++;local=clone(b);}},FinanceIntelligenceUI:{review:async(before,after,title)=>{reviews.push({before,after,title});return options.accept!==false;}},cloudUser:{id:'user'},cloudApplying:false,ui:{},showToast(){},refresh(){},updateAuthenticatedSyncUi(){},sameCloudVersion:(left,right)=>{const a=Date.parse(left||''),b=Date.parse(right||'');return Number.isFinite(a)&&Number.isFinite(b)?a===b:Boolean(left&&left===right);},fetchCloudRow:async()=>{if(options.fetchError)throw new Error(options.fetchError);if(options.duringRead){local.ledger.entries.push({id:'new-entry',amount:40});S.enqueue({reason:'during-read'});}return {data:remote,updated_at:options.remoteUpdatedAt||'remote-version'}},cloudDataToBundle:clone});
   const request={eq:(...args)=>{filters.push(args);return request;},select:async()=>{writes++;if(options.duringUpload){local.ledger.entries.push({id:'late',amount:20});S.enqueue({reason:'during-upload'});}return {data:options.casFailure?[]:[{updated_at:options.returnedAt||'2026-09-22T05:00:00+00:00'}]};}};
   context.supabaseClient={from:()=>({update:()=>request,insert:()=>request})};
   vm.runInContext(source,context);
-  return {context,S,reviews,filters,get local(){return local;},get imports(){return imports;},get writes(){return writes;}};
+  return {context,S,reviews,filters,scheduled,get local(){return local;},get imports(){return imports;},get writes(){return writes;}};
 }
 (async()=>{
   let t=setup({duringUpload:true});assert.equal(await t.context.saveCloud(false),true);assert.equal(t.local.ledger.entries.length,2);assert.equal(t.imports,0);assert.equal(t.S.read().outbox.length,1);assert.equal(t.S.read().outbox[0].reason,'during-upload');assert.ok(t.filters.some(([key,value])=>key==='updated_at'&&value==='remote-version'));
+  assert.equal(t.scheduled.length,1);
+  t=setup({duringRead:true});assert.equal(await t.context.saveCloud(true),false);assert.equal(t.writes,0);assert.equal(t.S.read().phase,'pending');assert.equal(t.scheduled.length,1);assert.equal(t.local.ledger.entries.length,2);
+  t=setup({duringPrepare:true,remote:{ledger:{entries:[{id:'remote',amount:30,createdAt:'2026-09-22T01:00:00Z'}]},assets:{}}});assert.equal(await t.context.saveCloud(true),true);assert.equal(t.imports,0);assert.ok(t.local.ledger.entries.some(r=>r.id==='while-preparing'));assert.equal(t.S.read().outbox.length,1);assert.equal(t.scheduled.length,1);
+  t=setup({fetchError:'Failed to fetch'});for(let i=0;i<3;i++){assert.equal(await t.context.saveCloud(true),false);assert.equal(t.S.read().phase,'pending');}await t.context.saveCloud(true);assert.equal(t.S.read().phase,'error');assert.equal(t.S.read().outbox.length,1);
   t=setup({casFailure:true});assert.equal(await t.context.saveCloud(false),false);assert.equal(t.S.read().outbox.length,1);assert.equal(t.imports,0);assert.match(t.S.read().lastError,/其他裝置/);
   t=setup({accept:false});assert.equal(await t.context.saveCloud(false),false);assert.equal(t.writes,0);assert.equal(t.S.read().outbox.length,1);
   t=setup({remote:{ledger:{entries:[{id:'remote',amount:30,createdAt:'2026-09-22T01:00:00Z'}]},assets:{}}});assert.equal(await t.context.saveCloud(true),true);assert.equal(t.writes,1);assert.equal(t.local.ledger.entries.length,2);assert.equal(t.S.read().outbox.length,0);

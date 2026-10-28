@@ -42,6 +42,7 @@
     const item = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, reason, updatedAt: change.updatedAt || new Date().toISOString() };
     return write({ ...state, phase: "pending", lastError: "", outbox: [...state.outbox, item] });
   }
+  function markPending(message = "") { const state=read();return write({...state,phase:"pending",inFlightIds:[],lastError:String(message)}); }
   function markSyncing() { const state = read(); return write({ ...state, phase: "syncing", inFlightIds:state.outbox.map(row=>row.id), lastError: "" }); }
   function markSynced({ remoteUpdatedAt = "", comparison = null, acknowledgedIds } = {}) {
     const state = read();
@@ -194,6 +195,6 @@
     }
     return mergeBundles(left,right);
   }
-  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, conflictRows, resolveBundles, log, fingerprint, label });
+  window.FinanceSync = Object.freeze({ KEY, read, enqueue, markPending, markSyncing, markSynced, markError, markReview, hasPending, setRemoteVersions, compareBundles, mergeBundles, diffBundles, conflictRows, resolveBundles, log, fingerprint, label });
 })();
 
