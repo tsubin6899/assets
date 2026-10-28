@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsubin-finance-center-v173";
+const CACHE_NAME = "tsubin-finance-center-v174";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -16,6 +16,7 @@ const CORE_ASSETS = [
   "./finance-sync.js",
   "./finance-experience.js",
   "./finance-workflow.js",
+  "./finance-charts.js",
   "./finance-trade-sync.js",
   "./fubon-review.js",
   "./investment-operations.js",

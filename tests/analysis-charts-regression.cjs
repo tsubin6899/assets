@@ -1,0 +1,17 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),store=new Map(),w={dispatchEvent(){}};
+const c=vm.createContext({window:w,localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},CustomEvent:class{},Date,Intl,URLSearchParams,location:{search:''}});
+vm.runInContext(fs.readFileSync('finance-core.js','utf8'),c);c.FinanceCore=w.FinanceCore;vm.runInContext(fs.readFileSync('finance-charts.js','utf8'),c);
+const core=w.FinanceCore,b=core.load(),month=core.monthOf(),date=month+'-01';b.assets.fxRates.USD=30;
+b.ledger.accounts=[{id:'bank',name:'銀行',type:'銀行帳戶',currency:'TWD',openingBalance:500000},{id:'card',name:'信用卡',type:'信用卡',currency:'TWD',openingBalance:0}];
+b.ledger.entries=[{id:'income',date,type:'income',amount:1000,account:'銀行'},{id:'food',date,type:'expense',amount:100,category:'餐飲',account:'銀行'},{id:'foreign',date,type:'expense',amount:2,currency:'USD',category:'餐飲'},{id:'credit',date,type:'expense',amount:50,category:'交通',account:'信用卡'},{id:'adjustment',date,type:'expense',amount:999,isReconciliationAdjustment:true,category:'盤點',account:'銀行'},{id:'future',date:'2999-01-01',type:'expense',amount:900,category:'餐飲'}];
+b.ledger.transfers=[{id:'payment',date,fromAccount:'銀行',toAccount:'信用卡',amount:50,fromAmount:50,toAmount:50}];b.ledger.budgets=[{category:'餐飲',amount:150}];
+b.assets.dividends=[{id:'d',date,amount:5,currency:'USD'}];
+b.assets.purchaseRecords=[{id:'buy1',date,code:'00981A',market:'TW',currency:'TWD',shares:7000,price:28.8,fee:287},{id:'buy2',date,code:'00981A',market:'TW',currency:'TWD',shares:2000,price:28.16,fee:80},{id:'us',date,code:'AMAT',market:'US',currency:'USD',shares:10,price:418.8,fee:2.51,actualSettlementAmount:135919,actualSettlementCurrency:'TWD'}];
+b.assets.marketPrices={'TW:00981A':{price:28.88},'US:AMAT':{price:430}};b.assets.us=[{id:'m',code:'MISSING',shares:1,price:10,currency:'USD'}];
+b.assets.financialSnapshots=[{date,net:100},{date:month+'-02',net:200},{date:month+'-03',net:null}];b.assets.assetSnapshots=[{date,net:150}];
+const m=w.FinanceCharts.model(b,{month,span:6}),last=m.months.at(-1);
+assert.equal(last.income,1150);assert.equal(last.expense,210);assert.equal(last.balance,940);assert.equal(m.categoryRows.find(r=>r.name==='餐飲').value,160);assert.ok(!m.categoryRows.some(r=>r.name==='盤點'));assert.equal(m.budgetRows.find(r=>r.name==='交通').limit,null);
+assert.equal(m.holdings.find(r=>r.code==='00981A').cost,258287);assert.equal(m.holdings.find(r=>r.code==='AMAT').cost,135919);assert.equal(m.holdings.find(r=>r.code==='MISSING').cost,null);assert.equal(m.snapshots.length,2);assert.equal(m.snapshots[0].value,150);assert.ok(m.allocation.every(r=>r.value>0));
+const before=JSON.stringify(b);for(const tab of ['trends','spending']){const html=w.FinanceCharts.render(b,tab);assert.ok(!/NaN|Infinity/.test(html));}assert.equal(JSON.stringify(b),before);
+c.location.search='?chartMonth=2026-99&chartSpan=7';assert.equal(w.FinanceCharts.filters().month,month);assert.equal(w.FinanceCharts.filters().span,6);
+console.log('Analysis charts OK: transfers, card payments, adjustments and future rows excluded; FX, budgets, actual settlement cost, snapshots and read-only rendering verified');
