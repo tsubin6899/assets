@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-10-29T10:17:25+00:00",
+  "generatedAt": "2026-10-29T11:41:32+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -78,13 +78,13 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 17.23,
+      "nav": 16.84,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-10-28",
-      "dataStatus": "stale",
-      "stale": true
+      "asOf": "2026-10-29",
+      "dataStatus": "current",
+      "stale": false
     },
     "TW:2330": {
       "assetType": "stock",
@@ -614,7 +614,7 @@
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-10-29",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-10-29T10:17:20+00:00",
+      "fetchedAt": "2026-10-29T11:41:25+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -628,7 +628,7 @@
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-10-29",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-10-29T10:17:16+00:00",
+      "fetchedAt": "2026-10-29T11:41:20+00:00",
       "dataStatus": "current",
       "stale": false
     },
