@@ -242,21 +242,18 @@
     .island-summary dd{margin:2px 0 0;font-size:clamp(1rem,2.3vw,1.32rem);font-weight:800;overflow-wrap:anywhere}
     .island-summary dl div:first-child dd{font-size:clamp(1.5rem,3.3vw,2.55rem)}
     .island-entry.action-btn{background:#315a45;color:#fff;border-color:#315a45}
-    .island-map{position:relative;isolation:isolate;aspect-ratio:640/420;min-height:232px}
-    .island-map>svg{display:block;width:100%;height:100%}
-    .island-stop{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);display:grid;justify-items:center;gap:3px;min-width:44px;min-height:44px;padding:0;border:0;background:none;color:#273e32;font:inherit;cursor:pointer}
-    .island-stop svg,.island-stop i{width:clamp(30px,5vw,56px);height:clamp(30px,5vw,56px);padding:clamp(5px,.9vw,11px);border-radius:32% 32% 22% 22%;background:var(--tile);box-shadow:0 4px 0 var(--edge),0 8px 12px #2c4b3e40;transition:transform .18s ease}
-    .island-stop span{background:#fffdf1;border-radius:12px;padding:3px 6px;white-space:nowrap;font-size:clamp(.68rem,1.3vw,.83rem);font-weight:750;box-shadow:0 2px 6px #35524720}
-    .island-stop:hover svg,.island-stop:focus-visible svg{transform:translateY(-4px)}
-    .island-stop:focus-visible{outline:2px solid #234b35;outline-offset:4px;border-radius:12px}
-    .island-bank{--x:29%;--y:34%;--tile:#fbdfaa;--edge:#bf925f}
-    .island-garden{--x:62%;--y:28%;--tile:#d7efab;--edge:#91ad66}
-    .island-house{--x:77%;--y:56%;--tile:#ffd3ba;--edge:#c78975}
-    .island-market{--x:50%;--y:69%;--tile:#ffe9a1;--edge:#c2a15f}
-    .island-board{--x:24%;--y:64%;--tile:#d3e9ed;--edge:#88aeb8}
+    .island-map{position:relative;border-radius:18px;overflow:hidden;background:#70c0d7}
+    .island-map img{display:block;width:100%;height:auto}
+    .island-stop{position:absolute;left:var(--x);top:var(--y);width:23%;height:33%;min-width:44px;min-height:44px;transform:translate(-50%,-50%);border:0;border-radius:22%;background:transparent;cursor:pointer}
+    .island-stop:hover{background:#fff5}
+    .island-stop:focus-visible{outline:3px solid #234b35;outline-offset:-3px;background:#fff3}
+    .island-bank{--x:28%;--y:24%}
+    .island-garden{--x:72%;--y:24%}
+    .island-house{--x:76%;--y:74%}
+    .island-market{--x:24%;--y:74%}
+    .island-board{--x:50%;--y:49%}
     .island-classic-summary{display:none}
     @media(max-width:720px){.island-overview{grid-template-columns:minmax(0,1fr);gap:0}.island-map{margin:4px -8px -8px}}
-    @media(prefers-reduced-motion:reduce){.island-stop svg{transition:none}}
 </style>
 </head>
 <body>
@@ -645,53 +642,12 @@
           <button class="action-btn island-entry" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
         </div>
         <div class="island-map" role="group" aria-label="拾光島地圖">
-          <svg viewBox="0 0 640 420" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <defs>
-              <linearGradient id="island-grass" x2=".85" y2="1"><stop stop-color="#eaf2af"/><stop offset="1" stop-color="#8fbc7f"/></linearGradient>
-              <linearGradient id="island-earth" x2=".5" y2="1"><stop stop-color="#d3aa83"/><stop offset="1" stop-color="#89728a"/></linearGradient>
-              <g id="island-cloud" fill="#fff">
-                <ellipse cx="0" cy="0" rx="58" ry="13"/>
-                <ellipse cx="-28" cy="-8" rx="23" ry="16"/>
-                <ellipse cx="0" cy="-15" rx="28" ry="24"/>
-                <ellipse cx="29" cy="-7" rx="24" ry="17"/>
-              </g>
-              <g id="island-platform">
-                <path d="M-62 1Q-55-19 0-22 51-20 62 0L54 16 31 30 9 52-21 45-46 29Z" fill="url(#island-earth)"/>
-                <path d="M-60 6Q0 34 60 6L54 16Q0 44-54 17Z" fill="#e0bb93"/>
-                <ellipse rx="63" ry="23" fill="url(#island-grass)"/>
-                <path d="M-49 6q9-4 18-2m61 4q9-5 17-4" fill="none" stroke="#f9f2bc" stroke-width="3" stroke-linecap="round"/>
-                <path d="M-46 0v-10m84 8v-13" stroke="#826748" stroke-width="3"/>
-                <circle cx="-46" cy="-14" r="9" fill="#73a170"/>
-                <circle cx="38" cy="-19" r="11" fill="#81ae79"/>
-              </g>
-              <path id="island-bridges" d="M186 166Q282 184 397 141M397 141Q416 202 493 257M493 257Q432 315 320 311M320 311Q217 341 154 293M154 293Q115 238 186 166"/>
-            </defs>
-            <circle cx="531" cy="69" r="33" fill="#fff2b4" opacity=".95"/>
-            <g opacity=".81">
-              <use href="#island-cloud" transform="translate(105 84) scale(.85)"/>
-              <use href="#island-cloud" transform="translate(302 76) scale(.62)"/>
-              <use href="#island-cloud" transform="translate(554 111) scale(.72)"/>
-              <use href="#island-cloud" transform="translate(64 249) scale(.53)"/>
-              <use href="#island-cloud" transform="translate(580 319) scale(.75)"/>
-              <use href="#island-cloud" transform="translate(265 381) scale(.98)"/>
-              <use href="#island-cloud" transform="translate(428 373) scale(.48)"/>
-            </g>
-            <g fill="none" stroke-linecap="round">
-              <use href="#island-bridges" stroke="#997253" stroke-width="19"/>
-              <use href="#island-bridges" stroke="#f7d5a4" stroke-width="13"/>
-              <use href="#island-bridges" stroke="#bb8c65" stroke-width="13" stroke-dasharray="1 8" stroke-linecap="butt"/>
-            </g>
-            <use href="#island-platform" x="397" y="141"/>
-            <use href="#island-platform" x="186" y="166"/>
-            <use href="#island-platform" x="493" y="257"/>
-            <use href="#island-platform" x="154" y="293"/>
-            <use href="#island-platform" x="320" y="311"/>
-          </svg>
-          <button class="island-stop island-bank" data-go="accounts/accounts"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#ae794a" d="M2 12 16 4l14 8v3H2zm1 14h26v3H3z"/><path stroke="#5d674d" stroke-width="3" d="M8 16v9m8-9v9m8-9v9"/><circle cx="16" cy="10" r="2" fill="#fff2c8"/></svg><span>存款島</span></button>
-          <button class="island-stop island-garden" data-go="investments/portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#528450" d="M15 21C5 21 3 16 3 9c9 0 13 4 13 10 0-9 4-13 13-14 0 9-4 14-11 15v6h-3z"/><path fill="#b18058" d="M7 23h18l-3 8H10z"/></svg><span>投資島</span></button>
-          <button class="island-stop island-house" data-go="accounts/credit"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#fff1cf" d="M6 13h20v16H6z"/><path fill="#a65e50" d="M2 14 16 3l14 11-2 3L16 8 4 17z"/><path fill="#8d654b" d="M13 20h6v9h-6z"/><path fill="#72a7a2" d="M8 17h4v5H8zm12 0h4v5h-4z"/></svg><span>帳務島</span></button>
-          <button class="island-stop island-market" data-go="daily"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c39562" d="M4 14h24v16H4z"/><path fill="#825747" d="M8 18h16v8H8z"/><path fill="#be735d" d="M5 5h22l4 10H1z"/><path fill="#fff3cd" d="M10 5h4l-1 10H7zm8 0h4l3 10h-6z"/></svg><span>記帳島</span></button>
-          <button class="island-stop island-board" data-island-alerts><svg viewBox="0 0 32 32" aria-hidden="true"><path stroke="#85664e" stroke-width="3" d="M8 20v11m16-11v11"/><rect x="3" y="4" width="26" height="19" rx="3" fill="#8e7459"/><rect x="7" y="7" width="18" height="12" rx="1" fill="#fff4d5"/><path stroke="#63887e" stroke-width="2" d="M10 11h12m-12 4h8"/></svg><span>提醒島 · ${current.alerts.length}</span></button>
+          <img src="shiguang-islands.jpg" width="1280" height="645" alt="" draggable="false">
+          <button type="button" class="island-stop island-bank" data-go="accounts/accounts" aria-label="存款島"></button>
+          <button type="button" class="island-stop island-garden" data-go="investments/portfolio" aria-label="投資島"></button>
+          <button type="button" class="island-stop island-board" data-island-alerts aria-label="提醒島 · ${current.alerts.length} 筆提醒"></button>
+          <button type="button" class="island-stop island-market" data-go="daily" aria-label="記帳島"></button>
+          <button type="button" class="island-stop island-house" data-go="accounts/credit" aria-label="帳務島"></button>
         </div>
       </section>`;
     }
