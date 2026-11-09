@@ -541,8 +541,8 @@
     .page .table-wrap th{background:var(--island-tint,#e8eee5)}
     @media(max-width:520px){
       .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child{width:100%;grid-template-columns:minmax(0,1fr);row-gap:6px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before{width:100%;aspect-ratio:5/3;grid-row:auto}
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child{width:100%;column-gap:10px}
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before{width:clamp(94px,29vw,144px)}
     }
     .page .portfolio-allocation{margin-top:16px}
     .page .portfolio-allocation .fc-allocation{grid-template-columns:minmax(85px,150px) minmax(0,1fr);gap:12px}
