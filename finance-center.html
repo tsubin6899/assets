@@ -232,7 +232,7 @@
 .journal-price-reference{margin-top:16px;padding:14px;background:#eef4ff;border-radius:12px;overflow-wrap:anywhere}.journal-reference-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}.journal-reference-grid strong{display:block;font-size:17px}.journal-reference-grid small{font-size:12px}@media(max-width:480px){.journal-reference-grid{grid-template-columns:minmax(0,1fr)}}
     .island-controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
     .island-controls [aria-pressed="true"]{background:#dcebd0;color:#274832;border-color:#a8c3a0}
-    .island-overview{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);align-items:center;gap:12px;margin:12px 0 20px;padding:clamp(16px,3vw,36px);border:1px solid #cadac4;border-radius:28px;background:linear-gradient(135deg,#f9fcff 8%,#b8dff7 68%,#e9f7ff);color:#29483a}
+    .island-overview{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);align-items:center;gap:12px;margin:12px 0 20px;padding:clamp(16px,3vw,36px);border:1px solid #cadac4;border-radius:28px;background:linear-gradient(135deg,#fffaf0,#dcebe2);color:#29483a}
     .island-summary h2{margin:6px 0;font-size:clamp(1.65rem,3.8vw,3rem);line-height:1.15;color:#244537}
     .island-summary p{margin:0;color:#496455}
     .island-summary .island-eyebrow{font-size:.8rem;font-weight:750;letter-spacing:.08em}
@@ -242,16 +242,16 @@
     .island-summary dd{margin:2px 0 0;font-size:clamp(1rem,2.3vw,1.32rem);font-weight:800;overflow-wrap:anywhere}
     .island-summary dl div:first-child dd{font-size:clamp(1.5rem,3.3vw,2.55rem)}
     .island-entry.action-btn{background:#315a45;color:#fff;border-color:#315a45}
-    .island-map{position:relative;border-radius:18px;overflow:hidden;background:#70c0d7}
+    .island-map{position:relative;border-radius:18px;overflow:hidden;background:#c9ded3}
     .island-map img{display:block;width:100%;height:auto}
-    .island-stop{position:absolute;left:var(--x);top:var(--y);width:23%;height:33%;min-width:44px;min-height:44px;transform:translate(-50%,-50%);border:0;border-radius:22%;background:transparent;cursor:pointer}
+    .island-stop{position:absolute;left:var(--x);top:var(--y);width:28%;height:36%;min-width:44px;min-height:44px;transform:translate(-50%,-50%);border:0;border-radius:22%;background:transparent;cursor:pointer}
     .island-stop:hover{background:#fff5}
     .island-stop:focus-visible{outline:3px solid #234b35;outline-offset:-3px;background:#fff3}
-    .island-bank{--x:28%;--y:24%}
-    .island-garden{--x:72%;--y:24%}
-    .island-house{--x:76%;--y:74%}
-    .island-market{--x:24%;--y:74%}
-    .island-board{--x:50%;--y:49%}
+    .island-bank{--x:77%;--y:24%}
+    .island-garden{--x:22%;--y:73%}
+    .island-house{--x:77%;--y:73%}
+    .island-market{--x:22%;--y:24%}
+    .island-board{--x:50%;--y:46%}
     .island-classic-summary{display:none}
     @media(max-width:720px){.island-overview{grid-template-columns:minmax(0,1fr);gap:0}.island-map{margin:4px -8px -8px}}
 </style>
@@ -521,6 +521,28 @@
     :where(button,a,input,select,textarea,summary):focus-visible{outline:2px solid #37644c;outline-offset:3px}
     .primary-nav button.active,.mobile-nav button[data-domain].active{background:#365b45;color:#fff;box-shadow:none}
     .mobile-nav{background:#fffdf9}
+    .page[data-section="daily"]{--island-art:10% 10%;--island-tint:#f2ebd9}
+    .page[data-section="accounts"]{--island-art:88% 84%;--island-tint:#e2ede5}
+    .page[data-section="accounts"][data-view="accounts"]{--island-art:88% 10%;--island-tint:#edf0dc}
+    .page[data-section="investments"]{--island-art:10% 84%;--island-tint:#e6eddb}
+    .page[data-section="analysis"]{--island-art:10% 84%;--island-tint:#e1ebe8}
+    .page[data-section]:not([data-section="home"]) .page-heading{
+      padding:14px 18px;background:var(--island-tint);border:1px solid #ccdccc;border-radius:16px;
+    }
+    .page[data-section]:not([data-section="home"]) .page-heading>div:first-child{
+      min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center;
+    }
+    .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
+      content:"";width:96px;aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
+      background:#d3e4dc url("shiguang-islands.jpg?v=2") var(--island-art) / 320% auto no-repeat;
+    }
+    .island-alert-heading{display:flex;align-items:center;gap:10px}
+    .island-alert-heading::before{--island-art:50% 53%;width:60px}
+    .page .table-wrap th{background:var(--island-tint,#e8eee5)}
+    @media(max-width:520px){
+      .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px}
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before{width:66px}
+    }
     .page .portfolio-allocation{margin-top:16px}
     .page .portfolio-allocation .fc-allocation{grid-template-columns:minmax(85px,150px) minmax(0,1fr);gap:12px}
     .page .portfolio-allocation .fc-allocation-list li{gap:6px}
@@ -676,7 +698,7 @@
           <button class="action-btn island-entry" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
         </div>
         <div class="island-map" role="group" aria-label="拾光島地圖">
-          <img src="shiguang-islands.jpg" width="1280" height="645" alt="" draggable="false">
+          <img src="shiguang-islands.jpg?v=2" width="1280" height="853" alt="" draggable="false">
           <button type="button" class="island-stop island-bank" data-go="accounts/accounts" aria-label="存款島"></button>
           <button type="button" class="island-stop island-garden" data-go="investments/portfolio" aria-label="投資島"></button>
           <button type="button" class="island-stop island-board" data-island-alerts aria-label="提醒島 · ${current.alerts.length} 筆提醒"></button>
@@ -703,7 +725,7 @@
         <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
         <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${snapshotBars()}</section>
         <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
-      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3 id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
+      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3 class="island-alert-heading" id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
     }
     function eventRows(events) {
       return events.length ? `<div class="table-wrap"><table><thead><tr><th>日期</th><th>事件</th><th>分類</th><th>帳戶</th><th>金額</th></tr></thead><tbody>${events.map(row => `<tr class="entry-row ${row.direction>0?"income":row.direction<0?"expense":"fee"}"><td data-label="日期">${esc(row.date)}</td><td data-label="事件">${esc(row.title)}</td><td data-label="分類">${esc(row.category)}</td><td data-label="帳戶">${esc(row.account || row.toAccount || "—")}</td><td data-label="金額" class="money-value ${row.direction>0?"positive":row.direction<0?"negative":"muted"}">${row.direction ? signed(row.twdAmount*row.direction) : money(row.twdAmount)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">目前沒有符合條件的財務事件。</div>`;
@@ -1025,6 +1047,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       current = FinanceCore.insights();
       const renderer = { home:renderHome, daily:renderDaily, accounts:renderAccounts, investments:renderInvestments, analysis:renderAnalysis }[state.domain] || renderHome;
       app.dataset.section = state.domain;
+      app.dataset.view = state.tab;
       let content=renderer();
       if(state.domain==="home")content+=FinanceIntelligenceUI.home(current);
       if(state.domain==="accounts"&&state.tab==="loans")content+=FinanceIntelligenceUI.loans(current);
