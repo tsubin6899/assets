@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <title>個人財務中心｜TSUBIN</title>
   <meta name="description" content="整合日常記帳、帳戶負債、投資資產、現金流與財務分析的個人財務中心。">
-  <meta name="theme-color" content="#17284b">
+  <meta name="theme-color" content="#e1ecdf">
   <meta name="application-name" content="個人財務中心">
   <link rel="manifest" href="manifest.webmanifest">
 
@@ -555,11 +555,28 @@
     }
   </style>
   <style id="expanded-navigation">
+    .app-header{color:var(--navy);background:linear-gradient(110deg,#f7f3e7,#e1ecdf);box-shadow:0 3px 12px #334c3615}
+    .brand p,.brand h1 span{color:var(--muted)}
+    .app-header :is(.brand-mark,.cloud-email,.header-btn,.status-pill){color:var(--navy);background:#fffdf6;border-color:#becfbe}
+    .app-header .cloud-email::placeholder{color:var(--muted)}
+    .app-header .header-btn:hover{background:#dce9da}
+    .app-header :is(.header-btn.login,.header-btn.save,.status-pill[data-state="online"]){background:#365b45;border-color:#365b45;color:#fff}
+    .app-header .status-pill[data-state="checking"]{background:#f8edcb;border-color:#cfbb83;color:#654917}
+    .app-header .status-pill[data-state="error"]{background:#f9e5df;border-color:#dbafa6;color:#823e38}
+    .primary-nav{background:#e8eee1;border-color:#cad8c9}
+    .primary-nav button,.secondary-track :is(button,a),.mobile-nav button{color:var(--navy)}
+    .primary-nav button:hover,.secondary-track button:hover,.mobile-nav button:hover{background:#dce9da;color:var(--navy)}
+    .secondary-nav,.mobile-nav{background:#fffdf6;border-color:#cbd8c9}
+    .primary-nav button.active,.secondary-track[data-section] button.active,.mobile-nav button[data-domain].active{
+      background:#365b45;border-color:#365b45;color:#fff;
+    }
     @media(min-width:761px){.brand-row{flex-wrap:wrap;padding-block:12px;gap:12px}.secondary-nav{top:var(--header-height,141px)}.secondary-track{flex-wrap:wrap;overflow:visible;padding-block:6px;gap:6px}.secondary-track>button{min-height:44px}}
     @media(max-width:760px){
       .secondary-nav{position:fixed!important;inset:auto 0 calc(72px + env(safe-area-inset-bottom)) 0!important;padding:0 8px;border:0;background:transparent;z-index:218;overflow:hidden;contain:layout paint}
       .secondary-track{display:flex;flex-wrap:nowrap;gap:6px;min-height:58px;padding:6px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;border:1px solid #dce5ed;border-radius:14px;background:#fff;scroll-padding-inline:8px;scroll-snap-type:x proximity}
-      .secondary-track>button{flex:0 0 auto;min-height:44px;padding:8px 12px;font-size:13px;scroll-snap-align:center}.secondary-track[data-section] button.active{background:#245fba;box-shadow:none;color:#fff}
+      .secondary-track>button{flex:0 0 auto;min-height:44px;padding:8px 12px;font-size:13px;scroll-snap-align:center}
+      .secondary-track{background:#fffdf6;border-color:#cbd8c9}
+      .mobile-nav button[data-domain].active{background:#365b45!important}
       .page{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
       body.compact-entry-viewport .secondary-nav{display:none!important}
     }
