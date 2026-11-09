@@ -232,7 +232,7 @@
 .journal-price-reference{margin-top:16px;padding:14px;background:#eef4ff;border-radius:12px;overflow-wrap:anywhere}.journal-reference-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}.journal-reference-grid strong{display:block;font-size:17px}.journal-reference-grid small{font-size:12px}@media(max-width:480px){.journal-reference-grid{grid-template-columns:minmax(0,1fr)}}
     .island-controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
     .island-controls [aria-pressed="true"]{background:#dcebd0;color:#274832;border-color:#a8c3a0}
-    .island-overview{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);align-items:center;gap:12px;margin:12px 0 20px;padding:clamp(16px,3vw,36px);border:1px solid #cadac4;border-radius:28px;background:linear-gradient(140deg,#fffaf0 12%,#e3f1e4 78%);color:#29483a}
+    .island-overview{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);align-items:center;gap:12px;margin:12px 0 20px;padding:clamp(16px,3vw,36px);border:1px solid #cadac4;border-radius:28px;background:linear-gradient(135deg,#f9fcff 8%,#b8dff7 68%,#e9f7ff);color:#29483a}
     .island-summary h2{margin:6px 0;font-size:clamp(1.65rem,3.8vw,3rem);line-height:1.15;color:#244537}
     .island-summary p{margin:0;color:#496455}
     .island-summary .island-eyebrow{font-size:.8rem;font-weight:750;letter-spacing:.08em}
@@ -645,23 +645,47 @@
           <button class="action-btn island-entry" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
         </div>
         <div class="island-map" role="group" aria-label="拾光島地圖">
-          <svg viewBox="0 0 640 420" aria-hidden="true" focusable="false">
+          <svg viewBox="0 0 640 420" preserveAspectRatio="none" aria-hidden="true" focusable="false">
             <defs>
-              <linearGradient id="island-grass" x2="0.85" y2="1"><stop stop-color="#e0e9a8"/><stop offset="1" stop-color="#9aba7b"/></linearGradient>
-              <linearGradient id="island-earth" x2="1" y2="0.6"><stop stop-color="#b78c64"/><stop offset="1" stop-color="#80664e"/></linearGradient>
-              <g id="island-tree"><ellipse cy="17" rx="21" ry="8" fill="#78935f" opacity=".36"/><path d="M-4 0h8v17h-8z" fill="#907254"/><path d="M0-36 19-15 15 3 0 9-17 1-20-15Z" fill="#608956"/><path d="M0-36 0 9-17 1-20-15Z" fill="#82a567"/></g>
+              <linearGradient id="island-grass" x2=".85" y2="1"><stop stop-color="#eaf2af"/><stop offset="1" stop-color="#8fbc7f"/></linearGradient>
+              <linearGradient id="island-earth" x2=".5" y2="1"><stop stop-color="#d3aa83"/><stop offset="1" stop-color="#89728a"/></linearGradient>
+              <g id="island-cloud" fill="#fff">
+                <ellipse cx="0" cy="0" rx="58" ry="13"/>
+                <ellipse cx="-28" cy="-8" rx="23" ry="16"/>
+                <ellipse cx="0" cy="-15" rx="28" ry="24"/>
+                <ellipse cx="29" cy="-7" rx="24" ry="17"/>
+              </g>
+              <g id="island-platform">
+                <path d="M-62 1Q-55-19 0-22 51-20 62 0L54 16 31 30 9 52-21 45-46 29Z" fill="url(#island-earth)"/>
+                <path d="M-60 6Q0 34 60 6L54 16Q0 44-54 17Z" fill="#e0bb93"/>
+                <ellipse rx="63" ry="23" fill="url(#island-grass)"/>
+                <path d="M-49 6q9-4 18-2m61 4q9-5 17-4" fill="none" stroke="#f9f2bc" stroke-width="3" stroke-linecap="round"/>
+                <path d="M-46 0v-10m84 8v-13" stroke="#826748" stroke-width="3"/>
+                <circle cx="-46" cy="-14" r="9" fill="#73a170"/>
+                <circle cx="38" cy="-19" r="11" fill="#81ae79"/>
+              </g>
+              <path id="island-bridges" d="M186 166Q282 184 397 141M397 141Q416 202 493 257M493 257Q432 315 320 311M320 311Q217 341 154 293M154 293Q115 238 186 166"/>
             </defs>
-            <circle cx="510" cy="70" r="39" fill="#ffe7a2"/>
-            <g fill="#fffdf4" opacity=".86"><path d="M67 92a18 18 0 0 1 20-19 24 24 0 0 1 44 3 15 15 0 0 1 13 16Z"/><path d="M473 106a14 14 0 0 1 16-14 19 19 0 0 1 35 1 13 13 0 0 1 13 13Z"/></g>
-            <ellipse cx="322" cy="361" rx="224" ry="34" fill="#4c6656" opacity=".11"/>
-            <path d="M72 217Q63 205 80 195L283 96Q314 80 343 94L568 196Q592 207 580 226L580 253Q578 265 562 273L354 371Q322 387 288 372L89 275Q72 266 72 251Z" fill="url(#island-earth)"/>
-            <path d="M72 227 290 331Q322 347 355 331L580 227V242L355 352Q322 368 288 352L72 248Z" fill="#dfba8c"/>
-            <path d="M85 192 283 96Q314 80 343 94L565 194Q596 208 574 223L354 335Q323 352 290 336L86 235Q55 217 85 192Z" fill="url(#island-grass)"/>
-            <path d="M184 165Q255 184 320 220T478 252M323 309Q354 260 320 220T400 147" fill="none" stroke="#f6e5ba" stroke-width="17" stroke-linecap="round"/>
-            <path d="M381 270 455 233Q468 226 480 233L516 249 436 289Q424 294 415 289Z" fill="#71b9af"/>
-            <path d="m417 274 24-11m18 3 23-11" stroke="#c5e5d0" stroke-width="3" stroke-linecap="round"/>
-            <use href="#island-tree" x="108" y="213"/><use href="#island-tree" x="142" y="232"/><use href="#island-tree" x="475" y="166"/><use href="#island-tree" x="514" y="183"/><use href="#island-tree" x="258" y="291"/><use href="#island-tree" x="285" y="308"/>
-            <g fill="#fff0ad"><circle cx="163" cy="220" r="4"/><circle cx="171" cy="226" r="3"/><circle cx="476" cy="207" r="4"/><circle cx="483" cy="213" r="3"/><circle cx="373" cy="304" r="4"/></g>
+            <circle cx="531" cy="69" r="33" fill="#fff2b4" opacity=".95"/>
+            <g opacity=".81">
+              <use href="#island-cloud" transform="translate(105 84) scale(.85)"/>
+              <use href="#island-cloud" transform="translate(302 76) scale(.62)"/>
+              <use href="#island-cloud" transform="translate(554 111) scale(.72)"/>
+              <use href="#island-cloud" transform="translate(64 249) scale(.53)"/>
+              <use href="#island-cloud" transform="translate(580 319) scale(.75)"/>
+              <use href="#island-cloud" transform="translate(265 381) scale(.98)"/>
+              <use href="#island-cloud" transform="translate(428 373) scale(.48)"/>
+            </g>
+            <g fill="none" stroke-linecap="round">
+              <use href="#island-bridges" stroke="#997253" stroke-width="19"/>
+              <use href="#island-bridges" stroke="#f7d5a4" stroke-width="13"/>
+              <use href="#island-bridges" stroke="#bb8c65" stroke-width="13" stroke-dasharray="1 8" stroke-linecap="butt"/>
+            </g>
+            <use href="#island-platform" x="397" y="141"/>
+            <use href="#island-platform" x="186" y="166"/>
+            <use href="#island-platform" x="493" y="257"/>
+            <use href="#island-platform" x="154" y="293"/>
+            <use href="#island-platform" x="320" y="311"/>
           </svg>
           <button class="island-stop island-bank" data-go="accounts/accounts"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#ae794a" d="M2 12 16 4l14 8v3H2zm1 14h26v3H3z"/><path stroke="#5d674d" stroke-width="3" d="M8 16v9m8-9v9m8-9v9"/><circle cx="16" cy="10" r="2" fill="#fff2c8"/></svg><span>存款島</span></button>
           <button class="island-stop island-garden" data-go="investments/portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#528450" d="M15 21C5 21 3 16 3 9c9 0 13 4 13 10 0-9 4-13 13-14 0 9-4 14-11 15v6h-3z"/><path fill="#b18058" d="M7 23h18l-3 8H10z"/></svg><span>投資島</span></button>
