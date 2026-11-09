@@ -60,14 +60,16 @@
   const footnote=total?`<p class="fc-footnote">圖中正值資產合計 ${money(total)}；負債 ${money(m.summary.liabilities)} 另列。${m.summary.cash<0?'現金餘額為負 '+money(m.summary.cash)+'，未放入圓環占比。':''}</p>`:'';
   return panel('allocation','目前資產配置','按目前帳本估值計算，與月份篩選無關。',allocationDonut(m.allocation,'資產分布','類')+footnote);
  }
+ const holdingColors=['#26714e','#c36d26','#3264ad','#8753a1','#b44659','#167d8b','#8b7325'];
+ const holdingColor=index=>holdingColors[index]||'#646b74';
  function holdingsAllocation(positions){
   const rows=positions.map((row,index)=>({
    name:[row.code,row.name].filter(Boolean).join(' ')||'未命名',
    value:Number(row.value),
-   color:colors[index%colors.length]
+   color:holdingColor(index)
   }));
   const visible=rows.slice(0,7);
-  if(rows.length>7)visible.push({name:'其他持倉',value:rows.slice(7).reduce((sum,row)=>sum+row.value,0),color:'#758176'});
+  if(rows.length>holdingColors.length)visible.push({name:'其他持倉',value:rows.slice(holdingColors.length).reduce((sum,row)=>sum+row.value,0),color:holdingColor(holdingColors.length)});
   return panel('portfolio-holdings','持倉占比','按已估值的正值持倉計算，金額以新台幣顯示。',allocationDonut(visible,'持倉占比','組'));
  }
  function holdings(m){const max=Math.max(1,...m.holdings.flatMap(r=>[r.value,r.cost||0]));return panel('holdings','各股票與基金：成本對照市值','目前持倉；統一折合台幣，成本含已記錄買入費稅。',legend([['持有成本','#245fba'],['目前市值','#7954ad']])+(m.holdings.length?`<ol class="fc-bars">${m.holdings.map(r=>`<li><div class="fc-row-heading"><button type="button" class="fc-link" data-chart-trade="${esc(r.code)}">${esc(r.code||r.name)} ${esc(r.name||'')}</button><small>${n(r.shares).toLocaleString()} 股／單位 · ${esc(r.currency)}</small></div><div class="fc-pair"><span>成本</span><div class="fc-track"><i style="width:${r.cost===null?0:r.cost/max*100}%;background:#245fba"></i></div><strong>${r.cost===null?'成本不足':money(r.cost)}</strong><span>市值</span><div class="fc-track"><i style="width:${Math.max(0,r.value/max*100)}%;background:#7954ad"></i></div><strong>${money(r.value)}</strong></div><p class="${r.cost===null?'fc-footnote':r.value-r.cost<0?'negative':'positive'}">${r.cost===null?'缺少持有成本，暫不計算損益':'未實現損益 '+money(r.value-r.cost)+(r.cost>0?'（'+((r.value-r.cost)/r.cost*100).toFixed(2)+'%）':'')}${r.source!=='trades'?'｜手動持倉成本估算':r.twdBasisEstimated?'｜成本含匯率估算':''}</p><small class="fc-footnote">行情時間：${esc(r.quoteFetchedAt||'未記錄')}；損益未扣未來賣出費稅。</small></li>`).join('')}</ol>`:empty('目前沒有持有股票或基金。')));}
@@ -79,5 +81,5 @@
   const trade=e.target.closest('[data-chart-trade]');if(trade){host.trade(trade.dataset.chartTrade);return;}
   const category=e.target.closest('[data-chart-category]');if(category){const m=model(host.bundle(),filters()),rows=m.expenses.filter(r=>r.category===category.dataset.chartCategory),box=document.getElementById('fc-records');box.hidden=false;box.innerHTML=`<h3>${esc(m.month)} · ${esc(category.dataset.chartCategory)}交易明細</h3><p>${rows.length} 筆，台幣合計 ${money(rows.reduce((s,r)=>s+n(r.twdAmount),0))}。排除盤點調整與未來交易。</p>${table(['日期','商家／說明','帳戶','原幣金額','折合台幣'],rows.sort((a,b)=>b.date.localeCompare(a.date)).map(r=>[esc(r.date),esc(r.title),esc(r.account),esc(r.currency)+' '+money(r.amount),money(r.twdAmount)]))}`;box.scrollIntoView({block:'start',behavior:'auto'});}
  });}
- window.FinanceCharts={model,render,filters,init,holdingsAllocation};
+ window.FinanceCharts={model,render,filters,init,holdingsAllocation,holdingColor};
 })();
