@@ -521,11 +521,11 @@
     :where(button,a,input,select,textarea,summary):focus-visible{outline:2px solid #37644c;outline-offset:3px}
     .primary-nav button.active,.mobile-nav button[data-domain].active{background:#365b45;color:#fff;box-shadow:none}
     .mobile-nav{background:#fffdf9}
-    .page[data-section="daily"]{--island-art:10% 10%;--island-tint:#f2ebd9}
-    .page[data-section="accounts"]{--island-art:88% 84%;--island-tint:#e2ede5}
-    .page[data-section="accounts"][data-view="accounts"]{--island-art:88% 10%;--island-tint:#edf0dc}
-    .page[data-section="investments"]{--island-art:10% 84%;--island-tint:#e6eddb}
-    .page[data-section="analysis"]{--island-art:10% 84%;--island-tint:#e1ebe8}
+    .page[data-section="daily"]{--island-art:url("island-art/daily.webp");--island-tint:#f2ebd9}
+    .page[data-section="accounts"]{--island-art:url("island-art/accounts.webp");--island-tint:#e2ede5}
+    .page[data-section="accounts"][data-view="accounts"]{--island-art:url("island-art/savings.webp");--island-tint:#edf0dc}
+    .page[data-section="investments"]{--island-art:url("island-art/investments.webp");--island-tint:#e6eddb}
+    .page[data-section="analysis"]{--island-art:url("island-art/investments.webp");--island-tint:#e1ebe8}
     .page[data-section]:not([data-section="home"]) .page-heading{
       padding:14px 18px;background:var(--island-tint);border:1px solid #ccdccc;border-radius:16px;
     }
@@ -534,10 +534,10 @@
     }
     .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
       content:"";width:clamp(140px,16vw,220px);aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
-      background:#d3e4dc url("shiguang-islands.jpg?v=2") var(--island-art) / 290% auto no-repeat;
+      background:var(--island-art) center / contain no-repeat;
     }
     .island-alert-heading{display:flex;align-items:center;gap:10px}
-    .island-alert-heading::before{--island-art:50% 53%;width:104px}
+    .island-alert-heading::before{--island-art:url("island-art/reminders.webp");width:clamp(120px,15vw,180px)}
     .page .table-wrap th{background:var(--island-tint,#e8eee5)}
     @media(max-width:520px){
       .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px}

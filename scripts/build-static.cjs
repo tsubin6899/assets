@@ -6,4 +6,5 @@ fs.mkdirSync(output,{recursive:true});
 for(const name of fs.readdirSync(root))if(/\.(html|js|json|webmanifest)$/.test(name)&&name!=='package.json')fs.copyFileSync(path.join(root,name),path.join(output,name));
 fs.cpSync(path.join(root,'icons'),path.join(output,'icons'),{recursive:true});
 fs.copyFileSync(path.join(root,'shiguang-islands.jpg'),path.join(output,'shiguang-islands.jpg'));
+fs.cpSync(path.join(root,'island-art'),path.join(output,'island-art'),{recursive:true});
 console.log('Verified static assets prepared in public/');
