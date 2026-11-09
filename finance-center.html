@@ -537,10 +537,10 @@
     .page[data-section]:not([data-section="home"]) .page-heading{
       padding:14px 18px;background:var(--island-tint);border:1px solid #ccdccc;border-radius:16px;
     }
-    .page[data-section]:not([data-section="home"]) .page-heading>div:first-child,.island-alert-heading{
+    .page[data-section]:not([data-section="home"]) .page-heading:not(.quick-page-heading)>div:first-child,.island-alert-heading{
       min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center;
     }
-    .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
+    .page[data-section]:not([data-section="home"]) .page-heading:not(.quick-page-heading)>div:first-child::before,.island-alert-heading::before{
       content:"";width:clamp(140px,16vw,220px);aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
       background:var(--island-art) center / contain no-repeat,
         var(--island-cloud) right top / 34% auto no-repeat,
@@ -550,7 +550,6 @@
     .island-alert-heading p{margin:4px 0 0}
     .page .table-wrap th{background:var(--island-tint,#e8eee5)}
     @media(max-width:520px){
-      .page[data-section="daily"] .quick-page-heading{position:static;width:auto!important;height:auto;clip-path:none}
       .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px;overflow:visible;margin-top:16px}
       .page[data-section]:not([data-section="home"]) .page-heading>div:first-child,.island-alert-heading{width:100%;column-gap:10px}
       .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
