@@ -230,6 +230,33 @@
 .workspace-journal,.workspace-journal .investment-card,.journal-record-grid,.journal-record-card{min-width:0;max-width:100%}.journal-record-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;width:100%}.journal-record-card{padding:20px;border:1px solid #ced9ec;border-top:4px solid #7188bd;border-radius:16px;background:linear-gradient(145deg,#f3f6ff,#fff);overflow:hidden}.journal-record-card:nth-child(even){border-top-color:#319581;background:linear-gradient(145deg,#edf9f5,#fff)}.journal-record-card header{display:flex;align-items:start;justify-content:space-between;flex-wrap:wrap;gap:12px}.journal-record-card header strong{font-size:20px}.journal-record-card header div{overflow-wrap:anywhere}.journal-text{padding:14px 0;border-bottom:1px solid #dce3ee}.journal-text h5{margin:0 0 8px;font-size:13px;color:#53627a}.journal-text p,.journal-text summary,.journal-meta{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;line-height:1.75;max-width:100%;margin:0}.journal-record-card .journal-meta{margin:14px 0;color:#58667c;font-size:12px}.journal-record-card textarea{min-height:120px;max-width:100%;resize:vertical;white-space:pre-wrap;overflow-wrap:anywhere}.journal-record-card>button{margin-top:12px}.workspace-journal .form-grid label:has(textarea){grid-column:1/-1}.workspace-journal textarea{overflow-wrap:anywhere;white-space:pre-wrap}.workspace-journal select{white-space:nowrap;text-overflow:ellipsis}@media(max-width:760px){.journal-record-grid{grid-template-columns:minmax(0,1fr)}.journal-record-card{padding:16px}}
 
 .journal-price-reference{margin-top:16px;padding:14px;background:#eef4ff;border-radius:12px;overflow-wrap:anywhere}.journal-reference-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}.journal-reference-grid strong{display:block;font-size:17px}.journal-reference-grid small{font-size:12px}@media(max-width:480px){.journal-reference-grid{grid-template-columns:minmax(0,1fr)}}
+    .island-controls{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+    .island-controls [aria-pressed="true"]{background:#dcebd0;color:#274832;border-color:#a8c3a0}
+    .island-overview{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.3fr);align-items:center;gap:12px;margin:12px 0 20px;padding:clamp(16px,3vw,36px);border:1px solid #cadac4;border-radius:28px;background:linear-gradient(140deg,#fffaf0 12%,#e3f1e4 78%);color:#29483a}
+    .island-summary h2{margin:6px 0;font-size:clamp(1.65rem,3.8vw,3rem);line-height:1.15;color:#244537}
+    .island-summary p{margin:0;color:#496455}
+    .island-summary .island-eyebrow{font-size:.8rem;font-weight:750;letter-spacing:.08em}
+    .island-summary dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}
+    .island-summary dl div:first-child{grid-column:1/-1}
+    .island-summary dt{font-size:.82rem;color:#496455}
+    .island-summary dd{margin:2px 0 0;font-size:clamp(1rem,2.3vw,1.32rem);font-weight:800;overflow-wrap:anywhere}
+    .island-summary dl div:first-child dd{font-size:clamp(1.5rem,3.3vw,2.55rem)}
+    .island-entry.action-btn{background:#315a45;color:#fff;border-color:#315a45}
+    .island-map{position:relative;isolation:isolate;aspect-ratio:640/420;min-height:232px}
+    .island-map>svg{display:block;width:100%;height:100%}
+    .island-stop{position:absolute;left:var(--x);top:var(--y);transform:translate(-50%,-50%);display:grid;justify-items:center;gap:3px;min-width:44px;min-height:44px;padding:0;border:0;background:none;color:#273e32;font:inherit;cursor:pointer}
+    .island-stop svg,.island-stop i{width:clamp(30px,5vw,56px);height:clamp(30px,5vw,56px);padding:clamp(5px,.9vw,11px);border-radius:32% 32% 22% 22%;background:var(--tile);box-shadow:0 4px 0 var(--edge),0 8px 12px #2c4b3e40;transition:transform .18s ease}
+    .island-stop span{background:#fffdf1;border-radius:12px;padding:3px 6px;white-space:nowrap;font-size:clamp(.68rem,1.3vw,.83rem);font-weight:750;box-shadow:0 2px 6px #35524720}
+    .island-stop:hover svg,.island-stop:focus-visible svg{transform:translateY(-4px)}
+    .island-stop:focus-visible{outline:2px solid #234b35;outline-offset:4px;border-radius:12px}
+    .island-bank{--x:29%;--y:34%;--tile:#fbdfaa;--edge:#bf925f}
+    .island-garden{--x:62%;--y:28%;--tile:#d7efab;--edge:#91ad66}
+    .island-house{--x:77%;--y:56%;--tile:#ffd3ba;--edge:#c78975}
+    .island-market{--x:50%;--y:69%;--tile:#ffe9a1;--edge:#c2a15f}
+    .island-board{--x:24%;--y:64%;--tile:#d3e9ed;--edge:#88aeb8}
+    .island-classic-summary{display:none}
+    @media(max-width:720px){.island-overview{grid-template-columns:minmax(0,1fr);gap:0}.island-map{margin:4px -8px -8px}}
+    @media(prefers-reduced-motion:reduce){.island-stop svg{transition:none}}
 </style>
 </head>
 <body>
@@ -604,6 +631,47 @@
       const duration=Math.max(86400000,dates.at(-1)-dates[0]),x=i=>96+(dates[i]-dates[0])/duration*488,y=value=>150-(value-low)/range*128;
       return `<figure class="snapshot-figure"><figcaption>最近 ${rows.length} 次快照｜<span class="money-value">首末差額 ${signed(values.at(-1)-values[0])}</span></figcaption><p class="chart-caption">單位：新台幣。依實際日期間隔排列；快照差額包含資金進出，不代表投資報酬。</p><svg viewBox="0 0 620 192" role="img" aria-label="淨資產快照走勢，日期與金額可展開明細查看">${[low,(low+high)/2,high].map(value=>`<line x1="96" y1="${y(value)}" x2="584" y2="${y(value)}" stroke="#dce5ed"/><text class="money-value" x="90" y="${y(value)+4}" text-anchor="end">${(value/10000).toFixed(1)}萬</text>`).join("")}<polyline points="${values.map((value,i)=>`${x(i)},${y(value)}`).join(" ")}" fill="none" stroke="#245fba" stroke-width="3"/>${values.map((value,i)=>`<circle cx="${x(i)}" cy="${y(value)}" r="4" fill="#245fba"><title>${esc(rows[i].date)}｜${money(value)}</title></circle>`).join("")}<text x="96" y="180">${esc(rows[0].date)}</text><text x="584" y="180" text-anchor="end">${rows.length>1?esc(rows.at(-1).date):""}</text></svg><details class="snapshot-details"><summary>查看日期與金額明細（${rows.length} 筆）</summary><table><thead><tr><th scope="col">快照日期</th><th scope="col">淨資產（TWD）</th></tr></thead><tbody>${rows.map((row,i)=>`<tr><td data-label="快照日期">${esc(row.date)}</td><td data-label="淨資產（TWD）" class="money-value">${money(values[i])}</td></tr>`).join("")}</tbody></table></details></figure>`;
     }
+    function renderIsland(assets, month) {
+      return `<section class="island-overview" aria-labelledby="island-title">
+        <div class="island-summary">
+          <p class="island-eyebrow">TSUBIN 個人財務中心</p>
+          <h2 id="island-title">歡迎回到拾光島</h2>
+          <p>點選島上的地標，查看你的財務近況。</p>
+          <dl>
+            <div><dt>目前淨資產</dt><dd class="money-value">${money(assets.netWorth)}</dd></div>
+            <div><dt>帳戶可用資金</dt><dd class="money-value">${money(assets.cash)}</dd></div>
+            <div><dt>本月結餘</dt><dd class="money-value">${money(month.balance)}</dd></div>
+          </dl>
+          <button class="action-btn island-entry" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
+        </div>
+        <div class="island-map" role="group" aria-label="拾光島地圖">
+          <svg viewBox="0 0 640 420" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="island-grass" x2="0.85" y2="1"><stop stop-color="#e0e9a8"/><stop offset="1" stop-color="#9aba7b"/></linearGradient>
+              <linearGradient id="island-earth" x2="1" y2="0.6"><stop stop-color="#b78c64"/><stop offset="1" stop-color="#80664e"/></linearGradient>
+              <g id="island-tree"><ellipse cy="17" rx="21" ry="8" fill="#78935f" opacity=".36"/><path d="M-4 0h8v17h-8z" fill="#907254"/><path d="M0-36 19-15 15 3 0 9-17 1-20-15Z" fill="#608956"/><path d="M0-36 0 9-17 1-20-15Z" fill="#82a567"/></g>
+            </defs>
+            <circle cx="510" cy="70" r="39" fill="#ffe7a2"/>
+            <g fill="#fffdf4" opacity=".86"><path d="M67 92a18 18 0 0 1 20-19 24 24 0 0 1 44 3 15 15 0 0 1 13 16Z"/><path d="M473 106a14 14 0 0 1 16-14 19 19 0 0 1 35 1 13 13 0 0 1 13 13Z"/></g>
+            <ellipse cx="322" cy="361" rx="224" ry="34" fill="#4c6656" opacity=".11"/>
+            <path d="M72 217Q63 205 80 195L283 96Q314 80 343 94L568 196Q592 207 580 226L580 253Q578 265 562 273L354 371Q322 387 288 372L89 275Q72 266 72 251Z" fill="url(#island-earth)"/>
+            <path d="M72 227 290 331Q322 347 355 331L580 227V242L355 352Q322 368 288 352L72 248Z" fill="#dfba8c"/>
+            <path d="M85 192 283 96Q314 80 343 94L565 194Q596 208 574 223L354 335Q323 352 290 336L86 235Q55 217 85 192Z" fill="url(#island-grass)"/>
+            <path d="M184 165Q255 184 320 220T478 252M323 309Q354 260 320 220T400 147" fill="none" stroke="#f6e5ba" stroke-width="17" stroke-linecap="round"/>
+            <path d="M381 270 455 233Q468 226 480 233L516 249 436 289Q424 294 415 289Z" fill="#71b9af"/>
+            <path d="m417 274 24-11m18 3 23-11" stroke="#c5e5d0" stroke-width="3" stroke-linecap="round"/>
+            <use href="#island-tree" x="108" y="213"/><use href="#island-tree" x="142" y="232"/><use href="#island-tree" x="475" y="166"/><use href="#island-tree" x="514" y="183"/><use href="#island-tree" x="258" y="291"/><use href="#island-tree" x="285" y="308"/>
+            <g fill="#fff0ad"><circle cx="163" cy="220" r="4"/><circle cx="171" cy="226" r="3"/><circle cx="476" cy="207" r="4"/><circle cx="483" cy="213" r="3"/><circle cx="373" cy="304" r="4"/></g>
+          </svg>
+          <button class="island-stop island-bank" data-go="accounts/accounts"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#ae794a" d="M2 12 16 4l14 8v3H2zm1 14h26v3H3z"/><path stroke="#5d674d" stroke-width="3" d="M8 16v9m8-9v9m8-9v9"/><circle cx="16" cy="10" r="2" fill="#fff2c8"/></svg><span>小銀行</span></button>
+          <button class="island-stop island-garden" data-go="investments/portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#528450" d="M15 21C5 21 3 16 3 9c9 0 13 4 13 10 0-9 4-13 13-14 0 9-4 14-11 15v6h-3z"/><path fill="#b18058" d="M7 23h18l-3 8H10z"/></svg><span>投資花園</span></button>
+          <button class="island-stop island-house" data-go="accounts/credit"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#fff1cf" d="M6 13h20v16H6z"/><path fill="#a65e50" d="M2 14 16 3l14 11-2 3L16 8 4 17z"/><path fill="#8d654b" d="M13 20h6v9h-6z"/><path fill="#72a7a2" d="M8 17h4v5H8zm12 0h4v5h-4z"/></svg><span>帳務小屋</span></button>
+          <button class="island-stop island-market" data-go="daily"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c39562" d="M4 14h24v16H4z"/><path fill="#825747" d="M8 18h16v8H8z"/><path fill="#be735d" d="M5 5h22l4 10H1z"/><path fill="#fff3cd" d="M10 5h4l-1 10H7zm8 0h4l3 10h-6z"/></svg><span>島上市集</span></button>
+          <button class="island-stop island-board" data-island-alerts><svg viewBox="0 0 32 32" aria-hidden="true"><path stroke="#85664e" stroke-width="3" d="M8 20v11m16-11v11"/><rect x="3" y="4" width="26" height="19" rx="3" fill="#8e7459"/><rect x="7" y="7" width="18" height="12" rx="1" fill="#fff4d5"/><path stroke="#63887e" stroke-width="2" d="M10 11h12m-12 4h8"/></svg><span>公告欄 · ${current.alerts.length}</span></button>
+        </div>
+      </section>`;
+    }
+    let islandView = localStorage.getItem("tsubin-home-view") !== "dashboard";
     function renderHome() {
       const a = current.assetsSummary, m = current.month, avg = current.averageMonthlyExpense;
       const safety = avg > 0 ? a.cash / avg : null;
@@ -611,16 +679,17 @@
       const previousNet = Number(snapshots.at(-2)?.net ?? snapshots.at(-2)?.total ?? a.netWorth) || a.netWorth;
       const delta = a.netWorth - previousNet;
       const upcoming = [...(current.ledger.creditBills || []).filter(row => !row.paid), ...(current.ledger.recurringRules || []).map(row => ({ card:row.name,dueDate:`每${row.day || 1}日`,amount:row.amount }))].slice(0,5);
-      const heading = pageHeading("Personal Finance Center", "今日財務決策中心", "先看可用資金、現金流、淨資產與需要處理的事項。", `<button class="action-btn" data-create-backup><i data-lucide="shield-check"></i>建立還原點</button>`);
-      return `${heading}<div class="home-grid grid"><section class="grid">
-        <article class="hero-card"><div class="hero-top"><div><span class="hero-label">目前淨資產</span><div class="net-worth money-value">${money(a.netWorth)}</div><div class="delta">${delta >= 0 ? "↑" : "↓"} ${signed(delta)}｜與前次快照比較</div></div></div>
+      const controls = `<div class="island-controls"><button class="action-btn" data-home-view aria-pressed="${islandView}"><i data-lucide="map"></i>島嶼視圖</button><button class="action-btn" data-create-backup><i data-lucide="shield-check"></i>建立還原點</button></div>`;
+      const heading = islandView ? controls : pageHeading("Personal Finance Center", "今日財務決策中心", "先看可用資金、現金流、淨資產與需要處理的事項。", controls);
+      return `${heading}${islandView ? renderIsland(a,m) : ""}<div class="home-grid grid"><section class="grid">
+        <article class="hero-card${islandView ? " island-classic-summary" : ""}"><div class="hero-top"><div><span class="hero-label">目前淨資產</span><div class="net-worth money-value">${money(a.netWorth)}</div><div class="delta">${delta >= 0 ? "↑" : "↓"} ${signed(delta)}｜與前次快照比較</div></div></div>
           <div class="hero-actions"><button class="action-btn" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button><button class="action-btn secondary" data-go="investments/trades"><i data-lucide="arrow-left-right"></i>記錄交易</button></div>
           <div class="hero-metrics"><div><span>現金安全</span><strong>${safety === null ? "待設定" : `${safety.toFixed(1)} 個月`}</strong></div><div><span>信用卡負債比</span><strong>${a.totalAssets ? pct(a.liabilities/a.totalAssets*100) : "0%"}</strong></div><div><span>待處理提醒</span><strong>${current.alerts.length} 筆</strong></div></div>
         </article>
         <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
         <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${snapshotBars()}</section>
         <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
-      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3>行動中心</h3><p>依資料自動整理</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
+      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3 id="home-alerts" tabindex="-1">行動中心</h3><p>依資料自動整理</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
     }
     function eventRows(events) {
       return events.length ? `<div class="table-wrap"><table><thead><tr><th>日期</th><th>事件</th><th>分類</th><th>帳戶</th><th>金額</th></tr></thead><tbody>${events.map(row => `<tr class="entry-row ${row.direction>0?"income":row.direction<0?"expense":"fee"}"><td data-label="日期">${esc(row.date)}</td><td data-label="事件">${esc(row.title)}</td><td data-label="分類">${esc(row.category)}</td><td data-label="帳戶">${esc(row.account || row.toAccount || "—")}</td><td data-label="金額" class="money-value ${row.direction>0?"positive":row.direction<0?"negative":"muted"}">${row.direction ? signed(row.twdAmount*row.direction) : money(row.twdAmount)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">目前沒有符合條件的財務事件。</div>`;
@@ -978,6 +1047,19 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     window.addEventListener("finance-market-status",event=>{syncMarketControls(event.detail);if(event.detail.phase==="applied"&&((state.domain==="investments"&&["portfolio","holdings"].includes(state.tab))||state.domain==="home"))refresh();else if(state.domain==="investments"&&state.tab==="portfolio")render()});
     document.getElementById("marketRefresh").addEventListener("click",refreshMarketData);
     document.addEventListener("click", event => {
+      if (event.target.closest("[data-home-view]")) {
+        islandView = !islandView;
+        localStorage.setItem("tsubin-home-view", islandView ? "island" : "dashboard");
+        render();
+        document.querySelector("[data-home-view]")?.focus();
+        return;
+      }
+      if (event.target.closest("[data-island-alerts]")) {
+        const heading = document.getElementById("home-alerts");
+        heading?.focus();
+        heading?.scrollIntoView({block:"center"});
+        return;
+      }
       const domainControl=event.target.closest(".primary-nav [data-domain],.mobile-nav [data-domain]");const domain=domainControl?.dataset.domain;if(domain){setRoute(domain);return}
       const tab=event.target.closest("[data-tab]")?.dataset.tab;if(tab){document.querySelectorAll(":popover-open").forEach(node=>node.hidePopover());setRoute(state.domain,tab);return}
       const tradeCode=event.target.closest('[data-trade-code]')?.dataset.tradeCode;if(tradeCode){ui.tradeFilter={code:tradeCode,start:'',end:'',type:''};setRoute('investments','trades');return}if(event.target.closest('[data-clear-trade-filter]')){ui.tradeFilter={code:'',start:'',end:'',type:''};FinanceWorkflow.remember({filter:ui.tradeFilter});render();return}
