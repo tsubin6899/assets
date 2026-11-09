@@ -529,20 +529,20 @@
     .page[data-section]:not([data-section="home"]) .page-heading{
       padding:14px 18px;background:var(--island-tint);border:1px solid #ccdccc;border-radius:16px;
     }
-    .page[data-section]:not([data-section="home"]) .page-heading>div:first-child{
+    .page[data-section]:not([data-section="home"]) .page-heading>div:first-child,.island-alert-heading{
       min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center;
     }
     .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
       content:"";width:clamp(140px,16vw,220px);aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
       background:var(--island-art) center / contain no-repeat;
     }
-    .island-alert-heading{display:flex;align-items:center;gap:10px}
-    .island-alert-heading::before{--island-art:url("island-art/reminders.webp");width:clamp(120px,15vw,180px)}
+    .island-alert-heading{--island-art:url("island-art/reminders.webp");width:100%}
+    .island-alert-heading p{margin:4px 0 0}
     .page .table-wrap th{background:var(--island-tint,#e8eee5)}
     @media(max-width:520px){
       .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px;overflow:visible;margin-top:16px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child{width:100%;column-gap:10px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before{
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child,.island-alert-heading{width:100%;column-gap:10px}
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
         width:clamp(132px,41vw,202px);margin:-38px 0 -8px -10px;
       }
     }
@@ -728,7 +728,7 @@
         <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
         <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${snapshotBars()}</section>
         <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
-      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3 class="island-alert-heading" id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
+      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div class="island-alert-heading"><h3 id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
     }
     function eventRows(events) {
       return events.length ? `<div class="table-wrap"><table><thead><tr><th>日期</th><th>事件</th><th>分類</th><th>帳戶</th><th>金額</th></tr></thead><tbody>${events.map(row => `<tr class="entry-row ${row.direction>0?"income":row.direction<0?"expense":"fee"}"><td data-label="日期">${esc(row.date)}</td><td data-label="事件">${esc(row.title)}</td><td data-label="分類">${esc(row.category)}</td><td data-label="帳戶">${esc(row.account || row.toAccount || "—")}</td><td data-label="金額" class="money-value ${row.direction>0?"positive":row.direction<0?"negative":"muted"}">${row.direction ? signed(row.twdAmount*row.direction) : money(row.twdAmount)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">目前沒有符合條件的財務事件。</div>`;
