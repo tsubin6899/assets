@@ -282,22 +282,22 @@
       </div>
     </div>
     <nav class="primary-nav" aria-label="主要功能">
-      <button type="button" data-domain="home"><i data-lucide="home"></i>首頁</button>
-      <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i>日常記帳</button>
-      <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i>帳戶與負債</button>
-      <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i>投資資產</button>
-      <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i>分析與報表</button>
+      <button type="button" data-domain="home"><i data-lucide="home"></i>拾光島</button>
+      <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i>記帳島</button>
+      <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i>帳務島</button>
+      <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i>投資島</button>
+      <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i>洞察島</button>
     </nav>
   </header>
   <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
   <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
   <main class="page" id="app" tabindex="-1"></main>
   <nav class="mobile-nav" aria-label="手機主要功能">
-    <button type="button" data-domain="home"><i data-lucide="home"></i><span>首頁</span></button>
-    <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i><span>記帳</span></button>
-    <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i><span>帳戶</span></button>
-    <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i><span>資產</span></button>
-    <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i><span>分析</span></button>
+    <button type="button" data-domain="home"><i data-lucide="home"></i><span>拾光島</span></button>
+    <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i><span>記帳島</span></button>
+    <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i><span>帳務島</span></button>
+    <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i><span>投資島</span></button>
+    <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i><span>洞察島</span></button>
   </nav>
   <input id="importFile" type="file" accept="application/json" hidden>
   <input id="importCsvFile" type="file" accept=".csv,text/csv" hidden>
@@ -636,7 +636,7 @@
         <div class="island-summary">
           <p class="island-eyebrow">TSUBIN 個人財務中心</p>
           <h2 id="island-title">歡迎回到拾光島</h2>
-          <p>點選島上的地標，查看你的財務近況。</p>
+          <p>前往各島，查看帳戶、投資、收支和提醒。</p>
           <dl>
             <div><dt>目前淨資產</dt><dd class="money-value">${money(assets.netWorth)}</dd></div>
             <div><dt>帳戶可用資金</dt><dd class="money-value">${money(assets.cash)}</dd></div>
@@ -663,11 +663,11 @@
             <use href="#island-tree" x="108" y="213"/><use href="#island-tree" x="142" y="232"/><use href="#island-tree" x="475" y="166"/><use href="#island-tree" x="514" y="183"/><use href="#island-tree" x="258" y="291"/><use href="#island-tree" x="285" y="308"/>
             <g fill="#fff0ad"><circle cx="163" cy="220" r="4"/><circle cx="171" cy="226" r="3"/><circle cx="476" cy="207" r="4"/><circle cx="483" cy="213" r="3"/><circle cx="373" cy="304" r="4"/></g>
           </svg>
-          <button class="island-stop island-bank" data-go="accounts/accounts"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#ae794a" d="M2 12 16 4l14 8v3H2zm1 14h26v3H3z"/><path stroke="#5d674d" stroke-width="3" d="M8 16v9m8-9v9m8-9v9"/><circle cx="16" cy="10" r="2" fill="#fff2c8"/></svg><span>小銀行</span></button>
-          <button class="island-stop island-garden" data-go="investments/portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#528450" d="M15 21C5 21 3 16 3 9c9 0 13 4 13 10 0-9 4-13 13-14 0 9-4 14-11 15v6h-3z"/><path fill="#b18058" d="M7 23h18l-3 8H10z"/></svg><span>投資花園</span></button>
-          <button class="island-stop island-house" data-go="accounts/credit"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#fff1cf" d="M6 13h20v16H6z"/><path fill="#a65e50" d="M2 14 16 3l14 11-2 3L16 8 4 17z"/><path fill="#8d654b" d="M13 20h6v9h-6z"/><path fill="#72a7a2" d="M8 17h4v5H8zm12 0h4v5h-4z"/></svg><span>帳務小屋</span></button>
-          <button class="island-stop island-market" data-go="daily"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c39562" d="M4 14h24v16H4z"/><path fill="#825747" d="M8 18h16v8H8z"/><path fill="#be735d" d="M5 5h22l4 10H1z"/><path fill="#fff3cd" d="M10 5h4l-1 10H7zm8 0h4l3 10h-6z"/></svg><span>島上市集</span></button>
-          <button class="island-stop island-board" data-island-alerts><svg viewBox="0 0 32 32" aria-hidden="true"><path stroke="#85664e" stroke-width="3" d="M8 20v11m16-11v11"/><rect x="3" y="4" width="26" height="19" rx="3" fill="#8e7459"/><rect x="7" y="7" width="18" height="12" rx="1" fill="#fff4d5"/><path stroke="#63887e" stroke-width="2" d="M10 11h12m-12 4h8"/></svg><span>公告欄 · ${current.alerts.length}</span></button>
+          <button class="island-stop island-bank" data-go="accounts/accounts"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#ae794a" d="M2 12 16 4l14 8v3H2zm1 14h26v3H3z"/><path stroke="#5d674d" stroke-width="3" d="M8 16v9m8-9v9m8-9v9"/><circle cx="16" cy="10" r="2" fill="#fff2c8"/></svg><span>存款島</span></button>
+          <button class="island-stop island-garden" data-go="investments/portfolio"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#528450" d="M15 21C5 21 3 16 3 9c9 0 13 4 13 10 0-9 4-13 13-14 0 9-4 14-11 15v6h-3z"/><path fill="#b18058" d="M7 23h18l-3 8H10z"/></svg><span>投資島</span></button>
+          <button class="island-stop island-house" data-go="accounts/credit"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#fff1cf" d="M6 13h20v16H6z"/><path fill="#a65e50" d="M2 14 16 3l14 11-2 3L16 8 4 17z"/><path fill="#8d654b" d="M13 20h6v9h-6z"/><path fill="#72a7a2" d="M8 17h4v5H8zm12 0h4v5h-4z"/></svg><span>帳務島</span></button>
+          <button class="island-stop island-market" data-go="daily"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="#c39562" d="M4 14h24v16H4z"/><path fill="#825747" d="M8 18h16v8H8z"/><path fill="#be735d" d="M5 5h22l4 10H1z"/><path fill="#fff3cd" d="M10 5h4l-1 10H7zm8 0h4l3 10h-6z"/></svg><span>記帳島</span></button>
+          <button class="island-stop island-board" data-island-alerts><svg viewBox="0 0 32 32" aria-hidden="true"><path stroke="#85664e" stroke-width="3" d="M8 20v11m16-11v11"/><rect x="3" y="4" width="26" height="19" rx="3" fill="#8e7459"/><rect x="7" y="7" width="18" height="12" rx="1" fill="#fff4d5"/><path stroke="#63887e" stroke-width="2" d="M10 11h12m-12 4h8"/></svg><span>提醒島 · ${current.alerts.length}</span></button>
         </div>
       </section>`;
     }
@@ -689,7 +689,7 @@
         <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
         <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${snapshotBars()}</section>
         <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
-      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3 id="home-alerts" tabindex="-1">行動中心</h3><p>依資料自動整理</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
+      </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div><h3 id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
     }
     function eventRows(events) {
       return events.length ? `<div class="table-wrap"><table><thead><tr><th>日期</th><th>事件</th><th>分類</th><th>帳戶</th><th>金額</th></tr></thead><tbody>${events.map(row => `<tr class="entry-row ${row.direction>0?"income":row.direction<0?"expense":"fee"}"><td data-label="日期">${esc(row.date)}</td><td data-label="事件">${esc(row.title)}</td><td data-label="分類">${esc(row.category)}</td><td data-label="帳戶">${esc(row.account || row.toAccount || "—")}</td><td data-label="金額" class="money-value ${row.direction>0?"positive":row.direction<0?"negative":"muted"}">${row.direction ? signed(row.twdAmount*row.direction) : money(row.twdAmount)}</td></tr>`).join("")}</tbody></table></div>` : `<div class="empty">目前沒有符合條件的財務事件。</div>`;
