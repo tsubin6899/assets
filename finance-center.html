@@ -533,15 +533,16 @@
       min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center;
     }
     .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
-      content:"";width:96px;aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
-      background:#d3e4dc url("shiguang-islands.jpg?v=2") var(--island-art) / 320% auto no-repeat;
+      content:"";width:clamp(140px,16vw,220px);aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
+      background:#d3e4dc url("shiguang-islands.jpg?v=2") var(--island-art) / 290% auto no-repeat;
     }
     .island-alert-heading{display:flex;align-items:center;gap:10px}
-    .island-alert-heading::before{--island-art:50% 53%;width:60px}
+    .island-alert-heading::before{--island-art:50% 53%;width:104px}
     .page .table-wrap th{background:var(--island-tint,#e8eee5)}
     @media(max-width:520px){
       .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before{width:66px}
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child{width:100%;grid-template-columns:minmax(0,1fr);row-gap:6px}
+      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before{width:100%;aspect-ratio:5/3;grid-row:auto}
     }
     .page .portfolio-allocation{margin-top:16px}
     .page .portfolio-allocation .fc-allocation{grid-template-columns:minmax(85px,150px) minmax(0,1fr);gap:12px}
