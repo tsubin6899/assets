@@ -298,7 +298,9 @@
       <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg>洞察島</button>
     </nav>
     <div class="sidebar-caption" id="sidebarTools">分頁工具</div>
-    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
+    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="mobile-island-caption">島內功能</div><div class="secondary-track" id="secondaryNav"></div></nav>
+    <div id="mobileIslandMore" class="mobile-island-more" popover aria-label="更多島內功能"></div>
+    <p class="sidebar-sync" id="sidebarSync" aria-hidden="true">未登入</p>
   </aside>
   <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
   <main class="page" id="app" tabindex="-1"></main>
@@ -615,6 +617,7 @@
       .page{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
       body.compact-entry-viewport .secondary-nav{display:none!important}
     }
+    .page .action-btn .function-icon{width:15px;height:15px;flex:0 0 15px}
     .sidebar-brand,.sidebar-caption,.desktop-breadcrumb{display:none}
     .desktop-sidebar{display:contents}
     @media(min-width:1024px){
@@ -628,7 +631,7 @@
       .desktop-sidebar .primary-nav{margin-bottom:24px;overflow:visible}
       .desktop-sidebar .secondary-nav{position:static;border:0;background:none;backdrop-filter:none}
       .desktop-sidebar :is(.primary-nav,.secondary-track) button{justify-content:flex-start;min-width:0;min-height:44px;padding:8px 16px;border:0;border-radius:11px;background:transparent;color:#f1f7f3;font-size:15px;font-weight:650;white-space:normal;text-align:left}
-      .desktop-sidebar .secondary-track button :is(i,svg){display:none}
+      .desktop-sidebar .secondary-track button svg{opacity:.9}
       .desktop-sidebar :is(.primary-nav,.secondary-track) button:hover,.desktop-sidebar .primary-nav button.active{background:#3a604e;color:#fff}
       .desktop-sidebar .secondary-track[data-section] button.active{background:#dcece0;color:#1d392e}
       .desktop-sidebar button:focus-visible{outline:2px solid #b8dfc4;outline-offset:-3px}
@@ -668,6 +671,119 @@
       .page .account-group .account-card{grid-template-columns:minmax(0,1fr) auto}
       .account-card .row-actions{grid-column:1/-1;justify-content:flex-start}
     }
+    .mobile-island-caption,.secondary-track .mobile-more-toggle,.mobile-portfolio-title,.mobile-island-more,.chart-filter-title{display:none}
+    @media(max-width:760px){
+      body{--mobile-island-accent:#315e49;--mobile-island-tint:#dcebe0;background:#f2f3ed}
+      body:has(.mobile-nav [data-domain="daily"].active){--mobile-island-accent:#51417e;--mobile-island-tint:#ece6f7}
+      body:has(.mobile-nav [data-domain="investments"].active){--mobile-island-accent:#6c5020;--mobile-island-tint:#f4e8cf}
+      body:has(.mobile-nav [data-domain="analysis"].active){--mobile-island-accent:#4d467e;--mobile-island-tint:#e8e5f6}
+      .app-header{background:#1d392e;box-shadow:none}
+      .app-header .brand-row{min-height:60px;padding-block:8px}
+      .app-header .header-actions>.header-btn{min-width:0;min-height:44px;padding:4px;background:none;border-color:transparent}
+      .app-header .header-actions>.header-btn:not(.market) .desktop-only{display:inline;font-size:11px}
+      .app-header .header-actions>.header-btn:not(.market) :is(i,svg){display:none}
+      .app-header .header-actions>.status-pill{min-width:0;max-width:96px;display:block;overflow:hidden;text-overflow:ellipsis;line-height:21px}
+      .page{padding:12px 12px calc(174px + env(safe-area-inset-bottom))}
+      .page .island-page-heading{gap:10px;padding:12px 13px;border:0;border-radius:17px;background:var(--mobile-island-tint);margin-bottom:14px}
+      .island-page-heading h2{font-size:clamp(23px,6vw,34px)}
+      .page .island-page-heading p{font-size:12px;line-height:1.45}
+      .island-page-heading>img{max-width:132px}
+      .island-label{padding:0;background:none;color:var(--mobile-island-accent);margin-bottom:5px}
+      .account-summary,.island-summary-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+      .page :is(.account-summary,.island-summary-metrics) .metric-card{padding:10px;border:1px solid #d6e1d7;border-radius:12px;background:#fff;box-shadow:none}
+      .page :is(.account-summary,.island-summary-metrics) .metric-card:first-child,
+      .page :is(.account-summary,.island-summary-metrics) .metric-card:last-child{grid-column:1/-1}
+      .page :is(.account-summary,.island-summary-metrics) .metric-card:nth-child(2){grid-column:1}
+      .page :is(.account-summary,.island-summary-metrics) .metric-card:first-child{background:var(--mobile-island-accent);color:#fff;border-color:transparent}
+      .page :is(.account-summary,.island-summary-metrics) .metric-card:first-child :is(span,strong,small){color:inherit}
+      .page :is(.account-summary,.island-summary-metrics) .metric-card strong{font-size:clamp(15px,4vw,22px)}
+      .portfolio-summary{margin-bottom:12px}
+      .mobile-portfolio-title{display:block;margin:0 0 9px;font-size:18px}
+      .page #analysisChartFilter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+      .page #analysisChartFilter :is(h3,button,small){grid-column:1/-1}
+      .page #analysisChartFilter{padding:12px;border:1px solid #d6e1d7;border-radius:13px;background:#fff}
+      .page #analysisChartFilter h3{margin:0;font-size:16px}
+      .chart-filter-title{display:block}
+      .page #analysisChartFilter button{background:var(--mobile-island-accent);color:#fff;border-color:transparent}
+      .page #analysisChartFilter :is(input,select){width:100%;min-width:0;min-height:44px;font-size:16px}
+      .page .market-strip{background:#fff;border:1px solid #d6e1d7;border-radius:13px}
+      .page .market-strip-meta span{color:var(--mobile-island-accent)}
+      .page .market-strip>.action-btn,.page #quickEntryForm>button[type="submit"],
+      .page #quickEntryForm .segmented input:checked+span{background:var(--mobile-island-accent);border-color:transparent;color:#fff;box-shadow:none}
+      #quickEntryForm.quick-entry-page{padding:12px}
+      #quickEntryForm.quick-entry-page .form-grid .quick-field-amount{grid-column:1/-1}
+      #quickEntryForm.quick-entry-page .form-grid .quick-field-account{grid-column:auto}
+      #quickEntryForm.quick-entry-page .form-grid :is(input,select){min-height:44px;font-size:16px}
+      .page .account-group{background:#fff;border:1px solid #d6e1d7;border-radius:13px;padding:12px}
+      .page .account-group .account-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,auto);gap:8px;background:none;border:0;border-top:1px solid #d6e1d7;border-radius:0;box-shadow:none;padding:10px 0 0}
+      .account-card .account-title .account-icon,.account-card .account-title>.status-chip{display:none}
+      .account-card .account-balance{display:flex;flex-direction:column-reverse;align-items:end;text-align:right}
+      .account-card .account-balance>.status-chip{display:inline-flex;background:none;border:0;padding:0}
+      .account-card .account-balance .balance{margin:0;font-size:clamp(15px,4vw,22px);overflow-wrap:anywhere}
+      .account-card>:not(.account-title,.account-balance){grid-column:1/-1}
+      .secondary-nav{bottom:calc(74px + env(safe-area-inset-bottom))!important;padding:5px 12px 8px;border:0;background:#f2f3ed;backdrop-filter:none}
+      .mobile-island-caption{display:block;color:#4d6357;font-size:12px;font-weight:750;margin-bottom:4px}
+      .secondary-nav .secondary-track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:stretch;gap:4px;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;backdrop-filter:none}
+      .secondary-nav .secondary-track:has(.mobile-more-toggle){grid-template-columns:repeat(3,minmax(0,1fr)) 44px}
+      .secondary-nav .secondary-track button{min-width:0;min-height:44px;padding:3px 2px;gap:2px;font-size:clamp(9px,2.65vw,12px);border:1px solid #d6e1d7;border-radius:9px;color:#1d392e;background:#fff;box-shadow:none;white-space:normal;line-height:1.15}
+      .secondary-nav .secondary-track button svg{width:12px;height:12px;flex:0 0 12px}
+      .secondary-nav .secondary-track button.active,.mobile-island-more button.active{color:#fff;background:var(--mobile-island-accent);border-color:transparent}
+      .secondary-track button[data-mobile-extra]{display:none}
+      .secondary-track .mobile-more-toggle{display:inline-flex}
+      .mobile-island-more:popover-open{display:grid;gap:5px;position:fixed;inset:auto 12px calc(147px + env(safe-area-inset-bottom));margin:0;max-height:50dvh;overflow:auto;padding:8px;border:1px solid #d6e1d7;border-radius:12px;background:#fff;color:#1d392e}
+      .mobile-island-more button{display:flex;align-items:center;gap:8px;min-height:44px;border:1px solid #d6e1d7;border-radius:8px;padding:6px 10px;background:#fff;color:inherit;text-align:left}
+      .mobile-island-more svg{width:16px;height:16px}
+      .mobile-nav{background:#fff;border-color:#d6e1d7;box-shadow:none}
+      .mobile-nav button{color:#1d392e;font-size:11px;gap:4px}
+      .mobile-nav button[data-domain].active{background:var(--mobile-island-tint)!important;color:#1d392e;box-shadow:none}
+      .mobile-nav .island-nav-icon{width:25px;height:25px}
+    }
+    .sidebar-sync,.desktop-quick-summary,.desktop-quick-form-title{display:none}
+    .portfolio-overview{margin-top:14px}
+    @media(min-width:761px){.desktop-quick-summary{display:grid;margin-bottom:18px}}
+    @media(min-width:1024px){
+      body{--desktop-rail:clamp(196px,15vw,240px);--desktop-gutter:clamp(20px,1.9vw,32px);--desktop-island-tint:#dbeadf;--desktop-island-accent:#274e3d;background:#f2f3ed}
+      body:has(.primary-nav [data-domain="daily"].active){--desktop-island-tint:#ece6f7;--desktop-island-accent:#51417e}
+      body:has(.primary-nav [data-domain="investments"].active){--desktop-island-tint:#f4e8cf;--desktop-island-accent:#6c5020}
+      body:has(.primary-nav [data-domain="analysis"].active){--desktop-island-tint:#e8e5f6;--desktop-island-accent:#4d467e}
+      .desktop-sidebar{display:flex;flex-direction:column;padding:21px 13px 24px}
+      .sidebar-brand{padding-bottom:18px}
+      .desktop-sidebar .primary-nav{margin-bottom:18px}
+      .desktop-sidebar :is(.primary-nav,.secondary-track) button{min-height:39px;padding:7px 13px}
+      .desktop-sidebar .primary-nav button.active{background:var(--desktop-island-tint);color:#1d392e}
+      .desktop-sidebar .secondary-track[data-section] button.active{background:#365a4a;color:#fff}
+      .sidebar-sync{display:block;margin:auto 9px 0;padding-top:20px;color:#c4d7cc;font-size:13px}
+      .app-header .brand-row{min-height:66px;padding-block:8px}
+      .header-actions>.header-btn{min-width:76px}
+      .page{padding-top:19px}
+      .page .island-page-heading{grid-template-columns:minmax(0,1fr) clamp(130px,14vw,208px);background:var(--desktop-island-tint);padding:10px 24px;border-radius:22px;margin-bottom:18px}
+      .island-page-heading>img{max-width:155px}
+      .island-page-heading h2{font-size:clamp(29px,3vw,43px)}
+      .page .island-page-heading p{font-size:clamp(14px,1.2vw,18px)}
+      .island-label{padding:0;background:none;color:var(--desktop-island-accent);font-size:14px}
+      .page :is(.account-summary,.island-summary-metrics,.desktop-quick-summary) .metric-card{padding:12px 15px;border:1px solid #d6e1d7;border-radius:15px;background:#fff;box-shadow:none}
+      .page :is(.account-summary,.island-summary-metrics,.desktop-quick-summary) .metric-card:first-child{color:#fff;background:var(--desktop-island-accent);border-color:transparent}
+      .page :is(.account-summary,.island-summary-metrics,.desktop-quick-summary) .metric-card:first-child :is(span,strong,small){color:inherit}
+      .page :is(.account-summary,.island-summary-metrics,.desktop-quick-summary) .metric-card strong{font-size:clamp(17px,1.7vw,26px)}
+      #account-summary-title{display:none}
+      .quick-entry-layout{grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr);align-items:stretch}
+      .quick-entry-layout #quickEntryForm,.quick-entry-side>.panel{height:100%}
+      .desktop-quick-form-title{display:block;margin:0 0 8px;font-size:20px}
+      .page #quickEntryForm>button[type="submit"],.page #quickEntryForm .segmented input:checked+span,
+      .page .market-strip>.action-btn,.page #analysisChartFilter button{background:var(--desktop-island-accent);border-color:transparent;color:#fff;box-shadow:none}
+      .quick-entry-side .table-wrap{overflow:auto}
+      .quick-entry-side th{background:var(--desktop-island-tint)}
+      .quick-entry-side .entry-row td{background:#fff}
+      .portfolio-overview{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:stretch}
+      .portfolio-overview>.portfolio-allocation{grid-column:1;grid-row:1;margin:0}
+      .portfolio-overview .portfolio-allocation>.fc-panel{height:100%}
+      .portfolio-overview>.market-strip{grid-column:2;grid-row:1;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;margin:0;padding:18px;background:#fff;border:1px solid #d6e1d7;border-radius:18px}
+      .portfolio-overview .market-strip-icon{display:none}
+      .portfolio-overview .market-strip>.action-btn{width:100%;margin-top:auto}
+      .page #analysisChartFilter{display:grid;grid-template-columns:minmax(130px,180px) minmax(130px,170px) auto minmax(0,1fr);align-items:end;gap:12px;margin-top:18px;padding:14px;border:1px solid #d6e1d7;border-radius:16px;background:#fff}
+      .page #analysisChartFilter small{grid-column:auto;align-self:center}
+      .page[data-view="trends"]>.fc-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
   </style>
   <script>
     const app = document.getElementById("app");
@@ -676,11 +792,38 @@
     const routes = window.FinanceCenterRoutes;
     const tabIcons = {
       home:{overview:"layout-dashboard",actions:"list-checks"},
-      daily:{quick:"notebook-pen",lookup:"search",calendar:"calendar-days",records:"receipt-text",taxonomy:"tags",budgets:"wallet",recurring:"repeat-2",closeout:"circle-check"},
+      daily:{quick:"notebook-pen",lookup:"search",calendar:"calendar-days",records:"receipt-text",statistics:"chart-column",taxonomy:"tags",budgets:"wallet",recurring:"repeat-2",closeout:"circle-check"},
       accounts:{accounts:"landmark",transfer:"arrow-left-right",credit:"credit-card",installments:"calendar-range",loans:"hand-coins",reconcile:"scale",statements:"file-check"},
-      investments:{portfolio:"pie-chart",holdings:"briefcase",trades:"arrow-left-right",dividends:"banknote"},
+      investments:{portfolio:"pie-chart",holdings:"briefcase",trades:"arrow-left-right",dividends:"banknote",review:"clipboard-check",history:"history",journal:"book-open",exposure:"layers",health:"shield-check"},
       analysis:{trends:"chart-no-axes-combined",forecast:"calendar-clock",spending:"pie-chart",planning:"target",tax:"file-text",audit:"shield-check",events:"activity",data:"database"}
     };
+    const actionIcons = {
+      "pencil": "[data-edit-account],[data-edit-entry],[data-edit-transfer],[data-edit-bill],[data-edit-installment],[data-edit-loan],[data-edit-budget],[data-edit-recurring],[data-edit-category],[data-edit-item],[data-edit-trade],[data-edit-holding],[data-edit-dividend],[data-edit-goal]",
+      "trash-2": ".danger",
+      "history": "[data-account-history]",
+      "archive": '[data-archive-account][data-archived="0"]',
+      "archive-restore": '[data-archive-account][data-archived="1"]',
+      "list-checks": "[data-view-bill],[data-preview-reconcile]",
+      "check": "[data-toggle-bill-reconciled]",
+      "upload": "[data-import],[data-import-csv]",
+      "download": "[data-export]",
+      "shield-check": "[data-create-backup],[data-save-local-version]",
+      "rotate-ccw": "[data-restore-backup],[data-restore-cloud-version],[data-restore-local-version],[data-undo-import]",
+      "refresh-cw": "[data-sync-now],[data-sync-holding],[data-market-refresh]",
+      "save": 'form button[type="submit"]'
+    };
+    function decorateActionIcons(){
+      app.querySelectorAll("button.action-btn").forEach(button=>{
+        if(!button.textContent.trim()||button.querySelector("svg,[data-lucide]"))return;
+        const icon=Object.entries(actionIcons).find(([,selector])=>button.matches(selector))?.[0];
+        if(!icon)return;
+        const marker=document.createElement("i");
+        marker.className="function-icon";
+        marker.dataset.lucide=icon;
+        marker.setAttribute("aria-hidden","true");
+        button.prepend(marker);
+      });
+    }
     let state = { domain: "home", tab: "overview", privacy: false };
     const ui = { reconciliationPreview:null, tradeFilter:FinanceWorkflow.filter(), editingEntryId:"", editingAccountId:"", editingTransferId:"", editingBillId:"", editingBudgetId:"", editingRecurringId:"", editingInstallmentId:"", editingLoanId:"", editingGoalId:"", editingTradeId:"", editingDividendId:"", editingHoldingKey:"", taxonomyType:"expense", editingCategory:"", editingItem:null, viewingBillId:"", viewingStatementId:"", calendarMonth:FinanceCore.monthOf(), selectedDate:FinanceCore.localDate(), taxYear:String(new Date().getFullYear()), importPreview:null, storageRevisions:[], cloudVersions:[], filters:{ month:FinanceCore.monthOf(), type:"all", category:"all", account:"all", query:"" }, lookup:{ query:"", type:"expense", account:"all", startDate:"", endDate:"" } };
     const recentAccountsKey = "tsubin-finance-recent-accounts-v1";
@@ -755,8 +898,13 @@
         if(button.dataset.domain===state.domain)button.setAttribute("aria-current","true");
         else button.removeAttribute("aria-current");
       });
-      secondaryNav.innerHTML=route.tabs.map(([id,label])=>`<button type="button" class="${id===state.tab?'active':''}" aria-current="${id===state.tab?'page':'false'}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||'circle'}"></i>${esc(label)}</button>`).join('');
-      requestAnimationFrame(()=>{if(!matchMedia('(max-width:760px)').matches)return;const active=secondaryNav.querySelector('.active');if(active)secondaryNav.scrollTo({left:Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
+      const tabButton = ([id,label], extra=false) => `<button type="button" class="${id===state.tab?'active':''}" aria-current="${id===state.tab?'page':'false'}" data-tab="${id}" ${extra?'data-mobile-extra':''}><i data-lucide="${tabIcons[state.domain]?.[id]||'circle'}" aria-hidden="true"></i>${esc(label)}</button>`;
+      const extraTabs = route.tabs.slice(3);
+      const extraActive = extraTabs.find(([id]) => id === state.tab);
+      secondaryNav.innerHTML = route.tabs.map((tab,index)=>tabButton(tab,index>=3)).join("") +
+        (extraTabs.length ? `<button type="button" class="mobile-more-toggle${extraActive?' active':''}" popovertarget="mobileIslandMore" aria-label="${extraActive?'更多島內功能，目前為'+esc(extraActive[1]):'更多島內功能'}">更多</button>` : "");
+      document.getElementById("mobileIslandMore").innerHTML = extraTabs.map(tab=>tabButton(tab)).join("");
+
 
     }
     const islandNames = {home:"拾光島",daily:"記帳島",accounts:"帳務島",investments:"投資島",analysis:"洞察島"};
@@ -777,6 +925,7 @@
     function quickEntryForm(compact = false, row = null) {
       const draft=!row?readQuickDraft():null,type=row?.type==="income"?"income":draft?.type==="income"?"income":"expense",categories=categoriesForType(type),category=row?.category||draft?.category||categories[0]||"未分類",items=itemsForCategory(type,category,row?.item||draft?.item||""),templates=current.ledger.templates||[],selectedAccount=row?.account||draft?.account||current.ledger.accounts[0]?.name||"",selectedAccountRow=current.ledger.accounts.find(account=>account.name===selectedAccount),accountCurrency=selectedAccountRow?.currency||"TWD",accountFx=Number(FinanceCore.fxRate(current.assets,accountCurrency)||0),creditAccount=selectedAccountRow?.type==="信用卡";
       return `<form id="quickEntryForm" class="${compact ? "" : "panel quick-entry-page"}">
+        ${compact ? "" : `<h3 class="desktop-quick-form-title">${row?"編輯交易":"新增交易"}</h3>`}
         <input type="hidden" name="id" value="${esc(row?.id || "")}">
         ${!row&&draft&&!draft.continuing?`<div class="quick-draft-note"><small>已接續上次輸入，儲存後會自動清除草稿。</small><button class="action-btn" type="button" data-clear-draft>清除草稿</button></div>`:""}
         ${!row&&templates.length?`<div class="template-strip"><span class="template-strip-label">常用範本</span>${templates.map(template=>`<span class="template-chip"><button type="button" data-use-template="${esc(template.id)}">${esc(template.name)}</button><button type="button" data-delete-template="${esc(template.id)}" aria-label="刪除 ${esc(template.name)} 範本">×</button></span>`).join("")}</div>`:""}
@@ -784,9 +933,9 @@
         <div class="form-grid">
           <label class="quick-field-amount">交易金額<input name="amount" type="number" min="0" step="0.01" inputmode="decimal" required placeholder="0" value="${esc(row?.transactionAmount ?? row?.amount ?? draft?.amount ?? "")}"></label>
           <label class="quick-field-date">日期<input name="date" type="date" value="${esc(row?.date || draft?.date || FinanceCore.localDate())}" required></label>
+          <label class="quick-field-account">帳戶<select name="account">${accountOptions(selectedAccount)}</select></label>
           <label class="quick-field-category">分類<select name="category" data-entry-category>${categories.map(item => option(item,item,category)).join("")}</select></label>
           <label class="quick-field-item">項目<select name="item" data-entry-item>${option("","未指定",row?.item||draft?.item||"")}${items.map(item=>option(item,item,row?.item||draft?.item||"")).join("")}</select></label>
-          <label class="quick-field-account">帳戶<select name="account">${accountOptions(selectedAccount)}</select></label>
           <label class="quick-field-region" data-card-region ${creditAccount?"":"hidden"}>刷卡地區<select name="purchaseRegion" ${creditAccount?"":"disabled"}>${option("domestic","國內刷卡",row?.purchaseRegion||"domestic")}${option("foreign","國外刷卡（自動加 1.5% 手續費）",row?.purchaseRegion)}</select></label>
           <label class="quick-field-merchant">商家／來源<input name="merchant" placeholder="例如：早餐店" value="${esc(row?.merchant || draft?.merchant || "")}"></label>
           <div class="exchange-note" data-account-currency-note>交易幣別依帳戶自動使用：${accountCurrency==="TWD"?"台幣 TWD":accountCurrency==="USD"?"美元 USD":esc(accountCurrency)}${accountCurrency!=="TWD"?`｜1 ${esc(accountCurrency)} ≈ NT$ ${accountFx.toFixed(3)}`:""}</div>
@@ -971,7 +1120,7 @@
       const m=current.month;
       const titles={quick:"快速記帳",lookup:"查帳",calendar:"月份行事曆",records:"收支明細",taxonomy:"分類與項目",budgets:"分類預算",recurring:"固定收支",closeout:"月結"};
       const head=pageHeading("Daily Ledger",titles[state.tab]||"日常記帳","選擇金額、分類與帳戶，儲存後立即更新帳本。");
-      if(state.tab==="quick") return `${head}<div class="two-col grid quick-entry-layout"><section>${quickEntryForm(false)}</section><section class="grid quick-entry-side"><div class="three-col grid">${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}</div><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>只顯示已入帳項目；未來收支請至月份行事曆查看</p></div></div>${eventRows(current.events.filter(row=>!row.pending&&["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
+      if(state.tab==="quick") return `${head}<div class="three-col grid desktop-quick-summary">${metric("本月結餘",money(m.balance),"收入－一般支出","tone-teal")}${metric("本月收入",money(m.income),"含股息收入","tone-green")}${metric("本月支出",money(m.expense),"不含投資買入","tone-coral")}</div><div class="two-col grid quick-entry-layout"><section>${quickEntryForm(false)}</section><section class="grid quick-entry-side"><section class="panel"><div class="panel-head"><div><h3>最近紀錄</h3><p>只顯示已入帳項目；未來收支請至月份行事曆查看</p></div></div>${eventRows(current.events.filter(row=>!row.pending&&["income","expense","dividend"].includes(row.kind)).slice(0,8))}</section></section></div>`;
       if(state.tab==="lookup") return renderLedgerLookup(head);
       if(state.tab==="statistics") return renderDailyStatistics(pageHeading('Daily Ledger','收支統計','依月份查看每個分類的金額與占比。'));
       if(state.tab==="calendar") return renderDailyCalendar(head);
@@ -1118,7 +1267,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     function renderInvestmentsNative() {
       if(["review","history","journal","exposure","health"].includes(state.tab)) return pageHeading("Investment Workspace",({review:"資料核對",history:"投資歷史",journal:"決策日誌",exposure:"產業與 ETF 分析",health:"服務與備份"})[state.tab],({review:"先處理資料缺漏，再確認修正內容。",history:"追蹤每日估值與資金變動。",journal:"留下當時想法，累積可回顧的決策紀錄。",exposure:"從產業與共同持股檢視投資集中度。",health:"確認服務連線與備份狀態。"})[state.tab]);
       const a=current.assetsSummary,titles={portfolio:"資產配置",holdings:"持有部位",trades:"投資交易",dividends:"股息收入"},head=pageHeading("Investment Portfolio",titles[state.tab]||"投資資產","持倉、買賣與股息均直接連動統一帳戶與現金流。");
-      if(state.tab==="portfolio") return `${head}${marketPanel()}<div class="four-col grid">${metric("投資資產",money(a.investment),"依最新股價與匯率計算","tone-blue")}${metric("現金資產",money(a.cash),"整合記帳帳戶與外幣匯率","tone-green")}${metric("總資產",money(a.totalAssets),"尚未扣除負債","tone-teal")}${metric("負債",money(a.liabilities),"信用卡與待繳款","tone-purple")}</div>${portfolioHoldingsAllocation()}<div class="two-col grid" style="margin-top:16px"><section class="panel"><div class="panel-head"><div><h3>目前配置</h3><p>依持倉市值與帳戶餘額計算</p></div><button class="action-btn green" data-create-snapshot>建立今日快照</button></div><div class="allocation-list">${allocationRows()}</div></section><section class="panel"><div class="panel-head"><div><h3>配置提醒</h3><p>集中度與安全水位</p></div></div>${alertList(current.alerts.filter(row=>/配置|集中|現金/.test(row.title)))}</section></div>`;
+      if(state.tab==="portfolio") return `${head}<section class="portfolio-summary"><h3 class="mobile-portfolio-title">資產摘要</h3><div class="four-col grid island-summary-metrics">${metric("總資產",money(a.totalAssets),"尚未扣除負債","tone-teal")}${metric("投資資產",money(a.investment),"依最新股價與匯率計算","tone-blue")}${metric("現金資產",money(a.cash),"整合記帳帳戶與外幣匯率","tone-green")}${metric("負債",money(a.liabilities),"信用卡與待繳款","tone-purple")}</div></section><div class="portfolio-overview grid">${marketPanel()}${portfolioHoldingsAllocation()}</div><div class="two-col grid" style="margin-top:16px"><section class="panel"><div class="panel-head"><div><h3>目前配置</h3><p>依持倉市值與帳戶餘額計算</p></div><button class="action-btn green" data-create-snapshot>建立今日快照</button></div><div class="allocation-list">${allocationRows()}</div></section><section class="panel"><div class="panel-head"><div><h3>配置提醒</h3><p>集中度與安全水位</p></div></div>${alertList(current.alerts.filter(row=>/配置|集中|現金/.test(row.title)))}</section></div>`;
       if(state.tab==="holdings") return renderUnifiedHoldings(head);
       if(state.tab==="trades") return renderTradeManager(head);
       const rows=[...(current.assets.dividends||[])].sort((x,y)=>String(y.date).localeCompare(String(x.date))),edit=rows.find(row=>row.id===ui.editingDividendId);
@@ -1159,7 +1308,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     function attributionPanel() { return FinanceIntelligenceUI.attribution(current); }
     function renderAnalysis() {
       const titles={trends:"資產趨勢",forecast:"財務預測",spending:"支出分析",planning:"目標與年度計畫",tax:"稅務與投資基準",audit:"資料稽核",events:"統一財務事件",data:"資料管理"},head=pageHeading("Financial Intelligence",titles[state.tab]||"分析與報表","查看資產走勢、現金流與需要處理的財務事項。");
-      if(state.tab==="trends") return `${head}<div class="four-col grid">${metric("目前淨資產",money(current.assetsSummary.netWorth),"資產－負債","tone-blue")}${metric("本月現金流",money(current.month.balance),"收入－一般支出",current.month.balance>=0?"tone-green":"tone-coral")}${metric("平均月支出",money(current.averageMonthlyExpense),"最近有資料的 3 個月","tone-amber")}${metric("現金安全月數",current.averageMonthlyExpense?`${(current.assetsSummary.cash/current.averageMonthlyExpense).toFixed(1)} 個月`:"待設定","建議至少 6 個月","tone-teal")}</div>${FinanceCharts.render(current,"trends")}<div style="margin-top:16px">${healthPanel()}</div><section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>診斷與建議</h3><p>由預算、帳單、安全水位與配置自動產生</p></div></div>${alertList(current.alerts)}</section>`;
+      if(state.tab==="trends") return `${head}<div class="four-col grid island-summary-metrics">${metric("目前淨資產",money(current.assetsSummary.netWorth),"資產－負債","tone-blue")}${metric("本月現金流",money(current.month.balance),"收入－一般支出",current.month.balance>=0?"tone-green":"tone-coral")}${metric("平均月支出",money(current.averageMonthlyExpense),"最近有資料的 3 個月","tone-amber")}${metric("現金安全月數",current.averageMonthlyExpense?`${(current.assetsSummary.cash/current.averageMonthlyExpense).toFixed(1)} 個月`:"待設定","建議至少 6 個月","tone-teal")}</div>${FinanceCharts.render(current,"trends")}<div style="margin-top:16px">${healthPanel()}</div><section class="panel" style="margin-top:16px"><div class="panel-head"><div><h3>診斷與建議</h3><p>由預算、帳單、安全水位與配置自動產生</p></div></div>${alertList(current.alerts)}</section>`;
       if(state.tab==="forecast") return forecastPanel(head);
       if(state.tab==="spending") { const f=FinanceCharts.filters(),m=FinanceCharts.model(current,f),selected=m.months.at(-1),fixed=current.forecast?.fixedMonthlyExpense||0;return `${head}<div class="four-col grid" style="margin-bottom:16px">${metric(`${f.month} 收入`,money(selected.income),"含已記錄股息","tone-green")}${metric(`${f.month} 支出`,money(selected.expense),"排除轉帳、投資及盤點調整","tone-coral")}${metric(`${f.month} 結餘`,money(selected.balance),"收入－一般支出",selected.balance>=0?"tone-green":"tone-coral")}${metric("收支結餘率",selected.income>0?pct(selected.balance/selected.income*100):"無法計算","結餘／收入；不代表投資報酬","tone-blue")}</div>${FinanceCharts.render(current,"spending",m)}<p class="fc-footnote">目前固定月支出預估 ${money(fixed)}；占目前平均月支出 ${current.averageMonthlyExpense?pct(fixed/current.averageMonthlyExpense*100):'無法計算'}。此項依目前固定收支設定，不代表篩選月份的實際支出。</p>`; }
       if(state.tab==="planning") return renderPlanning(head)+goalFundingPanel();
@@ -1195,6 +1344,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       app.querySelectorAll("[data-check-bill-entry]").forEach(check=>{const bill=(current.ledger.creditBills||[]).find(row=>row.id===check.dataset.billId),row=check.closest("tr"),actions=row?.querySelector(".row-actions");if(!bill||!actions)return;const exclude=document.createElement("button");exclude.type="button";exclude.className="action-btn";exclude.dataset.excludeBillEntry=check.dataset.checkBillEntry;exclude.dataset.billId=bill.id;exclude.textContent="不列本期";actions.append(exclude)});
       app.querySelectorAll("[data-view-bill]").forEach(button=>{const bill=(current.ledger.creditBills||[]).find(row=>row.id===button.dataset.viewBill);if(!bill||button.getAttribute("aria-expanded")!=="true")return;const rows=creditBillEntries(bill),checked=rows.filter(row=>row.statementChecks?.[bill.id]),checkedAmount=sumCurrencyAmounts(checked,row=>(row.type==="income"?-1:1)*Number(row.amount||0)),difference=Math.round((Number(bill.amount||0)-checkedAmount)*100)/100,detail=button.closest(".audit-record")?.querySelector(".audit-record-detail");if(!detail)return;const summary=document.createElement("div");summary.className="audit-detail-note";summary.innerHTML=`<strong>已勾選核對：</strong>${money(checkedAmount)}／帳單 ${money(bill.amount)}｜差額 <strong class="${Math.abs(difference)<1?"positive":"negative"}">${signed(difference)}</strong>（${checked.length}/${rows.length} 筆）`;detail.querySelector(".audit-detail-heading")?.before(summary)});
       document.querySelectorAll(".primary-nav [data-domain],.mobile-nav [data-domain]").forEach(node=>node.classList.toggle("active",node.dataset.domain===state.domain));
+      decorateActionIcons();
       if(window.lucide) lucide.createIcons();
     }
     function formValues(form) { return Object.fromEntries(new FormData(form).entries()); }
@@ -1371,7 +1521,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     async function publicConfig(){const fallback={supabaseUrl:window.SUPABASE_URL||window.PUBLIC_CONFIG?.supabaseUrl||window.APP_CONFIG?.supabaseUrl||"",supabaseAnonKey:window.SUPABASE_ANON_KEY||window.PUBLIC_CONFIG?.supabaseAnonKey||window.APP_CONFIG?.supabaseAnonKey||""};if(!location.protocol.startsWith("http"))return fallback;try{const response=await fetch(`/api/public-config?ts=${Date.now()}`,{cache:"no-store"});if(!response.ok)return fallback;const config=await response.json();return{supabaseUrl:fallback.supabaseUrl||config.supabaseUrl||config.SUPABASE_URL||"",supabaseAnonKey:fallback.supabaseAnonKey||config.supabaseAnonKey||config.SUPABASE_ANON_KEY||""}}catch{return fallback}}
     function cloudRedirectUrl(){if(!location.protocol.startsWith("http")||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return "https://assets-olive-ten.vercel.app/finance-center.html";return `${location.origin}${location.pathname}`}
     function cleanCloudAuthUrl(){if(hasCloudAuthCallback())history.replaceState(null,"",location.pathname)}
-    function updateCloudUi(message,stateName="offline") { const status=document.getElementById("cloudStatus");status.textContent=message;status.dataset.state=stateName;status.title=cloudUser?.email?`已登入：${cloudUser.email}｜點擊重新驗證`:stateName==="checking"?"正在驗證登入狀態":"目前未登入｜點擊重新檢查";status.setAttribute("aria-label",status.title);["cloudSave","cloudLoad","cloudLogout"].forEach(id=>document.getElementById(id).hidden=!cloudUser);const login=document.getElementById("cloudLogin");login.hidden=Boolean(cloudUser);login.disabled=!cloudReady&&!cloudUser; }
+    function updateCloudUi(message,stateName="offline") { const status=document.getElementById("cloudStatus");status.textContent=message;status.dataset.state=stateName;document.getElementById("sidebarSync").textContent=message;status.title=cloudUser?.email?`已登入：${cloudUser.email}｜點擊重新驗證`:stateName==="checking"?"正在驗證登入狀態":"目前未登入｜點擊重新檢查";status.setAttribute("aria-label",status.title);["cloudSave","cloudLoad","cloudLogout"].forEach(id=>document.getElementById(id).hidden=!cloudUser);const login=document.getElementById("cloudLogin");login.hidden=Boolean(cloudUser);login.disabled=!cloudReady&&!cloudUser; }
     function updateAuthenticatedSyncUi() { if(!cloudUser)return;const sync=FinanceSync.read();if(sync.phase==="syncing")updateCloudUi("↻ 同步中","checking");else if(sync.phase==="review")updateCloudUi("● 待確認差異","checking");else if(sync.phase==="error"){updateCloudUi("! 同步失敗","error");const status=document.getElementById("cloudStatus");status.title=(sync.lastError||"同步未完成")+"｜點擊重試同步";status.setAttribute("aria-label",status.title);}else if(sync.outbox.length)updateCloudUi(`● 待同步 ${sync.outbox.length}`,"checking");else updateCloudUi(sync.lastSyncedAt?"✓ 已同步":"✓ 已登入","online"); }
     function authCallbackError(){const query=new URLSearchParams(location.search),hash=new URLSearchParams(location.hash.replace(/^#/,""));return query.get("error_description")||hash.get("error_description")||query.get("error")||hash.get("error")||""}
     async function refreshCloudSession({notify=false,force=false}={}){if(!supabaseClient||!cloudReady)return false;const now=Date.now();if(!force&&now-lastCloudSessionCheck<4000)return Boolean(cloudUser);lastCloudSessionCheck=now;updateCloudUi("… 驗證登入中","checking");try{const callbackError=authCallbackError();if(callbackError)throw new Error(decodeURIComponent(callbackError.replace(/\+/g," ")));let {data,error}=await supabaseClient.auth.getSession();if(error)throw error;if(!data.session){const code=new URLSearchParams(location.search).get("code");if(code){const exchanged=await supabaseClient.auth.exchangeCodeForSession(code);if(exchanged.error)throw exchanged.error;data={session:exchanged.data.session}}}cloudUser=data.session?.user||null;if(cloudUser){try{const verified=await supabaseClient.auth.getUser();if(verified.data?.user)cloudUser=verified.data.user}catch{}cleanCloudAuthUrl();updateAuthenticatedSyncUi();if(notify)showToast(`已登入：${cloudUser.email||"Email 帳號"}`);return true}updateCloudUi("● 未登入","offline");if(notify)showToast("目前尚未登入，請重新寄送登入連結");return false}catch(error){const hadCallback=hasCloudAuthCallback();cloudUser=null;const detail=/verifier/i.test(error.message||"")?"請在寄出登入信的同一個瀏覽器開啟連結":error.message||"請重新寄送登入連結";updateCloudUi("! 登入驗證失敗","error");if(notify||hadCallback)showToast(`登入驗證失敗：${detail}`);if(hadCallback)cleanCloudAuthUrl();return false}}
