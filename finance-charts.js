@@ -1,7 +1,7 @@
 (function(){
  'use strict';
  const n=v=>Number.isFinite(Number(v))?Number(v):0,esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
- const money=v=>n(v).toLocaleString('zh-TW',{maximumFractionDigits:2}),colors=['#41664d','#527b70','#58718d','#9b682f','#756486','#7b7151','#456f7f'];
+ const money=v=>n(v).toLocaleString('zh-TW',{maximumFractionDigits:2}),allocationColors={tw:'#22634b',us:'#b75922',funds:'#7642a6',gold:'#9c7711',cash:'#295eac'};
  let host;
  function shiftMonth(month,offset){const [y,m]=month.split('-').map(Number),d=new Date(y,m-1+offset,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
  function filters(){const q=new URLSearchParams(location.search),value=q.get('chartMonth'),today=FinanceCore.monthOf();return {month:/^\d{4}-(0[1-9]|1[0-2])$/.test(value||'')&&value<=today?value:today,span:[3,6,12].includes(Number(q.get('chartSpan')))?Number(q.get('chartSpan')):6};}
@@ -16,7 +16,7 @@
   const categoryRows=[...categories].map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value),expense=expenses.reduce((s,r)=>s+n(r.twdAmount),0);
   const budgets=new Map();for(const b of bundle.ledger.budgets||[])budgets.set(b.category,(budgets.get(b.category)||0)+n(b.amount));
   const budgetRows=[...new Set([...budgets.keys(),...categories.keys()])].map(name=>({name,limit:budgets.has(name)?budgets.get(name):null,spent:categories.get(name)||0})).sort((a,b)=>(b.spent-(b.limit??Infinity))-(a.spent-(a.limit??Infinity))||b.spent-a.spent||a.name.localeCompare(b.name));
-  const summary=bundle.assetsSummary||core.assetSummary(bundle.ledger,bundle.assets),labels={cash:'現金',tw:'台股',us:'美股',funds:'基金',gold:'貴金屬'},allocation=Object.entries(summary.allocation).filter(([,value])=>value>0).map(([key,value],i)=>({key,name:labels[key]||key,value,color:colors[i%colors.length]}));
+  const summary=bundle.assetsSummary||core.assetSummary(bundle.ledger,bundle.assets),labels={cash:'現金',tw:'台股',us:'美股',funds:'基金',gold:'貴金屬'},allocation=Object.entries(summary.allocation).filter(([,value])=>value>0).map(([key,value])=>({key,name:labels[key]||key,value,color:allocationColors[key]}));
   const positions=bundle.stockPositions||core.stockPositionSummary(bundle.assets),holdings=[...positions.active,...positions.manualOnly].filter(r=>r.shares>0).map(r=>({...r,cost:holdingCost(r,bundle.assets)})).sort((a,b)=>b.value-a.value);
   const snapshots=snapshotRows(bundle.assets).filter(r=>r.date>=months[0].month+'-01'&&r.date.slice(0,7)<=month);
   return {month,span,months,expenses,categoryRows,expense,budgetRows,summary,allocation,holdings,snapshots};

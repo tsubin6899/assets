@@ -671,8 +671,8 @@
       .page .portfolio-overview>.portfolio-allocation{grid-column:1;grid-row:1}
       .page .portfolio-overview>.market-strip{grid-column:1;grid-row:2}
       .portfolio-allocation{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .page .portfolio-allocation :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"]) .fc-allocation{grid-template-columns:50% minmax(0,1fr)}
-      .page .portfolio-allocation :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"]) .fc-allocation>svg{width:100%;max-width:none}
+      .page :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"],[data-chart="allocation"]) .fc-allocation{grid-template-columns:50% minmax(0,1fr)}
+      .page :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"],[data-chart="allocation"]) .fc-allocation>svg{width:100%;max-width:none}
       .holding-list,.investment-trade-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
       :is(.holding-list,.investment-trade-list)>.empty{grid-column:1/-1}
       .page .holding-list>.holding-list-item{min-width:0;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -835,7 +835,7 @@
   <script src="investment-cards.js?v=20261002-cards4"></script>
   <script src="finance-experience.js?v=1"></script>
   <script src="finance-workflow.js?v=1"></script>
-  <script src="finance-charts.js?v=5"></script>
+  <script src="finance-charts.js?v=6"></script>
 
 
 
