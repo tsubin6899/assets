@@ -4,6 +4,8 @@ const result=spawnSync(process.execPath,[path.join(root,'tests/run-tests.cjs')],
 fs.mkdirSync(output,{recursive:true});
 // Explicit public assets only; tests, SQL, dependencies and server code stay out.
 for(const name of fs.readdirSync(root))if(/\.(html|js|json|webmanifest)$/.test(name)&&name!=='package.json')fs.copyFileSync(path.join(root,name),path.join(output,name));
+// Serve the same finance center directly at the root and the existing app URL.
+fs.copyFileSync(path.join(root,'finance-center.html'),path.join(output,'index.html'));
 fs.cpSync(path.join(root,'icons'),path.join(output,'icons'),{recursive:true});
 fs.copyFileSync(path.join(root,'shiguang-islands.jpg'),path.join(output,'shiguang-islands.jpg'));
 fs.cpSync(path.join(root,'island-art'),path.join(output,'island-art'),{recursive:true});

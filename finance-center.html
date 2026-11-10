@@ -778,7 +778,7 @@
     .desktop-trend-title{display:none}
     @media(min-width:761px){
       .page .island-page-heading{grid-template-columns:clamp(100px,13vw,175px) minmax(0,1fr)}
-      .island-page-heading>img{grid-column:1;grid-row:1;justify-self:center;background:#ffffff70;border-radius:50%}
+      .island-page-heading>img{grid-column:1;grid-row:1;justify-self:center;transform:translateY(-24px) scale(1.12);transform-origin:center}
       .island-page-heading>div:first-child{grid-column:2;grid-row:1}
     }
     @media(min-width:1024px){
@@ -1542,7 +1542,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     window.addEventListener("hashchange",readRoute);
     document.addEventListener("visibilitychange",()=>{if(document.hidden&&!state.privacy)setPrivacy(true,false);if(!document.hidden)refreshCloudSession({force:true})});
     async function publicConfig(){const fallback={supabaseUrl:window.SUPABASE_URL||window.PUBLIC_CONFIG?.supabaseUrl||window.APP_CONFIG?.supabaseUrl||"",supabaseAnonKey:window.SUPABASE_ANON_KEY||window.PUBLIC_CONFIG?.supabaseAnonKey||window.APP_CONFIG?.supabaseAnonKey||""};if(!location.protocol.startsWith("http"))return fallback;try{const response=await fetch(`/api/public-config?ts=${Date.now()}`,{cache:"no-store"});if(!response.ok)return fallback;const config=await response.json();return{supabaseUrl:fallback.supabaseUrl||config.supabaseUrl||config.SUPABASE_URL||"",supabaseAnonKey:fallback.supabaseAnonKey||config.supabaseAnonKey||config.SUPABASE_ANON_KEY||""}}catch{return fallback}}
-    function cloudRedirectUrl(){if(!location.protocol.startsWith("http")||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return "https://assets-olive-ten.vercel.app/finance-center.html";return `${location.origin}${location.pathname}`}
+    function cloudRedirectUrl(){if(!location.protocol.startsWith("http")||/^(localhost|127\.0\.0\.1)$/.test(location.hostname))return "https://assets-olive-ten.vercel.app/finance-center.html";const pathname=location.pathname;const callbackPath=pathname==="/"||pathname==="/index.html"?"/finance-center.html":pathname;return location.origin+callbackPath}
     function cleanCloudAuthUrl(){if(hasCloudAuthCallback())history.replaceState(null,"",location.pathname)}
     function updateCloudUi(message,stateName="offline") { const status=document.getElementById("cloudStatus");status.textContent=message;status.dataset.state=stateName;document.getElementById("sidebarSync").textContent=message;status.title=cloudUser?.email?`已登入：${cloudUser.email}｜點擊重新驗證`:stateName==="checking"?"正在驗證登入狀態":"目前未登入｜點擊重新檢查";status.setAttribute("aria-label",status.title);["cloudSave","cloudLoad","cloudLogout"].forEach(id=>document.getElementById(id).hidden=!cloudUser);const login=document.getElementById("cloudLogin");login.hidden=Boolean(cloudUser);login.disabled=!cloudReady&&!cloudUser; }
     function updateAuthenticatedSyncUi() { if(!cloudUser)return;const sync=FinanceSync.read();if(sync.phase==="syncing")updateCloudUi("↻ 同步中","checking");else if(sync.phase==="review")updateCloudUi("● 待確認差異","checking");else if(sync.phase==="error"){updateCloudUi("! 同步失敗","error");const status=document.getElementById("cloudStatus");status.title=(sync.lastError||"同步未完成")+"｜點擊重試同步";status.setAttribute("aria-label",status.title);}else if(sync.outbox.length)updateCloudUi(`● 待同步 ${sync.outbox.length}`,"checking");else updateCloudUi(sync.lastSyncedAt?"✓ 已同步":"✓ 已登入","online"); }
