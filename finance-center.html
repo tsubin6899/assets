@@ -660,13 +660,16 @@
       .page .portfolio-overview>.portfolio-allocation{grid-column:1;grid-row:1}
       .page .portfolio-overview>.market-strip{grid-column:1;grid-row:2}
       .portfolio-allocation{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .page .portfolio-allocation [data-chart="portfolio-holdings"] .fc-allocation{grid-template-columns:50% minmax(0,1fr)}
+      .page .portfolio-allocation [data-chart="portfolio-holdings"] .fc-allocation>svg{width:100%;max-width:none}
       .holding-list,.investment-trade-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
       :is(.holding-list,.investment-trade-list)>.empty{grid-column:1/-1}
       .page .holding-list>.holding-list-item{min-width:0;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
-      .page details>summary.holding-list-summary{grid-template-columns:58px minmax(0,1fr) 8px;gap:8px}
+      .page details>summary.holding-list-summary{grid-template-columns:33.333% minmax(0,1fr) 8px;gap:8px}
       .holding-list-summary .holding-list-value{grid-column:2;text-align:left}
       .holding-list-summary::after{grid-column:3;grid-row:1/3}
-      .holding-list .holding-weight{grid-row:1/3}
+      .holding-list .holding-weight{grid-row:1/3;width:100%;container-type:inline-size}
+      .holding-list .holding-weight>span{font-size:clamp(12px,18cqw,21px)}
       .holding-list .holding-position-card{padding:10px}
       .holding-list .holding-position-card .holding-primary{grid-template-columns:1fr}
       .investment-trade-list .trade-detail-card{flex-direction:column;align-items:stretch;height:100%;overflow-wrap:anywhere}
