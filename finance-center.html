@@ -263,6 +263,7 @@
         <span class="brand-mark"><i data-lucide="landmark"></i></span>
         <div><h1>個人財務中心 <span>┃ TSUBIN</span></h1><p>記帳、帳戶、投資、負債與分析，共用同一份財務資料。</p></div>
       </div>
+      <div class="desktop-breadcrumb" id="desktopBreadcrumb" aria-hidden="true"></div>
       <div class="header-actions">
         <span class="status-pill" id="cloudStatus" data-state="offline" role="status" aria-live="polite" tabindex="0" title="點擊重新檢查登入狀態">● 未登入</span>
         <button class="header-btn" id="globalSearch" type="button" title="搜尋全部財務資料" aria-label="搜尋全部財務資料"><i data-lucide="search"></i><span class="desktop-only">搜尋</span></button>
@@ -278,6 +279,10 @@
 <button class="action-btn" type="button" data-market-refresh>更新股價與匯率</button><button class="action-btn" type="button" data-go="analysis/data">資料管理與匯入匯出</button><button class="action-btn" type="button" data-go="investments/health">服務與備份</button></div>
       </div>
     </div>
+  </header>
+  <aside class="desktop-sidebar">
+    <div class="sidebar-brand"><h1>個人財務中心</h1><small>TSUBIN / FINANCE</small></div>
+    <div class="sidebar-caption">五島導覽</div>
     <nav class="primary-nav" aria-label="主要功能">
       <button type="button" data-domain="home"><img src="island-art/home.png" alt="">拾光島</button>
       <button type="button" data-domain="daily"><img src="island-art/daily.png" alt="">記帳島</button>
@@ -285,8 +290,9 @@
       <button type="button" data-domain="investments"><img src="island-art/investments.png" alt="">投資島</button>
       <button type="button" data-domain="analysis"><img src="island-art/analysis.png" alt="">洞察島</button>
     </nav>
-  </header>
-  <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
+    <div class="sidebar-caption" id="sidebarTools">分頁工具</div>
+    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
+  </aside>
   <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
   <main class="page" id="app" tabindex="-1"></main>
   <nav class="mobile-nav" aria-label="手機主要功能">
@@ -602,6 +608,60 @@
       .page{padding-bottom:calc(148px + env(safe-area-inset-bottom))}
       body.compact-entry-viewport .secondary-nav{display:none!important}
     }
+    .sidebar-brand,.sidebar-caption,.desktop-breadcrumb{display:none}
+    .desktop-sidebar{display:contents}
+    @media(min-width:1024px){
+      body{--desktop-rail:clamp(210px,16.75vw,268px);--desktop-gutter:clamp(24px,2.3vw,40px);padding-left:var(--desktop-rail)}
+      .desktop-sidebar{display:block;position:fixed;inset:0 auto 0 0;width:var(--desktop-rail);overflow-y:auto;z-index:105;padding:28px 19px;color:#f6faf7;background:#1d392e}
+      .sidebar-brand{display:grid;gap:5px;padding:0 9px 20px}
+      .sidebar-brand h1{margin:0;font-size:24px}
+      .sidebar-brand small,.sidebar-caption{color:#b9cfc2;font-weight:700}
+      .sidebar-caption{display:block;margin:0 8px 8px;padding-top:18px;border-top:1px solid #4a6558;font-size:14px}
+      .desktop-sidebar .primary-nav,.desktop-sidebar .secondary-track{display:grid;align-items:start;gap:4px;width:100%;margin:0;padding:0;border:0;background:none}
+      .desktop-sidebar .primary-nav{margin-bottom:24px;overflow:visible}
+      .desktop-sidebar .secondary-nav{position:static;border:0;background:none;backdrop-filter:none}
+      .desktop-sidebar :is(.primary-nav,.secondary-track) button{justify-content:flex-start;min-width:0;min-height:44px;padding:8px 16px;border:0;border-radius:11px;background:transparent;color:#f1f7f3;font-size:15px;font-weight:650;white-space:normal;text-align:left}
+      .desktop-sidebar .primary-nav button img{width:23px;height:23px}
+      .desktop-sidebar .secondary-track button :is(i,svg){display:none}
+      .desktop-sidebar :is(.primary-nav,.secondary-track) button:hover,.desktop-sidebar .primary-nav button.active{background:#3a604e;color:#fff}
+      .desktop-sidebar .secondary-track[data-section] button.active{background:#dcece0;color:#1d392e}
+      .desktop-sidebar button:focus-visible{outline:2px solid #b8dfc4;outline-offset:-3px}
+      .app-header{background:#fff;color:#1d392e;box-shadow:none;border-bottom:1px solid #e4ebe2}
+      .app-header .brand{display:none}
+      .app-header .brand-row{width:calc(100% - 2 * var(--desktop-gutter));min-height:79px;flex-wrap:nowrap}
+      .desktop-breadcrumb{display:block;color:#315e49;font-size:17px;font-weight:800}
+      .app-header .header-actions>.header-btn,.app-header .header-actions>.status-pill[data-state="offline"]{background:#f5f8f4;color:#315e49;border-color:#d2dfd4}
+      .app-header .header-actions>.status-pill[data-state="online"]{background:#e2eee4;color:#244b37;border-color:#d2dfd4;box-shadow:none}
+      .app-header .header-actions>.header-btn:hover{background:#e2eee4}
+      .page{width:calc(100% - 2 * var(--desktop-gutter));max-width:1500px;padding-top:22px}
+      .workflow-feedback{width:calc(100% - 2 * var(--desktop-gutter));max-width:1500px}
+      .page .island-page-heading{grid-template-columns:minmax(0,1fr) clamp(160px,18vw,270px);padding:18px clamp(22px,3vw,40px);border:0;border-radius:28px;margin-bottom:24px}
+      .island-page-heading h2{font-size:clamp(32px,3.6vw,56px)}
+      .page .island-page-heading p{font-size:clamp(15px,1.35vw,21px);max-width:48ch}
+      .island-page-heading>img{max-width:224px;justify-self:center}
+      .account-section-title{font-size:clamp(22px,2vw,28px);margin-bottom:12px}
+      .account-summary{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+      .account-summary .metric-card:first-child,.account-summary .metric-card:last-child{grid-column:auto}
+      .account-summary .metric-card:last-child{background:#fff}
+      .account-summary .metric-card strong,.account-summary .metric-card:first-child strong{font-size:clamp(16px,1.9vw,30px);overflow-wrap:anywhere}
+      #account-details-title{margin-top:12px}
+      [aria-labelledby="account-details-title"]>.grid,.account-group>.grid{grid-template-columns:minmax(0,1fr)}
+      .page .account-group{padding:18px 22px;background:#fff;border:1px solid #d4e1d6;border-radius:20px}
+      .account-group-head{margin-bottom:10px}
+      .page .account-group .account-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(105px,.65fr) auto;align-items:center;gap:8px 16px;padding:16px 0 0;background:none;border:0;border-top:1px solid #d4e1d6;border-radius:0;box-shadow:none}
+      .account-card .account-title>.status-chip,.account-card .account-title .account-icon{display:none}
+      .account-card .account-balance .status-chip{display:inline-flex}
+      .account-card .account-balance .balance{margin-top:3px}
+      .account-card .row-actions{justify-content:flex-end;margin:0}
+      .account-card>:not(.account-title,.account-balance,.row-actions){grid-column:1/-1}
+      .account-card>details{margin:0}
+    }
+    @media(max-width:1023px){.account-balance>.status-chip{display:none}}
+    @media(min-width:1024px) and (max-width:1199px){
+      .account-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .page .account-group .account-card{grid-template-columns:minmax(0,1fr) auto}
+      .account-card .row-actions{grid-column:1/-1;justify-content:flex-start}
+    }
   </style>
   <script>
     const app = document.getElementById("app");
@@ -681,6 +741,14 @@
     function renderSecondary() {
       const route = routes[state.domain];
       secondaryNav.dataset.section = state.domain;
+      const island = islandNames[state.domain];
+      const tabLabel = route.tabs.find(([id]) => id === state.tab)?.[1];
+      document.getElementById("desktopBreadcrumb").textContent = [island,tabLabel].filter(Boolean).join(" / ");
+      document.getElementById("sidebarTools").textContent = ({home:"首頁",daily:"記帳",accounts:"帳務",investments:"投資",analysis:"洞察"})[state.domain]+"工具";
+      document.querySelectorAll(".primary-nav [data-domain],.mobile-nav [data-domain]").forEach(button=>{
+        if(button.dataset.domain===state.domain)button.setAttribute("aria-current","true");
+        else button.removeAttribute("aria-current");
+      });
       secondaryNav.innerHTML=route.tabs.map(([id,label])=>`<button type="button" class="${id===state.tab?'active':''}" aria-current="${id===state.tab?'page':'false'}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||'circle'}"></i>${esc(label)}</button>`).join('');
       requestAnimationFrame(()=>{if(!matchMedia('(max-width:760px)').matches)return;const active=secondaryNav.querySelector('.active');if(active)secondaryNav.scrollTo({left:Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
 
@@ -920,7 +988,7 @@
       const accountMap=new Map((current.ledger.accounts||[]).map(row=>[row.id,row]));
       const rows=[...current.assetsSummary.accounts].map(row=>({...row,archived:Boolean(accountMap.get(row.id)?.archived)})).sort((a,b)=>Number(a.archived)-Number(b.archived)||(()=>{const aRank=accountTypeOrder.includes(a.type)?accountTypeOrder.indexOf(a.type):accountTypeOrder.length,bRank=accountTypeOrder.includes(b.type)?accountTypeOrder.indexOf(b.type):accountTypeOrder.length;return aRank-bRank||String(a.type||"").localeCompare(String(b.type||""),"zh-TW")||String(a.name||"").localeCompare(String(b.name||""),"zh-TW")})());
       const types=[...new Set(rows.map(row=>row.type||"其他"))];
-      return types.map(type=>{const groupRows=rows.filter(row=>(row.type||"其他")===type),groupVisual=accountVisual(type),cards=groupRows.map(row=>{const visual=accountVisual(row.type),isCredit=row.type==="信用卡",currency=row.currency||"TWD",rawBalance=Number(row.balance)||0,pendingSettlement=!isCredit&&(row.pendingBuy>0||row.pendingSell>0),displayBalance=isCredit?Math.max(0,rawBalance):(pendingSettlement?row.settlementBalance:row.balance),rate=FinanceCore.fxRate(current.assets,currency),foreign=currency!=="TWD",prepaid=isCredit&&rawBalance<0;return `<article class="account-card ${visual.cls} ${row.archived?"archived":""}"><div class="account-title"><div class="account-identity"><span class="account-icon"><i data-lucide="${visual.icon}"></i></span><div><h3>${esc(row.name)}</h3><p>${esc(row.type)}｜${esc(currency)}</p></div></div><span class="status-chip">${row.archived?"僅供歷史查詢":isCredit?(prepaid?"預繳餘額":"待繳金額"):(pendingSettlement?"交割前帳戶餘額":rawBalance<0?"帳本餘額待核對":"帳本餘額")}</span></div><span class="balance money-value ${isCredit&&!prepaid?"negative":""}">${money(displayBalance,currency)}</span>${prepaid?`<small class="positive">預繳 ${money(Math.abs(rawBalance),currency)}，不列入負債</small>`:""}${pendingSettlement?`<p class="muted">待交割扣款：${money(row.pendingBuy,currency)}<br>待交割入款：${money(row.pendingSell,currency)}<br><strong>預留後可用：${money(row.availableBalance,currency)}</strong></p><small>依已標記待交割交易推算；完成扣／入款後，請在交易紀錄確認已交割。</small>`:""}${accountBalanceDetail(row)}${foreign?`<small>1 ${esc(currency)} ≈ NT$ ${Number(rate).toFixed(3)}｜折合約 ${money(Math.abs(Number(row.twdBalance)||0))}</small>`:""}<div class="row-actions"><button class="action-btn" data-edit-account="${esc(row.id)}">編輯帳戶</button><button class="action-btn ${row.archived?"green":""}" data-archive-account="${esc(row.id)}" data-archived="${row.archived?"1":"0"}">${row.archived?"恢復使用":"封存帳戶"}</button></div></article>`}).join("");return `<section class="account-group ${groupVisual.cls}"><div class="account-group-head"><div class="account-identity"><span class="account-icon"><i data-lucide="${groupVisual.icon}"></i></span><div><strong>${esc(type)}</strong><small>${groupRows.filter(row=>!row.archived).length} 個使用中｜${groupRows.filter(row=>row.archived).length} 個封存</small></div></div><span class="status-chip">同類集中顯示</span></div><div class="three-col grid">${cards}</div></section>`}).join("");
+      return types.map(type=>{const groupRows=rows.filter(row=>(row.type||"其他")===type),groupVisual=accountVisual(type),cards=groupRows.map(row=>{const visual=accountVisual(row.type),isCredit=row.type==="信用卡",currency=row.currency||"TWD",rawBalance=Number(row.balance)||0,pendingSettlement=!isCredit&&(row.pendingBuy>0||row.pendingSell>0),displayBalance=isCredit?Math.max(0,rawBalance):(pendingSettlement?row.settlementBalance:row.balance),rate=FinanceCore.fxRate(current.assets,currency),foreign=currency!=="TWD",prepaid=isCredit&&rawBalance<0;return `<article class="account-card ${visual.cls} ${row.archived?"archived":""}"><div class="account-title"><div class="account-identity"><span class="account-icon"><i data-lucide="${visual.icon}"></i></span><div><h3>${esc(row.name)}</h3><p>${esc(row.type)}｜${esc(currency)}</p></div></div><span class="status-chip">${row.archived?"僅供歷史查詢":isCredit?(prepaid?"預繳餘額":"待繳金額"):(pendingSettlement?"交割前帳戶餘額":rawBalance<0?"帳本餘額待核對":"帳本餘額")}</span></div><div class="account-balance"><span class="status-chip">${row.archived?"僅供歷史查詢":isCredit?(prepaid?"預繳餘額":"待繳金額"):(pendingSettlement?"交割前帳戶餘額":rawBalance<0?"帳本餘額待核對":"帳本餘額")}</span><span class="balance money-value ${isCredit&&!prepaid?"negative":""}">${money(displayBalance,currency)}</span></div><div class="row-actions"><button class="action-btn" data-edit-account="${esc(row.id)}">編輯帳戶</button><button class="action-btn ${row.archived?"green":""}" data-archive-account="${esc(row.id)}" data-archived="${row.archived?"1":"0"}">${row.archived?"恢復使用":"封存帳戶"}</button></div>${prepaid?`<small class="positive">預繳 ${money(Math.abs(rawBalance),currency)}，不列入負債</small>`:""}${pendingSettlement?`<p class="muted">待交割扣款：${money(row.pendingBuy,currency)}<br>待交割入款：${money(row.pendingSell,currency)}<br><strong>預留後可用：${money(row.availableBalance,currency)}</strong></p><small>依已標記待交割交易推算；完成扣／入款後，請在交易紀錄確認已交割。</small>`:""}${accountBalanceDetail(row)}${foreign?`<small>1 ${esc(currency)} ≈ NT$ ${Number(rate).toFixed(3)}｜折合約 ${money(Math.abs(Number(row.twdBalance)||0))}</small>`:""}</article>`}).join("");return `<section class="account-group ${groupVisual.cls}"><div class="account-group-head"><div class="account-identity"><span class="account-icon"><i data-lucide="${groupVisual.icon}"></i></span><div><strong>${esc(type)}</strong><small>${groupRows.filter(row=>!row.archived).length} 個使用中｜${groupRows.filter(row=>row.archived).length} 個封存</small></div></div><span class="status-chip">同類集中顯示</span></div><div class="three-col grid">${cards}</div></section>`}).join("");
     }
     function exchangeRateTable() { const rates={TWD:1,...(current.assets.fxRates||{})},meta=current.assets.fxRateMeta||current.assets.marketDataMeta||{};return `<section class="panel"><div class="panel-head"><div><h3>匯率換算表</h3><p>所有外幣帳戶與交易統一使用此換算基準</p></div><button class="action-btn blue" type="button" data-market-refresh><i data-lucide="refresh-cw"></i>更新匯率</button></div><div class="table-wrap"><table><thead><tr><th>幣別</th><th>1 單位約等於台幣</th><th>台幣 1,000 元約可兌換</th><th>資料時間</th></tr></thead><tbody>${Object.entries(rates).sort(([a],[b])=>a==="TWD"?-1:b==="TWD"?1:a.localeCompare(b)).map(([currency,rate])=>`<tr><td data-label="幣別"><strong>${esc(currency)}</strong></td><td data-label="台幣匯率" class="money-value">NT$ ${Number(rate||1).toFixed(currency==="TWD"?0:3)}</td><td data-label="可兌換" class="money-value">${esc(currency)} ${(1000/Number(rate||1)).toLocaleString("zh-TW",{maximumFractionDigits:2})}</td><td data-label="資料時間">${esc(dateTime(meta.generatedAt||meta.rateGeneratedAt)||"本機設定")}</td></tr>`).join("")}</tbody></table></div></section>`; }
     function renderAccounts() {
