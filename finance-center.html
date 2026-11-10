@@ -242,7 +242,7 @@
     .island-summary dd{margin:2px 0 0;font-size:clamp(1rem,2.3vw,1.32rem);font-weight:800;overflow-wrap:anywhere}
     .island-summary dl div:first-child dd{font-size:clamp(1.5rem,3.3vw,2.55rem)}
     .island-entry.action-btn{background:#315a45;color:#fff;border-color:#315a45}
-    .island-map{position:relative;border-radius:18px;overflow:hidden;background:#c9ded3}
+    .island-map{position:relative;border-radius:18px;overflow:hidden}
     .island-map img{display:block;width:100%;height:auto}
     .island-stop{position:absolute;left:var(--x);top:var(--y);width:28%;height:36%;min-width:44px;min-height:44px;transform:translate(-50%,-50%);border:0;border-radius:22%;background:transparent;cursor:pointer}
     .island-stop:hover{background:#fff5}
@@ -462,7 +462,7 @@
     body:has(.page[data-section="accounts"]),:is(.primary-nav,.mobile-nav) [data-domain="accounts"]{--island-tint:#dbece0;--island-accent:#28583f}
     body:has(.page[data-section="investments"]),:is(.primary-nav,.mobile-nav) [data-domain="investments"]{--island-tint:#f5e6c8;--island-accent:#745019}
     body:has(.page[data-section="analysis"]),:is(.primary-nav,.mobile-nav) [data-domain="analysis"]{--island-tint:#f8e1dc;--island-accent:#853d39}
-    .page .island-overview{background:var(--island-tint,#d9eaf9)}
+    .page .island-overview{background:#c9ded3}
     .island-overview .island-entry{background:var(--island-accent,#24557e);color:#fff;border-color:transparent}
     .page .island-page-heading{
       display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:center;
@@ -604,8 +604,6 @@
       .app-header .header-actions>.header-btn:not(.market) .desktop-only{display:inline;font-size:11px}
       .app-header .header-actions>.header-btn:not(.market) :is(i,svg){display:none}
       .app-header .header-actions>.status-pill{min-width:0;max-width:96px;min-height:0;padding:5px 9px;display:block;overflow:hidden;text-overflow:ellipsis;line-height:18px;box-shadow:none}
-      .page .island-overview{background:#c9ded3}
-      .page .island-map{background:transparent}
       .page .portfolio-allocation .fc-allocation{gap:6px}
       .page .portfolio-allocation .fc-allocation>svg{width:min(100%,184px);max-width:none;height:auto}
       .page .portfolio-allocation .fc-donut-count tspan{font-size:11px}
@@ -687,6 +685,9 @@
       .page .portfolio-overview>.portfolio-allocation{grid-column:1;grid-row:1}
       .page .portfolio-overview>.market-strip{grid-column:1;grid-row:2}
       .portfolio-allocation{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .portfolio-allocation .fc-donut-title{font-size:12px}
+      .portfolio-allocation .fc-donut-count{transform:translateY(-5px)}
+      .portfolio-allocation .fc-donut-count tspan{font-size:10.5px}
       .page :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"],[data-chart="allocation"]) .fc-allocation{grid-template-columns:50% minmax(0,1fr)}
       .page :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"],[data-chart="allocation"]) .fc-allocation>svg{width:100%;max-width:none}
       .holding-list,.investment-trade-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
