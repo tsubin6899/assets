@@ -586,6 +586,15 @@
       .page .account-group .account-card{grid-template-columns:minmax(0,1fr) auto}
       .account-card .row-actions{grid-column:1/-1;justify-content:flex-start}
     }
+    @media(min-width:1024px){
+      .page[data-section="accounts"][data-view="accounts"] .account-group>.grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+      .page[data-section="accounts"][data-view="accounts"] .account-group .account-card{
+        display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:7px;
+        min-width:0;padding:12px;border:1px solid #d4e1d6;border-radius:12px;background:#f9fbf8;overflow-wrap:anywhere;
+      }
+      .page[data-section="accounts"][data-view="accounts"] .account-card .row-actions{justify-content:flex-start}
+      .page[data-section="accounts"][data-view="accounts"] .account-card .row-actions .action-btn{min-width:0;white-space:normal}
+    }
     .mobile-portfolio-title,.chart-filter-title{display:none}
     @media(max-width:760px){
       body{background:#f2f3ed}
