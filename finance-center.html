@@ -298,8 +298,7 @@
       <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg>洞察島</button>
     </nav>
     <div class="sidebar-caption" id="sidebarTools">分頁工具</div>
-    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="mobile-island-caption">島內功能</div><div class="secondary-track" id="secondaryNav"></div></nav>
-    <div id="mobileIslandMore" class="mobile-island-more" popover aria-label="更多島內功能"></div>
+    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
     <p class="sidebar-sync" id="sidebarSync" aria-hidden="true">未登入</p>
   </aside>
   <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
@@ -671,7 +670,7 @@
       .page .account-group .account-card{grid-template-columns:minmax(0,1fr) auto}
       .account-card .row-actions{grid-column:1/-1;justify-content:flex-start}
     }
-    .mobile-island-caption,.secondary-track .mobile-more-toggle,.mobile-portfolio-title,.mobile-island-more,.chart-filter-title{display:none}
+    .mobile-portfolio-title,.chart-filter-title{display:none}
     @media(max-width:760px){
       body{--mobile-island-accent:#315e49;--mobile-island-tint:#dcebe0;background:#f2f3ed}
       body:has(.mobile-nav [data-domain="daily"].active){--mobile-island-accent:#51417e;--mobile-island-tint:#ece6f7}
@@ -683,7 +682,7 @@
       .app-header .header-actions>.header-btn:not(.market) .desktop-only{display:inline;font-size:11px}
       .app-header .header-actions>.header-btn:not(.market) :is(i,svg){display:none}
       .app-header .header-actions>.status-pill{min-width:0;max-width:96px;display:block;overflow:hidden;text-overflow:ellipsis;line-height:21px}
-      .page{padding:12px 12px calc(174px + env(safe-area-inset-bottom))}
+      .page{padding:12px 12px calc(148px + env(safe-area-inset-bottom))}
       .page .island-page-heading{gap:10px;padding:12px 13px;border:0;border-radius:17px;background:var(--mobile-island-tint);margin-bottom:14px}
       .island-page-heading h2{font-size:clamp(23px,6vw,34px)}
       .page .island-page-heading p{font-size:12px;line-height:1.45}
@@ -722,17 +721,10 @@
       .account-card .account-balance .balance{margin:0;font-size:clamp(15px,4vw,22px);overflow-wrap:anywhere}
       .account-card>:not(.account-title,.account-balance){grid-column:1/-1}
       .secondary-nav{bottom:calc(74px + env(safe-area-inset-bottom))!important;padding:5px 12px 8px;border:0;background:#f2f3ed;backdrop-filter:none}
-      .mobile-island-caption{display:block;color:#4d6357;font-size:12px;font-weight:750;margin-bottom:4px}
-      .secondary-nav .secondary-track{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);align-items:stretch;gap:4px;min-height:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;overflow:visible;backdrop-filter:none}
-      .secondary-nav .secondary-track:has(.mobile-more-toggle){grid-template-columns:repeat(3,minmax(0,1fr)) 44px}
-      .secondary-nav .secondary-track button{min-width:0;min-height:44px;padding:3px 2px;gap:2px;font-size:clamp(9px,2.65vw,12px);border:1px solid #d6e1d7;border-radius:9px;color:#1d392e;background:#fff;box-shadow:none;white-space:normal;line-height:1.15}
+      .secondary-nav .secondary-track{display:flex;align-items:stretch;gap:6px;min-height:0;padding:2px;border:0;border-radius:0;background:none;box-shadow:none;overflow-x:auto;overflow-y:hidden;overscroll-behavior-inline:contain;backdrop-filter:none;scroll-padding-inline:2px}
+      .secondary-nav .secondary-track button{flex:0 0 auto;min-width:64px;min-height:44px;padding:6px 12px;gap:5px;font-size:13px;border:1px solid #d6e1d7;border-radius:9px;color:#1d392e;background:#fff;box-shadow:none;white-space:nowrap;line-height:1.15}
       .secondary-nav .secondary-track button svg{width:12px;height:12px;flex:0 0 12px}
-      .secondary-nav .secondary-track button.active,.mobile-island-more button.active{color:#fff;background:var(--mobile-island-accent);border-color:transparent}
-      .secondary-track button[data-mobile-extra]{display:none}
-      .secondary-track .mobile-more-toggle{display:inline-flex}
-      .mobile-island-more:popover-open{display:grid;gap:5px;position:fixed;inset:auto 12px calc(147px + env(safe-area-inset-bottom));margin:0;max-height:50dvh;overflow:auto;padding:8px;border:1px solid #d6e1d7;border-radius:12px;background:#fff;color:#1d392e}
-      .mobile-island-more button{display:flex;align-items:center;gap:8px;min-height:44px;border:1px solid #d6e1d7;border-radius:8px;padding:6px 10px;background:#fff;color:inherit;text-align:left}
-      .mobile-island-more svg{width:16px;height:16px}
+      .secondary-nav .secondary-track button.active{color:#fff;background:var(--mobile-island-accent);border-color:transparent}
       .mobile-nav{background:#fff;border-color:#d6e1d7;box-shadow:none}
       .mobile-nav button{color:#1d392e;font-size:11px;gap:4px}
       .mobile-nav button[data-domain].active{background:var(--mobile-island-tint)!important;color:#1d392e;box-shadow:none}
@@ -898,12 +890,11 @@
         if(button.dataset.domain===state.domain)button.setAttribute("aria-current","true");
         else button.removeAttribute("aria-current");
       });
-      const tabButton = ([id,label], extra=false) => `<button type="button" class="${id===state.tab?'active':''}" aria-current="${id===state.tab?'page':'false'}" data-tab="${id}" ${extra?'data-mobile-extra':''}><i data-lucide="${tabIcons[state.domain]?.[id]||'circle'}" aria-hidden="true"></i>${esc(label)}</button>`;
-      const extraTabs = route.tabs.slice(3);
-      const extraActive = extraTabs.find(([id]) => id === state.tab);
-      secondaryNav.innerHTML = route.tabs.map((tab,index)=>tabButton(tab,index>=3)).join("") +
-        (extraTabs.length ? `<button type="button" class="mobile-more-toggle${extraActive?' active':''}" popovertarget="mobileIslandMore" aria-label="${extraActive?'更多島內功能，目前為'+esc(extraActive[1]):'更多島內功能'}">更多</button>` : "");
-      document.getElementById("mobileIslandMore").innerHTML = extraTabs.map(tab=>tabButton(tab)).join("");
+      secondaryNav.innerHTML = route.tabs.map(([id,label]) => `<button type="button" class="${id===state.tab?'active':''}" aria-current="${id===state.tab?'page':'false'}" data-tab="${id}"><i data-lucide="${tabIcons[state.domain]?.[id]||'circle'}" aria-hidden="true"></i>${esc(label)}</button>`).join("");
+      if(matchMedia("(max-width:760px)").matches){
+        const active=secondaryNav.querySelector(".active");
+        if(active)secondaryNav.scrollLeft=active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2;
+      }
 
 
     }
