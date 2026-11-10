@@ -257,6 +257,13 @@
 </style>
 </head>
 <body>
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <symbol id="island-icon-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h14V10M10 21v-6h4v6"/></symbol>
+    <symbol id="island-icon-daily" viewBox="0 0 24 24"><rect x="6" y="3" width="14" height="18" rx="2"/><path d="M3 7h4M3 12h4m-4 5h4m2-14v18m3-13h5m-5 4h5"/></symbol>
+    <symbol id="island-icon-accounts" viewBox="0 0 24 24"><path d="M21 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2m0-6h-5a3 3 0 0 0 0 6h5Z"/></symbol>
+    <symbol id="island-icon-investments" viewBox="0 0 24 24"><path d="M3 3v18h18M8 16v-4m5 4V9m5 7V5"/></symbol>
+    <symbol id="island-icon-analysis" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 6 6"/></symbol>
+  </svg>
   <header class="app-header">
     <div class="brand-row">
       <div class="brand">
@@ -284,11 +291,11 @@
     <div class="sidebar-brand"><h1>個人財務中心</h1><small>TSUBIN / FINANCE</small></div>
     <div class="sidebar-caption">五島導覽</div>
     <nav class="primary-nav" aria-label="主要功能">
-      <button type="button" data-domain="home"><img src="island-art/home.png" alt="">拾光島</button>
-      <button type="button" data-domain="daily"><img src="island-art/daily.png" alt="">記帳島</button>
-      <button type="button" data-domain="accounts"><img src="island-art/accounts.png" alt="">帳務島</button>
-      <button type="button" data-domain="investments"><img src="island-art/investments.png" alt="">投資島</button>
-      <button type="button" data-domain="analysis"><img src="island-art/analysis.png" alt="">洞察島</button>
+      <button type="button" data-domain="home"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-home"></use></svg>拾光島</button>
+      <button type="button" data-domain="daily"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-daily"></use></svg>記帳島</button>
+      <button type="button" data-domain="accounts"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-accounts"></use></svg>帳務島</button>
+      <button type="button" data-domain="investments"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-investments"></use></svg>投資島</button>
+      <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg>洞察島</button>
     </nav>
     <div class="sidebar-caption" id="sidebarTools">分頁工具</div>
     <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
@@ -296,11 +303,11 @@
   <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
   <main class="page" id="app" tabindex="-1"></main>
   <nav class="mobile-nav" aria-label="手機主要功能">
-    <button type="button" data-domain="home"><img src="island-art/home.png" alt=""><span>拾光島</span></button>
-    <button type="button" data-domain="daily"><img src="island-art/daily.png" alt=""><span>記帳島</span></button>
-    <button type="button" data-domain="accounts"><img src="island-art/accounts.png" alt=""><span>帳務島</span></button>
-    <button type="button" data-domain="investments"><img src="island-art/investments.png" alt=""><span>投資島</span></button>
-    <button type="button" data-domain="analysis"><img src="island-art/analysis.png" alt=""><span>洞察島</span></button>
+    <button type="button" data-domain="home"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-home"></use></svg><span>拾光島</span></button>
+    <button type="button" data-domain="daily"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-daily"></use></svg><span>記帳島</span></button>
+    <button type="button" data-domain="accounts"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-accounts"></use></svg><span>帳務島</span></button>
+    <button type="button" data-domain="investments"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-investments"></use></svg><span>投資島</span></button>
+    <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg><span>洞察島</span></button>
   </nav>
   <input id="importFile" type="file" accept="application/json" hidden>
   <input id="importCsvFile" type="file" accept=".csv,text/csv" hidden>
@@ -550,7 +557,7 @@
     .island-page-heading>img{display:block;width:100%;max-width:220px;aspect-ratio:1;object-fit:contain;justify-self:end}
     .island-page-heading>img~*{grid-column:1/-1}
     .island-label{display:inline-block;margin-bottom:8px;padding:3px 10px;border-radius:999px;background:#f5faf5;color:#315c48;font-size:12px;font-weight:700}
-    .primary-nav img,.mobile-nav img{display:block;width:24px;height:24px;object-fit:contain}
+    :is(.primary-nav,.mobile-nav) .island-nav-icon{display:block;flex:none;width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
     .account-section-title{margin:0 0 10px;font-size:18px}
     .account-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
     .account-summary .metric-card{min-width:0;border-top-width:1px}
@@ -621,7 +628,6 @@
       .desktop-sidebar .primary-nav{margin-bottom:24px;overflow:visible}
       .desktop-sidebar .secondary-nav{position:static;border:0;background:none;backdrop-filter:none}
       .desktop-sidebar :is(.primary-nav,.secondary-track) button{justify-content:flex-start;min-width:0;min-height:44px;padding:8px 16px;border:0;border-radius:11px;background:transparent;color:#f1f7f3;font-size:15px;font-weight:650;white-space:normal;text-align:left}
-      .desktop-sidebar .primary-nav button img{width:23px;height:23px}
       .desktop-sidebar .secondary-track button :is(i,svg){display:none}
       .desktop-sidebar :is(.primary-nav,.secondary-track) button:hover,.desktop-sidebar .primary-nav button.active{background:#3a604e;color:#fff}
       .desktop-sidebar .secondary-track[data-section] button.active{background:#dcece0;color:#1d392e}
