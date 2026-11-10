@@ -5,6 +5,7 @@
  let host;
  function shiftMonth(month,offset){const [y,m]=month.split('-').map(Number),d=new Date(y,m-1+offset,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
  function filters(){const q=new URLSearchParams(location.search),value=q.get('chartMonth'),today=FinanceCore.monthOf();return {month:/^\d{4}-(0[1-9]|1[0-2])$/.test(value||'')&&value<=today?value:today,span:q.get('chartSpan')==='12'?12:6};}
+ const holdingCost=(row,assets)=>row.source==='trades'?n(row.twdBasis):Number(row.cost)>0?n(row.cost)*row.shares*FinanceCore.fxRate(assets,row.currency):null;
  function model(bundle,{month=FinanceCore.monthOf(),span=6}={}){
   const core=window.FinanceCore,today=core.localDate(),events=(bundle.assetsSummary&&bundle.events||core.buildEvents(bundle.ledger,bundle.assets)).filter(r=>!r.pending&&!r.isReconciliationAdjustment&&r.date<=today);
   const months=Array.from({length:span},(_,i)=>({month:shiftMonth(month,i-span+1),income:0,expense:0,count:0})),byMonth=new Map(months.map(r=>[r.month,r]));
@@ -16,7 +17,7 @@
   const budgets=new Map();for(const b of bundle.ledger.budgets||[])budgets.set(b.category,(budgets.get(b.category)||0)+n(b.amount));
   const budgetRows=[...new Set([...budgets.keys(),...categories.keys()])].map(name=>({name,limit:budgets.has(name)?budgets.get(name):null,spent:categories.get(name)||0})).sort((a,b)=>(b.spent-(b.limit??Infinity))-(a.spent-(a.limit??Infinity))||b.spent-a.spent||a.name.localeCompare(b.name));
   const summary=bundle.assetsSummary||core.assetSummary(bundle.ledger,bundle.assets),labels={cash:'現金',tw:'台股',us:'美股',funds:'基金',gold:'貴金屬'},allocation=Object.entries(summary.allocation).filter(([,value])=>value>0).map(([key,value],i)=>({key,name:labels[key]||key,value,color:colors[i%colors.length]}));
-  const positions=bundle.stockPositions||core.stockPositionSummary(bundle.assets),holdings=[...positions.active,...positions.manualOnly].filter(r=>r.shares>0).map(r=>({...r,cost:r.source==='trades'?n(r.twdBasis):Number(r.cost)>0?n(r.cost)*r.shares*core.fxRate(bundle.assets,r.currency):null})).sort((a,b)=>b.value-a.value);
+  const positions=bundle.stockPositions||core.stockPositionSummary(bundle.assets),holdings=[...positions.active,...positions.manualOnly].filter(r=>r.shares>0).map(r=>({...r,cost:holdingCost(r,bundle.assets)})).sort((a,b)=>b.value-a.value);
   const snapshots=new Map();for(const r of [...(bundle.assets.financialSnapshots||[]),...(bundle.assets.assetSnapshots||[])]){const value=Number(r.net??r.total);if(/^\d{4}-\d{2}-\d{2}$/.test(r.date)&&Number.isFinite(value)&&Number.isFinite(Date.parse(r.date+'T00:00:00Z'))&&r.date<=today&&r.date>=months[0].month+'-01'&&r.date.slice(0,7)<=month)snapshots.set(r.date,{date:r.date,value});}
   return {month,span,months,expenses,categoryRows,expense,budgetRows,summary,allocation,holdings,snapshots:[...snapshots.values()].sort((a,b)=>a.date.localeCompare(b.date))};
  }
@@ -42,7 +43,7 @@
   const body=`<figure class="snapshot-figure"><figcaption>${rows.length} 次紀錄｜${rows.length>1?'首末差額 <strong class="money-value">'+money(rows.at(-1).value-rows[0].value)+'</strong>':'尚無可比較的前期估值'}</figcaption><p class="fc-footnote">快照差額含資金進出，不代表投資報酬。虛線代表中間有未記錄日期，並非每日估值。</p><svg class="fc-svg" viewBox="0 0 600 235" role="img" aria-label="淨資產快照走勢，依實際日期間隔排列">${ticks}${lines}${rows.map((r,i)=>`<circle cx="${x(i)}" cy="${y(r.value)}" r="4" fill="#245fba"><title>${r.date}：${money(r.value)}</title></circle>`).join('')}<text x="80" y="222">${rows[0].date.slice(5)}</text><text x="580" y="222" text-anchor="end">${rows.length>1?rows.at(-1).date.slice(5):''}</text></svg><button class="action-btn" type="button" data-chart-table="snapshot" aria-expanded="false" aria-controls="fc-snapshot-data">查看日期與金額明細</button><div id="fc-snapshot-data" hidden>${table(['快照日期','淨資產（TWD）'],rows.map(r=>[esc(r.date),money(r.value)]))}</div></figure>`;
   return panel('networth','淨資產走勢',`${m.months[0].month}～${m.month}；合併已保存的財務估值與手動資產快照，同一天只列一次。`,body);
  }
- function allocationDonut(rows,label,unit){
+ function allocationDonut(rows,label,unit,centerAmount){
   const total=rows.reduce((sum,row)=>sum+row.value,0);
   if(!total)return empty('目前沒有正值可計算占比。');
   const circumference=2*Math.PI*72;
@@ -53,7 +54,7 @@
    offset+=length;
    return arc;
   }).join('');
-  return `<div class="fc-allocation"><svg viewBox="0 0 200 200" role="img" aria-label="${label}；各項金額與占比見旁側列表">${arcs}<text x="100" y="95" text-anchor="middle" class="fc-donut-title">${label}</text><text x="100" y="120" text-anchor="middle" class="fc-donut-count">${rows.length} ${unit}</text></svg><ul class="fc-allocation-list">${rows.map(r=>`<li><span><i style="background:${r.color}"></i>${esc(r.name)}</span><strong><span class="money-value">${money(r.value)}</span><small>${(r.value/total*100).toFixed(1)}%</small></strong></li>`).join('')}</ul></div>`;
+  return `<div class="fc-allocation"><svg viewBox="0 0 200 200" role="img" aria-label="${label}；各項金額與占比見旁側列表">${arcs}<text x="100" y="95" text-anchor="middle" class="fc-donut-title">${label}</text><text x="100" y="120" text-anchor="middle" class="fc-donut-count">${centerAmount===undefined?`${rows.length} ${unit}`:`<tspan class="money-value" font-size="14">${esc(centerAmount)}</tspan>`}</text></svg><ul class="fc-allocation-list">${rows.map(r=>`<li><span><i style="background:${r.color}"></i>${esc(r.name)}</span><strong><span class="money-value">${r.amount===undefined?money(r.value):signedTwd(r.amount)}</span><small>${(r.value/total*100).toFixed(1)}%</small></strong></li>`).join('')}</ul></div>`;
  }
  function allocation(m){
   const total=m.allocation.reduce((sum,row)=>sum+row.value,0);
@@ -62,15 +63,27 @@
  }
  const holdingColors=['#26714e','#c36d26','#3264ad','#8753a1','#b44659','#167d8b','#8b7325'];
  const holdingColor=index=>holdingColors[index]||'#646b74';
- function holdingsAllocation(positions){
+ const signedTwd=value=>`${value<0?'−':value>0?'+':''}NT$ ${money(Math.abs(value))}`;
+ function holdingsAllocation(positions,assets){
   const rows=positions.map((row,index)=>({
    name:[row.code,row.name].filter(Boolean).join(' ')||'未命名',
    value:Number(row.value),
-   color:holdingColor(index)
+   color:holdingColor(index),
+   cost:holdingCost(row,assets)
   }));
   const visible=rows.slice(0,7);
   if(rows.length>holdingColors.length)visible.push({name:'其他持倉',value:rows.slice(holdingColors.length).reduce((sum,row)=>sum+row.value,0),color:holdingColor(holdingColors.length)});
-  return panel('portfolio-holdings','持倉占比','按已估值的正值持倉計算，金額以新台幣顯示。',allocationDonut(visible,'持倉占比','組'));
+  const allocationTotal=rows.reduce((sum,row)=>sum+row.value,0);
+  const gains=rows.filter(row=>row.cost!==null).map(row=>{
+   const amount=row.value-row.cost;
+   return {...row,amount,value:Math.abs(amount)};
+  });
+  const net=gains.reduce((sum,row)=>sum+row.amount,0);
+  const missing=rows.length-gains.length;
+  const allocation=panel('portfolio-holdings','股票持倉占比','按目前持倉的正值市值計算，金額以新台幣顯示。',allocationDonut(visible,'市值合計','組',`NT$ ${money(allocationTotal)}`));
+  const gainsChart=gains.some(row=>row.value>0)?allocationDonut(gains.filter(row=>row.value>0),'未實現損益','組',signedTwd(net)):empty(gains.length?'目前已知成本的持倉損益為零。':'目前沒有可計算損益的持倉。');
+  const performance=panel('portfolio-gains','投資損益狀況','圓環按各持倉未實現損益的絕對值分配，金額保留正負號。',gainsChart+(missing?`<p class="fc-footnote">${missing} 檔持倉缺少成本，未計入損益。</p>`:''));
+  return allocation+performance;
  }
  function holdings(m){const max=Math.max(1,...m.holdings.flatMap(r=>[r.value,r.cost||0]));return panel('holdings','各股票與基金：成本對照市值','目前持倉；統一折合台幣，成本含已記錄買入費稅。',legend([['持有成本','#245fba'],['目前市值','#7954ad']])+(m.holdings.length?`<ol class="fc-bars">${m.holdings.map(r=>`<li><div class="fc-row-heading"><button type="button" class="fc-link" data-chart-trade="${esc(r.code)}">${esc(r.code||r.name)} ${esc(r.name||'')}</button><small>${n(r.shares).toLocaleString()} 股／單位 · ${esc(r.currency)}</small></div><div class="fc-pair"><span>成本</span><div class="fc-track"><i style="width:${r.cost===null?0:r.cost/max*100}%;background:#245fba"></i></div><strong>${r.cost===null?'成本不足':money(r.cost)}</strong><span>市值</span><div class="fc-track"><i style="width:${Math.max(0,r.value/max*100)}%;background:#7954ad"></i></div><strong>${money(r.value)}</strong></div><p class="${r.cost===null?'fc-footnote':r.value-r.cost<0?'negative':'positive'}">${r.cost===null?'缺少持有成本，暫不計算損益':'未實現損益 '+money(r.value-r.cost)+(r.cost>0?'（'+((r.value-r.cost)/r.cost*100).toFixed(2)+'%）':'')}${r.source!=='trades'?'｜手動持倉成本估算':r.twdBasisEstimated?'｜成本含匯率估算':''}</p><small class="fc-footnote">行情時間：${esc(r.quoteFetchedAt||'未記錄')}；損益未扣未來賣出費稅。</small></li>`).join('')}</ol>`:empty('目前沒有持有股票或基金。')));}
  function render(bundle,tab,prepared){const f=filters(),m=prepared||model(bundle,f);return toolbar(f)+`<div class="fc-grid">${tab==='spending'?cashflow(m)+categories(m)+budget(m):networth(m)+allocation(m)+holdings(m)}</div><section id="fc-records" class="panel" hidden aria-label="圖表交易明細"></section>`;}
