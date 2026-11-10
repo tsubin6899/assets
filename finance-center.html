@@ -653,6 +653,17 @@
       .mobile-nav .island-nav-icon{width:25px;height:25px}
     }
     .sidebar-sync,.desktop-quick-summary,.desktop-quick-form-title{display:none}
+    .net-summary{display:grid;gap:4px;color:var(--muted)}
+    .net-summary>strong,.net-change>strong{font-size:clamp(21px,3vw,30px);color:var(--ink)}
+    .net-change{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+    .net-sparkline,.net-detail-chart{display:block;width:100%;color:var(--island-accent,#24557e)}
+    .net-sparkline{margin-top:10px}
+    .net-latest{display:block;text-align:right}
+    .net-point-readout{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin:6px 0;color:var(--muted);font-size:13px}
+    .snapshot-point{cursor:pointer;stroke:transparent;stroke-width:16px;pointer-events:all}
+    .snapshot-point:is(.selected,:focus-visible){r:5.5;stroke:currentColor;stroke-width:2px}
+    .fc-allocation svg .negative{fill:#943b40}
+    .fc-allocation svg .positive{fill:#28654a}
     .portfolio-overview{margin-top:14px}
     .portfolio-allocation{display:grid;gap:12px}
     @media(min-width:1024px){
@@ -660,8 +671,8 @@
       .page .portfolio-overview>.portfolio-allocation{grid-column:1;grid-row:1}
       .page .portfolio-overview>.market-strip{grid-column:1;grid-row:2}
       .portfolio-allocation{grid-template-columns:repeat(2,minmax(0,1fr))}
-      .page .portfolio-allocation [data-chart="portfolio-holdings"] .fc-allocation{grid-template-columns:50% minmax(0,1fr)}
-      .page .portfolio-allocation [data-chart="portfolio-holdings"] .fc-allocation>svg{width:100%;max-width:none}
+      .page .portfolio-allocation :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"]) .fc-allocation{grid-template-columns:50% minmax(0,1fr)}
+      .page .portfolio-allocation :is([data-chart="portfolio-holdings"],[data-chart="portfolio-gains"]) .fc-allocation>svg{width:100%;max-width:none}
       .holding-list,.investment-trade-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:start}
       :is(.holding-list,.investment-trade-list)>.empty{grid-column:1/-1}
       .page .holding-list>.holding-list-item{min-width:0;margin:0;padding:0 10px;border:1px solid var(--line);border-radius:12px;background:#fff}
@@ -824,7 +835,7 @@
   <script src="investment-cards.js?v=20261002-cards4"></script>
   <script src="finance-experience.js?v=1"></script>
   <script src="finance-workflow.js?v=1"></script>
-  <script src="finance-charts.js?v=4"></script>
+  <script src="finance-charts.js?v=5"></script>
 
 
 
@@ -956,7 +967,7 @@
       return `<header class="page-heading island-page-heading"><div><span class="island-label">${islandNames[domain]}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div><img src="island-art/${art}.png" alt="">${action}</header>`;
     }
 
-    function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value ${/負債/.test(label)?"negative":""}">${value}</strong><small>${esc(note)}</small></article>`; }
+    function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value ${/負債/.test(label)?"negative":label==="總損益"&&/[-−]/.test(value)?"negative":label==="總損益"&&value.startsWith("+")?"positive":""}">${value}</strong><small>${esc(note)}</small></article>`; }
     function alertAction(row){const bill=(current.ledger.creditBills||[]).find(b=>row.title===`${b.card}帳單${b.dueDate<FinanceCore.localDate()?'已逾期':'即將到期'}`&&row.detail.startsWith(b.dueDate));if(bill)return `<button class="action-btn" data-home-bill="${esc(bill.id)}">查看帳單</button>`;const route=/預算/.test(row.title)?'daily/budgets':/貸款|繳款/.test(row.title)?'accounts/loans':/目標/.test(row.title)?'analysis/planning':/餘額/.test(row.title)?'accounts/accounts':/資產|快照/.test(row.title)?'investments/portfolio':'analysis/forecast';return `<button class="action-btn" data-go="${route}">查看詳情</button>`;}
     function pendingHomeTasks(){const rows=(current.assets.purchaseRecords||[]).filter(r=>r.settlementStatus==='pending'&&r.date<=FinanceCore.localDate());return `<section class="panel home-tasks"><div class="panel-head"><div><h3>交易與核對待辦</h3><p>查看紀錄後確認；這裡不會直接扣款或標記交割。</p></div><button class="action-btn" data-go="investments/review">前往核對工作台</button></div>${rows.length?rows.slice(0,4).map(r=>`<div class="task-row"><span>${esc(r.date)}｜${esc(r.code)}｜${Number(r.shares).toLocaleString()} 股｜待交割</span><button class="action-btn" data-home-trade="${esc(r.id)}">查看交易</button></div>`).join(''):`<p>目前沒有待交割交易。</p>`}</section>`;}
     function alertList(rows) {
@@ -1034,7 +1045,7 @@
           <div class="hero-metrics"><div><span>現金安全</span><strong>${safety === null ? "待設定" : `${safety.toFixed(1)} 個月`}</strong></div><div><span>信用卡負債比</span><strong>${a.totalAssets ? pct(a.liabilities/a.totalAssets*100) : "0%"}</strong></div><div><span>待處理提醒</span><strong>${current.alerts.length} 筆</strong></div></div>
         </article>
         <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
-        <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${snapshotBars()}</section>
+        <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${FinanceCharts.homeSnapshot(current.assets,a.netWorth)}</section>
         <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
       </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div class="island-alert-heading"><h3 id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
     }
