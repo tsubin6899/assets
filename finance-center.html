@@ -247,10 +247,10 @@
     .island-stop{position:absolute;left:var(--x);top:var(--y);width:28%;height:36%;min-width:44px;min-height:44px;transform:translate(-50%,-50%);border:0;border-radius:22%;background:transparent;cursor:pointer}
     .island-stop:hover{background:#fff5}
     .island-stop:focus-visible{outline:3px solid #234b35;outline-offset:-3px;background:#fff3}
-    .island-bank{--x:77%;--y:24%}
-    .island-garden{--x:22%;--y:73%}
-    .island-house{--x:77%;--y:73%}
-    .island-market{--x:22%;--y:24%}
+    .island-bank{--x:84%;--y:24%}
+    .island-garden{--x:16%;--y:74%}
+    .island-house{--x:84%;--y:74%}
+    .island-market{--x:16%;--y:24%}
     .island-board{--x:50%;--y:46%}
     .island-classic-summary{display:none}
     @media(max-width:720px){.island-overview{grid-template-columns:minmax(0,1fr);gap:0}.island-map{margin:4px -8px -8px}}
@@ -279,22 +279,22 @@
       </div>
     </div>
     <nav class="primary-nav" aria-label="主要功能">
-      <button type="button" data-domain="home"><i data-lucide="home"></i>拾光島</button>
-      <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i>記帳島</button>
-      <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i>帳務島</button>
-      <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i>投資島</button>
-      <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i>洞察島</button>
+      <button type="button" data-domain="home"><img src="island-art/home.png" alt="">拾光島</button>
+      <button type="button" data-domain="daily"><img src="island-art/daily.png" alt="">記帳島</button>
+      <button type="button" data-domain="accounts"><img src="island-art/accounts.png" alt="">帳務島</button>
+      <button type="button" data-domain="investments"><img src="island-art/investments.png" alt="">投資島</button>
+      <button type="button" data-domain="analysis"><img src="island-art/analysis.png" alt="">洞察島</button>
     </nav>
   </header>
   <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
   <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
   <main class="page" id="app" tabindex="-1"></main>
   <nav class="mobile-nav" aria-label="手機主要功能">
-    <button type="button" data-domain="home"><i data-lucide="home"></i><span>拾光島</span></button>
-    <button type="button" data-domain="daily"><i data-lucide="notebook-tabs"></i><span>記帳島</span></button>
-    <button type="button" data-domain="accounts"><i data-lucide="wallet-cards"></i><span>帳務島</span></button>
-    <button type="button" data-domain="investments"><i data-lucide="chart-candlestick"></i><span>投資島</span></button>
-    <button type="button" data-domain="analysis"><i data-lucide="chart-no-axes-combined"></i><span>洞察島</span></button>
+    <button type="button" data-domain="home"><img src="island-art/home.png" alt=""><span>拾光島</span></button>
+    <button type="button" data-domain="daily"><img src="island-art/daily.png" alt=""><span>記帳島</span></button>
+    <button type="button" data-domain="accounts"><img src="island-art/accounts.png" alt=""><span>帳務島</span></button>
+    <button type="button" data-domain="investments"><img src="island-art/investments.png" alt=""><span>投資島</span></button>
+    <button type="button" data-domain="analysis"><img src="island-art/analysis.png" alt=""><span>洞察島</span></button>
   </nav>
   <input id="importFile" type="file" accept="application/json" hidden>
   <input id="importCsvFile" type="file" accept=".csv,text/csv" hidden>
@@ -530,32 +530,32 @@
         var(--island-trees) right 12px bottom 8px / 52px auto no-repeat,
         linear-gradient(135deg,#fffaf0,#dcebe2);
     }
-    .page[data-section="daily"]{--island-art:url("island-art/daily.webp");--island-tint:#f2ebd9}
-    .page[data-section="accounts"]{--island-art:url("island-art/accounts.webp");--island-tint:#e2ede5}
-    .page[data-section="investments"]{--island-art:url("island-art/investments.webp");--island-tint:#e6eddb}
-    .page[data-section="analysis"]{--island-art:url("island-art/analysis.webp");--island-tint:#e1ebe8}
-    .page[data-section]:not([data-section="home"]) .page-heading{
-      padding:14px 18px;background:var(--island-tint);border:1px solid #ccdccc;border-radius:16px;
+    .page[data-section="daily"]{--island-tint:#f2ebd9}
+    .page[data-section="accounts"]{--island-tint:#dbeadf}
+    .page[data-section="investments"]{--island-tint:#e6eddb}
+    .page[data-section="analysis"]{--island-tint:#e1ebe8}
+    .page .island-page-heading{
+      display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);align-items:center;
+      gap:clamp(10px,3vw,28px);padding:clamp(14px,3vw,28px);border-radius:16px;
+      background:var(--island-tint,#dbeadf);border:1px solid #ccdccc;
     }
-    .page[data-section]:not([data-section="home"]) .page-heading:not(.quick-page-heading)>div:first-child,.island-alert-heading{
-      min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:14px;align-items:center;
-    }
-    .page[data-section]:not([data-section="home"]) .page-heading:not(.quick-page-heading)>div:first-child::before,.island-alert-heading::before{
-      content:"";width:clamp(140px,16vw,220px);aspect-ratio:3/2;grid-row:span 2;border-radius:12px;
-      background:var(--island-art) center / contain no-repeat,
-        var(--island-cloud) right top / 34% auto no-repeat,
-        var(--island-trees) left bottom / 24% auto no-repeat;
-    }
-    .island-alert-heading{--island-art:url("island-art/reminders.webp");width:100%}
+    .island-page-heading h2{font-size:clamp(21px,4vw,36px);line-height:1.15;overflow-wrap:anywhere}
+    .page .island-page-heading p{display:block;margin:8px 0 0;line-height:1.55;max-width:36ch}
+    .island-page-heading>img{display:block;width:100%;max-width:220px;aspect-ratio:1;object-fit:contain;justify-self:end}
+    .island-page-heading>img~*{grid-column:1/-1}
+    .island-label{display:inline-block;margin-bottom:8px;padding:3px 10px;border-radius:999px;background:#f5faf5;color:#315c48;font-size:12px;font-weight:700}
+    .primary-nav img,.mobile-nav img{display:block;width:24px;height:24px;object-fit:contain}
+    .account-section-title{margin:0 0 10px;font-size:18px}
+    .account-summary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .account-summary .metric-card{min-width:0;border-top-width:1px}
+    .account-summary .metric-card:first-child,.account-summary .metric-card:last-child{grid-column:1/-1}
+    .account-summary .metric-card:first-child{background:#24483b;color:#fff;border-color:#24483b}
+    .account-summary .metric-card:first-child :is(span,strong,small){color:inherit}
+    .account-summary .metric-card:first-child strong{font-size:clamp(22px,5vw,32px)}
+    .account-summary .metric-card:last-child{background:#e5eee5}
+    .island-alert-heading{width:100%}
     .island-alert-heading p{margin:4px 0 0}
     .page .table-wrap th{background:var(--island-tint,#e8eee5)}
-    @media(max-width:520px){
-      .page[data-section]:not([data-section="home"]) .page-heading{padding:10px 12px;overflow:visible;margin-top:16px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child,.island-alert-heading{width:100%;column-gap:10px}
-      .page[data-section]:not([data-section="home"]) .page-heading>div:first-child::before,.island-alert-heading::before{
-        width:clamp(132px,41vw,202px);margin:-38px 0 -8px -10px;
-      }
-    }
     .holding-list-item+ .holding-list-item{border-top:1px solid var(--line)}
     .holding-list-summary{display:grid;grid-template-columns:46px minmax(0,1fr) minmax(0,auto);align-items:center;gap:10px;padding:12px 0;cursor:pointer;list-style:none}
     .holding-list-summary::-webkit-details-marker{display:none}
@@ -685,7 +685,12 @@
       requestAnimationFrame(()=>{if(!matchMedia('(max-width:760px)').matches)return;const active=secondaryNav.querySelector('.active');if(active)secondaryNav.scrollTo({left:Math.max(0,active.offsetLeft-(secondaryNav.clientWidth-active.offsetWidth)/2),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
 
     }
-    function pageHeading(kicker,title,note,action=""){return `<header class="page-heading ${title==="快速記帳"?"quick-page-heading":""}"><div><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`;}
+    const islandNames = {home:"拾光島",daily:"記帳島",accounts:"帳務島",investments:"投資島",analysis:"洞察島"};
+    function pageHeading(kicker,title,note,action=""){
+      const {domain,tab}=state;
+      const art=domain==="home"?domain:`${domain}/${tab}`;
+      return `<header class="page-heading island-page-heading"><div><span class="island-label">${islandNames[domain]}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div><img src="island-art/${art}.png" alt="">${action}</header>`;
+    }
 
     function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value ${/負債/.test(label)?"negative":""}">${value}</strong><small>${esc(note)}</small></article>`; }
     function alertAction(row){const bill=(current.ledger.creditBills||[]).find(b=>row.title===`${b.card}帳單${b.dueDate<FinanceCore.localDate()?'已逾期':'即將到期'}`&&row.detail.startsWith(b.dueDate));if(bill)return `<button class="action-btn" data-home-bill="${esc(bill.id)}">查看帳單</button>`;const route=/預算/.test(row.title)?'daily/budgets':/貸款|繳款/.test(row.title)?'accounts/loans':/目標/.test(row.title)?'analysis/planning':/餘額/.test(row.title)?'accounts/accounts':/資產|快照/.test(row.title)?'investments/portfolio':'analysis/forecast';return `<button class="action-btn" data-go="${route}">查看詳情</button>`;}
@@ -739,12 +744,12 @@
           <button class="action-btn island-entry" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
         </div>
         <div class="island-map" role="group" aria-label="拾光島地圖">
-          <img src="shiguang-islands.jpg?v=2" width="1280" height="853" alt="" draggable="false">
-          <button type="button" class="island-stop island-bank" data-go="accounts/accounts" aria-label="存款島"></button>
+          <img src="island-art/map.png" width="1670" height="941" alt="" draggable="false">
+          <button type="button" class="island-stop island-bank" data-go="accounts/accounts" aria-label="帳務島"></button>
           <button type="button" class="island-stop island-garden" data-go="investments/portfolio" aria-label="投資島"></button>
-          <button type="button" class="island-stop island-board" data-island-alerts aria-label="提醒島 · ${current.alerts.length} 筆提醒"></button>
+          <button type="button" class="island-stop island-board" data-island-alerts aria-label="拾光島提醒 · ${current.alerts.length} 筆提醒"></button>
           <button type="button" class="island-stop island-market" data-go="daily" aria-label="記帳島"></button>
-          <button type="button" class="island-stop island-house" data-go="accounts/credit" aria-label="帳務島"></button>
+          <button type="button" class="island-stop island-house" data-go="analysis/trends" aria-label="洞察島"></button>
         </div>
       </section>`;
     }
@@ -961,7 +966,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       const head=pageHeading("Accounts & Liabilities",accountTitles[state.tab]||"帳戶與負債","帳戶、轉帳、卡費、分期與對帳都可直接在財務中心處理。");
       if(state.tab==="reconcile") return renderReconcile(head);
       if(state.tab==="loans") return renderLoans(head);
-      if(state.tab==="accounts") { const edit=current.ledger.accounts.find(row=>row.id===ui.editingAccountId),activeCount=current.ledger.accounts.filter(row=>!row.archived).length,archivedCount=current.ledger.accounts.length-activeCount; return `${head}<div class="four-col grid">${metric("可用資金",money(a.cash),"不含信用卡","tone-green")}${metric("總負債",money(a.liabilities),`信用卡 ${money(a.creditDebt||0)}｜貸款 ${money(a.loanDebt||0)}`,"tone-purple")}${metric("使用中帳戶",String(activeCount),`${archivedCount} 個歷史封存帳戶`,"tone-teal")}${metric("淨資產",money(a.netWorth),"資產－負債","tone-blue")}</div><section style="margin-top:16px" class="grid"><div class="three-col grid">${accountCards()}</div><section class="panel"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}帳戶</h3><p>重新命名會同步更新所有既有紀錄；不用的帳戶請封存以保留歷史</p></div></div><form id="accountForm" class="form-grid"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><label>帳戶名稱<input name="name" value="${esc(edit?.name||"")}" required></label><label>類型<select name="type">${accountTypeOptions(edit?.type||"銀行帳戶")}</select></label><label>幣別<select name="currency">${option("TWD","台幣 TWD",edit?.currency||"TWD")}${option("USD","美元 USD",edit?.currency)}</select></label><label>期初餘額<input name="openingBalance" type="number" step="0.01" value="${esc(edit?.openingBalance||0)}"></label><label>結帳日<input name="statementDay" type="number" min="0" max="31" value="${esc(edit?.statementDay||"")}"></label><label>繳款日<input name="paymentDay" type="number" min="0" max="31" value="${esc(edit?.paymentDay||"")}"></label><button class="action-btn green wide" type="submit">${edit?"儲存帳戶修改":"新增帳戶"}</button>${edit?`<button class="action-btn wide" type="button" data-cancel-account>取消編輯</button>`:""}</form></section>${exchangeRateTable()}</section>`; }
+      if(state.tab==="accounts") { const edit=current.ledger.accounts.find(row=>row.id===ui.editingAccountId),activeCount=current.ledger.accounts.filter(row=>!row.archived).length,archivedCount=current.ledger.accounts.length-activeCount; return `${head}<section aria-labelledby="account-summary-title"><h3 class="account-section-title" id="account-summary-title">財務摘要</h3><div class="account-summary grid">${metric("淨資產",money(a.netWorth),"資產－負債","tone-blue")}${metric("可用資金",money(a.cash),"不含信用卡","tone-green")}${metric("總負債",money(a.liabilities),`信用卡 ${money(a.creditDebt||0)}｜貸款 ${money(a.loanDebt||0)}`,"tone-purple")}${metric("使用中帳戶",String(activeCount),`${archivedCount} 個歷史封存帳戶`,"tone-teal")}</div></section><section style="margin-top:16px" class="grid"><section aria-labelledby="account-details-title"><h3 class="account-section-title" id="account-details-title">帳戶明細</h3><div class="three-col grid">${accountCards()}</div></section><section class="panel"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}帳戶</h3><p>重新命名會同步更新所有既有紀錄；不用的帳戶請封存以保留歷史</p></div></div><form id="accountForm" class="form-grid"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><label>帳戶名稱<input name="name" value="${esc(edit?.name||"")}" required></label><label>類型<select name="type">${accountTypeOptions(edit?.type||"銀行帳戶")}</select></label><label>幣別<select name="currency">${option("TWD","台幣 TWD",edit?.currency||"TWD")}${option("USD","美元 USD",edit?.currency)}</select></label><label>期初餘額<input name="openingBalance" type="number" step="0.01" value="${esc(edit?.openingBalance||0)}"></label><label>結帳日<input name="statementDay" type="number" min="0" max="31" value="${esc(edit?.statementDay||"")}"></label><label>繳款日<input name="paymentDay" type="number" min="0" max="31" value="${esc(edit?.paymentDay||"")}"></label><button class="action-btn green wide" type="submit">${edit?"儲存帳戶修改":"新增帳戶"}</button>${edit?`<button class="action-btn wide" type="button" data-cancel-account>取消編輯</button>`:""}</form></section>${exchangeRateTable()}</section>`; }
       if(state.tab==="transfer") { const edit=current.ledger.transfers.find(row=>row.id===ui.editingTransferId); const rows=[...current.ledger.transfers].sort((x,y)=>String(y.date).localeCompare(String(x.date))); return `${head}<div class="two-col grid"><form id="transferForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}轉帳</h3><p>轉帳只移動資金，不算收入或支出</p></div></div><div class="form-grid"><label>日期<input name="date" type="date" value="${esc(edit?.date||FinanceCore.localDate())}"></label><label>金額<input name="amount" type="number" min="0" value="${esc(edit?.fromAmount||"")}" required></label><label>來源帳戶<select name="fromAccount">${accountOptions(edit?.fromAccount||"")}</select></label><label>目的帳戶<select name="toAccount">${accountOptions(edit?.toAccount||"")}</select></label><label>手續費<input name="feeAmount" type="number" min="0" value="${esc(edit?.feeAmount||0)}"></label><label>備註<input name="note" value="${esc(edit?.note||"")}"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">${edit?"儲存修改":"儲存轉帳"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-transfer>取消編輯</button>`:""}</form><section class="panel"><div class="panel-head"><div><h3>轉帳紀錄</h3><p>信用卡繳款也會顯示於此</p></div></div>${transferTable(rows)}</section></div>`; }
       if(state.tab==="installments") { const rows=current.ledger.creditInstallments||[],edit=rows.find(row=>row.id===ui.editingInstallmentId),cards=current.ledger.accounts.filter(row=>row.type==="信用卡"); return `${head}<div class="two-col grid"><form id="installmentForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}信用卡分期</h3><p>一次建立後保留完整分期資訊</p></div></div><div class="form-grid"><label>信用卡<select name="card">${cards.map(row=>option(row.name,row.name,edit?.card)).join("")}</select></label><label>消費日期<input name="purchaseDate" type="date" value="${esc(edit?.purchaseDate||FinanceCore.localDate())}"></label><label>商家<input name="merchant" value="${esc(edit?.merchant||"")}"></label><label>分類<select name="category">${uniqueCategories().map(row=>option(row,row,edit?.category)).join("")}</select></label><label>項目<input name="item" value="${esc(edit?.item||"")}"></label><label>總金額<input name="totalAmount" type="number" min="1" value="${esc(edit?.totalAmount||"")}" required></label><label>期數<input name="months" type="number" min="2" value="${esc(edit?.months||3)}"></label><label>第一期月份<input name="startMonth" type="month" value="${esc(edit?.startMonth||FinanceCore.monthOf())}"></label><label class="wide">備註<input name="note" value="${esc(edit?.note||"")}"></label></div><button class="action-btn green" style="width:100%;margin-top:13px" type="submit">${edit?"儲存修改":"新增分期"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-installment>取消編輯</button>`:""}</form><section class="panel"><div class="panel-head"><div><h3>分期清單</h3><p>${rows.length} 筆分期方案</p></div></div><div class="inline-list">${rows.length?rows.map(row=>`<article class="inline-item"><div><strong>${esc(row.merchant||row.item||"分期消費")}</strong><small>${esc(row.card)}｜${esc(row.startMonth)} 起，共 ${esc(row.months)} 期</small></div><div><strong class="money-value">${money(row.totalAmount)}</strong><small>每期約 ${money(Number(row.totalAmount)/Number(row.months||1))}</small><div class="row-actions"><button class="action-btn" data-edit-installment="${esc(row.id)}">編輯</button><button class="action-btn danger" data-delete-installment="${esc(row.id)}">刪除</button></div></div></article>`).join(""):`<div class="empty">目前沒有信用卡分期。</div>`}</div></section></div>`; }
       if(state.tab==="reconcile") { const reconciles=[...(current.ledger.reconciliations||[])].sort((a,b)=>String(b.date).localeCompare(String(a.date))),checks=[...(current.ledger.creditStatementChecks||[])].sort((a,b)=>String(b.billMonth).localeCompare(String(a.billMonth))),cards=current.ledger.accounts.filter(row=>row.type==="信用卡"); return `${head}<div class="two-col grid"><section class="grid"><form id="reconcileForm" class="panel"><div class="panel-head"><div><h3>帳戶盤點</h3><p>輸入實際餘額，自動建立差額調整</p></div></div><div class="form-grid"><label>帳戶<select name="account">${accountOptions()}</select></label><label>盤點日期<input name="date" type="date" value="${FinanceCore.localDate()}"></label><label class="wide">實際餘額／信用卡負債（欠款填正數）<input name="actualBalance" type="number" step="1" required></label></div><button class="action-btn green" style="width:100%;margin-top:13px" type="submit">建立盤點</button></form><section class="panel"><div class="panel-head"><div><h3>盤點紀錄</h3><p>刪除時會一併撤回差額調整</p></div></div><div class="inline-list">${reconciles.length?reconciles.map(row=>`<article class="inline-item"><div><strong>${esc(row.account)}｜${esc(row.date)}</strong><small>帳面 ${money(row.bookBalance)}｜實際 ${money(row.actualBalance)}</small></div><div><strong class="money-value ${row.diff<0?"negative":"positive"}">${signed(row.diff)}</strong><button class="action-btn danger" data-delete-reconcile="${esc(row.id)}">撤回</button></div></article>`).join(""):`<div class="empty">尚無盤點紀錄。</div>`}</div></section></section><section class="grid"><form id="statementCheckForm" class="panel"><div class="panel-head"><div><h3>信用卡帳單核對</h3><p>比較銀行帳單與 App 明細差額</p></div></div><div class="form-grid"><label>信用卡<select name="card">${cards.map(row=>option(row.name,row.name)).join("")}</select></label><label>帳單月份<input name="billMonth" type="month" value="${FinanceCore.monthOf()}"></label><label class="wide">銀行帳單金額<input name="statementAmount" type="number" min="0" required></label><label class="wide">備註<input name="note"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">儲存核對結果</button></form><section class="panel"><div class="panel-head"><div><h3>卡片對帳紀錄</h3><p>差額為銀行帳單減 App 明細</p></div></div><div class="inline-list">${checks.length?checks.map(row=>`<article class="inline-item"><div><strong>${esc(row.card)}｜${esc(row.billMonth)}</strong><small>App ${money(row.appAmount)}｜銀行 ${money(row.statementAmount)}</small></div><div><strong class="money-value ${Math.abs(Number(row.diff))<1?"positive":"negative"}">${signed(row.diff)}</strong><button class="action-btn danger" data-delete-statement="${esc(row.id)}">刪除</button></div></article>`).join(""):`<div class="empty">尚無信用卡對帳紀錄。</div>`}</div></section></section></div>`; }
