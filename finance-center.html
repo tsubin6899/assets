@@ -255,85 +255,6 @@
     .island-classic-summary{display:none}
     @media(max-width:720px){.island-overview{grid-template-columns:minmax(0,1fr);gap:0}.island-map{margin:4px -8px -8px}}
 </style>
-</head>
-<body>
-  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
-    <symbol id="island-icon-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h14V10M10 21v-6h4v6"/></symbol>
-    <symbol id="island-icon-daily" viewBox="0 0 24 24"><rect x="6" y="3" width="14" height="18" rx="2"/><path d="M3 7h4M3 12h4m-4 5h4m2-14v18m3-13h5m-5 4h5"/></symbol>
-    <symbol id="island-icon-accounts" viewBox="0 0 24 24"><path d="M21 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2m0-6h-5a3 3 0 0 0 0 6h5Z"/></symbol>
-    <symbol id="island-icon-investments" viewBox="0 0 24 24"><path d="M3 3v18h18M8 16v-4m5 4V9m5 7V5"/></symbol>
-    <symbol id="island-icon-analysis" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 6 6"/></symbol>
-  </svg>
-  <header class="app-header">
-    <div class="brand-row">
-      <div class="brand">
-        <span class="brand-mark"><i data-lucide="landmark"></i></span>
-        <div><h1>個人財務中心 <span>┃ TSUBIN</span></h1><p>記帳、帳戶、投資、負債與分析，共用同一份財務資料。</p></div>
-      </div>
-      <div class="desktop-breadcrumb" id="desktopBreadcrumb" aria-hidden="true"></div>
-      <div class="header-actions">
-        <span class="status-pill" id="cloudStatus" data-state="offline" role="status" aria-live="polite" tabindex="0" title="點擊重新檢查登入狀態">● 未登入</span>
-        <button class="header-btn" id="globalSearch" type="button" title="搜尋全部財務資料" aria-label="搜尋全部財務資料"><i data-lucide="search"></i><span class="desktop-only">搜尋</span></button>
-        <button class="header-btn market" id="marketRefresh" type="button" title="更新股價與匯率" aria-label="更新股價與匯率"><i data-lucide="refresh-cw"></i><span class="desktop-only">更新行情</span></button>
-        <button class="header-btn" id="privacyToggle" type="button" title="隱藏金額"><i data-lucide="eye-off"></i><span class="desktop-only">隱私</span></button>
-        <button class="header-btn" type="button" popovertarget="dataTools" aria-label="開啟資料工具"><i data-lucide="settings-2"></i><span class="desktop-only">工具</span></button>
-        <div id="dataTools" class="utility-popover" popover aria-label="資料工具"><h2>資料工具</h2><p>同步操作與資料維護</p>
-        <input class="cloud-email" id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
-        <button class="header-btn login" id="cloudLogin" type="button">登入同步</button>
-        <button class="header-btn save" id="cloudSave" type="button" hidden>儲存</button>
-        <button class="header-btn load" id="cloudLoad" type="button" hidden>載入</button>
-        <button class="header-btn logout" id="cloudLogout" type="button" hidden>登出</button>
-<button class="action-btn" type="button" data-market-refresh>更新股價與匯率</button><button class="action-btn" type="button" data-go="analysis/data">資料管理與匯入匯出</button><button class="action-btn" type="button" data-go="investments/health">服務與備份</button></div>
-      </div>
-    </div>
-  </header>
-  <aside class="desktop-sidebar">
-    <div class="sidebar-brand"><h1>個人財務中心</h1><small>TSUBIN / FINANCE</small></div>
-    <div class="sidebar-caption">五島導覽</div>
-    <nav class="primary-nav" aria-label="主要功能">
-      <button type="button" data-domain="home"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-home"></use></svg>拾光島</button>
-      <button type="button" data-domain="daily"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-daily"></use></svg>記帳島</button>
-      <button type="button" data-domain="accounts"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-accounts"></use></svg>帳務島</button>
-      <button type="button" data-domain="investments"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-investments"></use></svg>投資島</button>
-      <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg>洞察島</button>
-    </nav>
-    <div class="sidebar-caption" id="sidebarTools">分頁工具</div>
-    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
-    <p class="sidebar-sync" id="sidebarSync" aria-hidden="true">未登入</p>
-  </aside>
-  <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
-  <main class="page" id="app" tabindex="-1"></main>
-  <nav class="mobile-nav" aria-label="手機主要功能">
-    <button type="button" data-domain="home"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-home"></use></svg><span>拾光島</span></button>
-    <button type="button" data-domain="daily"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-daily"></use></svg><span>記帳島</span></button>
-    <button type="button" data-domain="accounts"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-accounts"></use></svg><span>帳務島</span></button>
-    <button type="button" data-domain="investments"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-investments"></use></svg><span>投資島</span></button>
-    <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg><span>洞察島</span></button>
-  </nav>
-  <input id="importFile" type="file" accept="application/json" hidden>
-  <input id="importCsvFile" type="file" accept=".csv,text/csv" hidden>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <dialog class="auth-dialog" id="cloudLoginDialog"><form class="auth-dialog-body" id="cloudLoginForm" method="dialog"><div><h3>Email 登入同步</h3><p>輸入 Email 後，系統會寄送一次性登入連結。開啟信件中的連結即可完成登入。</p></div><label>Email<input id="cloudDialogEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required></label><div class="auth-dialog-actions"><button class="action-btn" id="cloudLoginCancel" type="button">取消</button><button class="action-btn blue" id="cloudLoginSend" type="submit">寄送登入連結</button></div></form></dialog>
-  <dialog class="search-dialog" id="searchDialog"><div class="search-shell"><div class="search-head"><input id="searchInput" type="search" placeholder="搜尋帳目、商家、帳戶、股票或股息…" autocomplete="off"><button class="action-btn" id="searchClose" type="button" aria-label="關閉搜尋"><i data-lucide="x"></i></button></div><div class="search-results" id="searchResults"><div class="search-hint">輸入關鍵字即可搜尋全部財務資料</div></div></div></dialog>
-  <script src="https://unpkg.com/lucide@latest"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="market-data-config.js"></script>
-  <script src="finance-center-routes.js?v=20261002-lab"></script>
-  <script src="finance-core.js?v=20261002-zeroall2"></script>
-  <script src="finance-intelligence.js?v=2"></script>
-  <script src="finance-upgrades.js?v=2"></script>
-  <script src="finance-storage.js?v=2"></script>
-  <script src="finance-market.js?v=1"></script>
-  <script src="finance-sync.js?v=20261002-zeroall2"></script>
-  <script src="finance-notifications.js?v=2"></script>
-  <script src="finance-search.js?v=1"></script>
-  <script src="finance-import.js?v=2"></script>
-  <script src="finance-intelligence-ui.js?v=2"></script>
-  <script src="finance-trade-sync.js?v=1"></script>
-  <script src="fubon-review.js?v=20261002-importfeedback"></script>
-  <script src="fubon-portfolio.js?v=20261002-phase3"></script>
-  <script src="investment-operations.js?v=20261002"></script>
-  <script src="portfolio-lab.js?v=20261002-lab4"></script>
   <style id="investmentCardsStyles">
 .investment-card-layout.panel{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:0;border:0;background:transparent;box-shadow:none;min-width:0}
 .investment-card{min-width:0;padding:24px;border:1px solid #dce5ef;border-radius:20px;background:#fff;box-shadow:0 6px 20px rgba(28,48,81,.045);display:flex;flex-wrap:wrap;align-content:flex-start;align-items:center;gap:14px}
@@ -426,11 +347,6 @@
 .holding-sync-preview p{font-size:12px;line-height:1.7;margin-bottom:10px}
 .closed-position-grid .inline-item>div:last-child{flex-wrap:wrap}
   </style>
-  <script src="security-names.js?v=20261002"></script>
-  <script src="investment-cards.js?v=20261002-cards4"></script>
-  <script src="finance-experience.js?v=1"></script>
-  <script src="finance-workflow.js?v=1"></script>
-  <script src="finance-charts.js?v=3"></script>
   <style>
     .experience-dialog{width:min(960px,calc(100% - 24px));max-height:85dvh;padding:18px;border:0;border-radius:16px;color:var(--ink);background:#fff;overflow:auto}
     .experience-dialog::backdrop{background:rgba(10,24,48,.55)}.experience-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:240px;overflow:auto;font-size:12px}
@@ -438,7 +354,6 @@
     .quick-continue{display:flex!important;align-items:center;gap:8px;margin-top:8px;min-height:36px}.quick-continue input{width:18px!important;min-height:18px;height:18px}
     @media(max-width:760px){#quickEntryForm.quick-entry-page .form-grid input,#quickEntryForm.quick-entry-page .form-grid select{font-size:16px;min-height:44px;height:44px}.page:has(.quick-entry-layout){padding-top:10px}.quick-page-heading{margin-bottom:10px}.quick-page-heading .eyebrow{display:none}.experience-dialog input,.experience-dialog select,.experience-dialog textarea{font-size:16px}body:has(#quickEntryForm input:focus) .secondary-nav{display:none}}
   </style>
-
   <style id="finance-design-refinement">
     :root{--muted:#526178;--blue:#245fba;--green:#087b59;--danger:#b3443f;--radius:14px;--shadow:0 4px 16px #1932500d}
     body{background:#f3f6f9}.app-header{background:linear-gradient(112deg,#142546,#214e9d 65%,#126a70);box-shadow:0 3px 12px #162b4514}.brand-row{min-height:84px}.brand h1{font-size:28px}.brand p,.brand h1 span{color:#d7e4f7}.cloud-email::placeholder{color:#e1eaf7}.header-actions:has(#cloudLogout:not([hidden]))>.cloud-email{display:none}
@@ -458,13 +373,11 @@
     @media(max-width:360px){.brand h1{font-size:16px;max-width:82px;white-space:normal;line-height:1.2}.header-actions{gap:2px}.header-btn{min-width:40px}.status-pill{font-size:11px}}
     @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;scroll-behavior:auto!important;transition-duration:.01ms!important}}
   </style>
-
   <style id="workflow-refinement">
     .quick-draft-note{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;color:#526178}.quick-draft-note small{font-size:13px;line-height:1.5}.quick-draft-note button{flex-shrink:0}
     .workflow-feedback{width:min(1500px,calc(100% - 40px));margin:12px auto 0;padding:12px 16px;border:1px solid #cbd9e8;border-radius:12px;background:#fff;font-size:14px;line-height:1.6;color:#344860;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.workflow-feedback small{display:block}.workflow-feedback p{margin:4px 0}.market-feedback{background:#eef5ff;align-items:flex-start}.market-feedback>div{flex:1;min-width:0}.home-tasks{margin-top:18px;margin-bottom:18px}.task-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 0;border-top:1px solid #e1e8ef}.alert-card:has(>.action-btn){grid-template-columns:auto minmax(0,1fr) auto auto}.trade-cash-summary{margin:12px 0}.trade-cash-summary strong{display:block;font-size:19px}.trade-extra,.holding-native{margin-top:12px;border-top:1px solid #dce5ed;padding-top:4px;font-size:13px;line-height:1.6}.trade-extra summary,.holding-native summary{cursor:pointer;min-height:44px;padding:12px 0;color:#245fba;font-weight:700}.trade-extra p,.holding-native p{margin:6px 0 12px;color:#526178}.holding-primary{margin-top:14px;padding-top:12px;border-top:1px solid #c9d5e4}.holding-primary strong{display:block;font-size:18px}.holding-primary>div:last-child{grid-column:1/-1}.holding-native strong{display:block}.trade-detail-card{align-items:flex-start}
     @media(max-width:760px){.workflow-feedback{width:calc(100% - 24px);font-size:13px;padding:12px}.workflow-feedback .action-btn{min-height:44px}.task-row{align-items:flex-start;flex-direction:column}.task-row .action-btn{min-height:44px}.alert-card:has(>.action-btn){grid-template-columns:auto minmax(0,1fr)}.trade-extra .trade-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
   </style>
-
   <style id="disclosure-layout">
     .page details,.workflow-feedback details{min-width:0;max-width:100%;font-size:14px;line-height:1.7;margin-block:12px;padding:0;border-top:1px solid #dce5ed;color:#344860}
     .page details>summary,.workflow-feedback details>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:48px;padding:12px 0;margin:0;list-style:none;cursor:pointer;color:#245fba;font-size:14px;font-weight:700;line-height:1.6;overflow-wrap:anywhere}
@@ -797,6 +710,93 @@
       .island-page-heading>#analysisChartFilter button{grid-column:1/-1}
     }
   </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute">
+    <symbol id="island-icon-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h14V10M10 21v-6h4v6"/></symbol>
+    <symbol id="island-icon-daily" viewBox="0 0 24 24"><rect x="6" y="3" width="14" height="18" rx="2"/><path d="M3 7h4M3 12h4m-4 5h4m2-14v18m3-13h5m-5 4h5"/></symbol>
+    <symbol id="island-icon-accounts" viewBox="0 0 24 24"><path d="M21 9V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-2m0-6h-5a3 3 0 0 0 0 6h5Z"/></symbol>
+    <symbol id="island-icon-investments" viewBox="0 0 24 24"><path d="M3 3v18h18M8 16v-4m5 4V9m5 7V5"/></symbol>
+    <symbol id="island-icon-analysis" viewBox="0 0 24 24"><circle cx="10" cy="10" r="6"/><path d="m14.5 14.5 6 6"/></symbol>
+  </svg>
+  <header class="app-header">
+    <div class="brand-row">
+      <div class="brand">
+        <span class="brand-mark"><i data-lucide="landmark"></i></span>
+        <div><h1>個人財務中心 <span>┃ TSUBIN</span></h1><p>記帳、帳戶、投資、負債與分析，共用同一份財務資料。</p></div>
+      </div>
+      <div class="desktop-breadcrumb" id="desktopBreadcrumb" aria-hidden="true"></div>
+      <div class="header-actions">
+        <span class="status-pill" id="cloudStatus" data-state="offline" role="status" aria-live="polite" tabindex="0" title="點擊重新檢查登入狀態">● 未登入</span>
+        <button class="header-btn" id="globalSearch" type="button" title="搜尋全部財務資料" aria-label="搜尋全部財務資料"><i data-lucide="search"></i><span class="desktop-only">搜尋</span></button>
+        <button class="header-btn market" id="marketRefresh" type="button" title="更新股價與匯率" aria-label="更新股價與匯率"><i data-lucide="refresh-cw"></i><span class="desktop-only">更新行情</span></button>
+        <button class="header-btn" id="privacyToggle" type="button" title="隱藏金額"><i data-lucide="eye-off"></i><span class="desktop-only">隱私</span></button>
+        <button class="header-btn" type="button" popovertarget="dataTools" aria-label="開啟資料工具"><i data-lucide="settings-2"></i><span class="desktop-only">工具</span></button>
+        <div id="dataTools" class="utility-popover" popover aria-label="資料工具"><h2>資料工具</h2><p>同步操作與資料維護</p>
+        <input class="cloud-email" id="cloudEmail" type="email" placeholder="Email 登入同步" autocomplete="email">
+        <button class="header-btn login" id="cloudLogin" type="button">登入同步</button>
+        <button class="header-btn save" id="cloudSave" type="button" hidden>儲存</button>
+        <button class="header-btn load" id="cloudLoad" type="button" hidden>載入</button>
+        <button class="header-btn logout" id="cloudLogout" type="button" hidden>登出</button>
+<button class="action-btn" type="button" data-market-refresh>更新股價與匯率</button><button class="action-btn" type="button" data-go="analysis/data">資料管理與匯入匯出</button><button class="action-btn" type="button" data-go="investments/health">服務與備份</button></div>
+      </div>
+    </div>
+  </header>
+  <aside class="desktop-sidebar">
+    <div class="sidebar-brand"><h1>個人財務中心</h1><small>TSUBIN / FINANCE</small></div>
+    <div class="sidebar-caption">五島導覽</div>
+    <nav class="primary-nav" aria-label="主要功能">
+      <button type="button" data-domain="home"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-home"></use></svg>拾光島</button>
+      <button type="button" data-domain="daily"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-daily"></use></svg>記帳島</button>
+      <button type="button" data-domain="accounts"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-accounts"></use></svg>帳務島</button>
+      <button type="button" data-domain="investments"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-investments"></use></svg>投資島</button>
+      <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg>洞察島</button>
+    </nav>
+    <div class="sidebar-caption" id="sidebarTools">分頁工具</div>
+    <nav class="secondary-nav" aria-label="目前領域分頁"><div class="secondary-track" id="secondaryNav"></div></nav>
+    <p class="sidebar-sync" id="sidebarSync" aria-hidden="true">未登入</p>
+  </aside>
+  <aside id="saveFeedback" class="workflow-feedback" role="status" aria-live="polite" hidden></aside><section id="marketFeedback" class="workflow-feedback market-feedback" role="status" aria-live="polite" hidden></section>
+  <main class="page" id="app" tabindex="-1"></main>
+  <nav class="mobile-nav" aria-label="手機主要功能">
+    <button type="button" data-domain="home"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-home"></use></svg><span>拾光島</span></button>
+    <button type="button" data-domain="daily"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-daily"></use></svg><span>記帳島</span></button>
+    <button type="button" data-domain="accounts"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-accounts"></use></svg><span>帳務島</span></button>
+    <button type="button" data-domain="investments"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-investments"></use></svg><span>投資島</span></button>
+    <button type="button" data-domain="analysis"><svg class="island-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#island-icon-analysis"></use></svg><span>洞察島</span></button>
+  </nav>
+  <input id="importFile" type="file" accept="application/json" hidden>
+  <input id="importCsvFile" type="file" accept=".csv,text/csv" hidden>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <dialog class="auth-dialog" id="cloudLoginDialog"><form class="auth-dialog-body" id="cloudLoginForm" method="dialog"><div><h3>Email 登入同步</h3><p>輸入 Email 後，系統會寄送一次性登入連結。開啟信件中的連結即可完成登入。</p></div><label>Email<input id="cloudDialogEmail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="name@example.com" required></label><div class="auth-dialog-actions"><button class="action-btn" id="cloudLoginCancel" type="button">取消</button><button class="action-btn blue" id="cloudLoginSend" type="submit">寄送登入連結</button></div></form></dialog>
+  <dialog class="search-dialog" id="searchDialog"><div class="search-shell"><div class="search-head"><input id="searchInput" type="search" placeholder="搜尋帳目、商家、帳戶、股票或股息…" autocomplete="off"><button class="action-btn" id="searchClose" type="button" aria-label="關閉搜尋"><i data-lucide="x"></i></button></div><div class="search-results" id="searchResults"><div class="search-hint">輸入關鍵字即可搜尋全部財務資料</div></div></div></dialog>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="market-data-config.js"></script>
+  <script src="finance-center-routes.js?v=20261002-lab"></script>
+  <script src="finance-core.js?v=20261002-zeroall2"></script>
+  <script src="finance-intelligence.js?v=2"></script>
+  <script src="finance-upgrades.js?v=2"></script>
+  <script src="finance-storage.js?v=2"></script>
+  <script src="finance-market.js?v=1"></script>
+  <script src="finance-sync.js?v=20261002-zeroall2"></script>
+  <script src="finance-notifications.js?v=2"></script>
+  <script src="finance-search.js?v=1"></script>
+  <script src="finance-import.js?v=2"></script>
+  <script src="finance-intelligence-ui.js?v=2"></script>
+  <script src="finance-trade-sync.js?v=1"></script>
+  <script src="fubon-review.js?v=20261002-importfeedback"></script>
+  <script src="fubon-portfolio.js?v=20261002-phase3"></script>
+  <script src="investment-operations.js?v=20261002"></script>
+  <script src="portfolio-lab.js?v=20261002-lab4"></script>
+  <script src="security-names.js?v=20261002"></script>
+  <script src="investment-cards.js?v=20261002-cards4"></script>
+  <script src="finance-experience.js?v=1"></script>
+  <script src="finance-workflow.js?v=1"></script>
+  <script src="finance-charts.js?v=3"></script>
+
+
+
   <script>
     const app = document.getElementById("app");
     const secondaryNav = document.getElementById("secondaryNav");
@@ -1668,7 +1668,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
     FinanceNotifications.check(current.alerts);
     FinanceNotifications.init();
     FinanceMarket.loadLatest({silent:true}).then(result=>{if(!result.skipped)refresh({background:true})}).catch(()=>{});
-    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=144").catch(()=>{});
+    if("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js?v=186").catch(()=>{});
   </script>
 </body>
 </html>
