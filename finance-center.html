@@ -786,7 +786,10 @@
       .cozy-split{display:grid;grid-template-columns:minmax(0,35fr) minmax(0,65fr);align-items:end;gap:24px;padding:24px}
       .cozy-split>.cozy-scene{grid-column:2;grid-row:1;justify-self:end;width:min(100%,760px);margin:0;border-radius:16px}
       .cozy-split[aria-labelledby="island-title"]{grid-template-columns:minmax(0,28fr) minmax(0,72fr)}
-      .cozy-split[aria-labelledby="island-title"]>.cozy-scene{width:min(100%,920px)}
+      .cozy-split[aria-labelledby="island-title"]>.cozy-scene{width:min(100%,1000px)}
+      .cozy-split[aria-labelledby="island-title"] .cozy-actor[data-kind="traveler"]{--x:43%!important;--y:49%!important;--end-x:56%!important;--end-y:53%!important}
+      .cozy-split[aria-labelledby="island-title"] .cozy-actor[data-kind="dog"]{--x:67%!important;--y:65%!important;--end-x:57%!important;--end-y:70%!important}
+      .cozy-split[aria-labelledby="island-title"] .cozy-actor[data-kind="duck"]{--x:38%!important;--y:63%!important;--end-x:49%!important;--end-y:65%!important}
       .cozy-panel.cozy-split>.island-summary,.cozy-split>.island-page-heading{grid-column:1;grid-row:1;min-width:0;margin:0;padding:0}
       .cozy-split .cozy-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 0!important}
       .cozy-split .cozy-summary-grid .metric-card{min-width:0;overflow-wrap:anywhere}
@@ -1195,7 +1198,10 @@
       const birds = name === "home" || name === "accounts"
         ? '<span class="cozy-sky"><i class="cozy-bird"></i><i class="cozy-bird"></i></span>' : "";
       return `<div class="cozy-scene"><div class="cozy-art" aria-hidden="true">
-        <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
+        <picture>
+          ${name==="home"?'<source media="(min-width:1024px)" srcset="island-art/cozy/home-desktop.webp" width="1000" height="500">':""}
+          <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
+        </picture>
         ${actors}${birds}${extra}
       </div></div>`;
     }
