@@ -800,7 +800,6 @@
     .cozy-villager--swimmer{width:7.8%;transform:translate(-50%,-80%)}
     .cozy-villager--potter,.cozy-villager--vendor{width:8%}
     .cozy-villager--lookout{width:7.2%}
-    .cozy-villager--vendor{clip-path:inset(0 0 37% 0)}
     .cozy-villager--potter>img,.cozy-villager--lookout>img,.cozy-villager--vendor>img{animation-duration:4.8s}
     .cozy-villager--gardener>img{animation-duration:5s;animation-delay:-1s}
     @media(min-width:1024px){
@@ -911,8 +910,10 @@
       33.333%,66.667%{transform:translateX(-50%)}
       50%{transform:translateX(-75%)}
     }
-    .cozy-balloon--title{position:relative;display:block;float:right;width:38px;margin:0 18px 20px 12px;isolation:isolate}
+    .cozy-balloon--title{position:relative;display:grid;grid-template-columns:1.2fr 1fr;align-items:start;gap:4px;float:right;width:70px;margin:0 18px 20px 12px;isolation:isolate}
     .cozy-balloon--title>.cozy-balloon{display:block;width:100%}
+    .cozy-balloon--blue{margin-top:8px;animation-delay:-.9s}
+    .cozy-balloon--blue>img{animation-delay:-2.2s}
     .cozy-cloud{position:absolute;z-index:-1;width:29px;aspect-ratio:2/1;overflow:hidden;opacity:.9;pointer-events:none;animation:cozy-cloud-drift 8s ease-in-out infinite alternate}
     .cozy-cloud--upper{top:13%;left:-14px}
     .cozy-cloud--lower{top:68%;right:-13px;width:25px;animation-delay:-4s}
@@ -926,7 +927,7 @@
     .cozy-lighthouse{position:absolute;top:2%;left:21.5%;width:14%;aspect-ratio:1;pointer-events:none;background:radial-gradient(circle,#fff2abcc,transparent 65%);mix-blend-mode:screen}
     @keyframes cozy-drift{to{transform:translate(12px,18px) rotate(7deg)}}
     @media(min-width:1024px){
-      .cozy-balloon--title{width:48px}
+      .cozy-balloon--title{width:90px}
     }
     @media(prefers-reduced-motion:reduce){
       .cozy-bird{display:none}
@@ -1202,11 +1203,12 @@
         <span class="cozy-cloud cozy-cloud--upper"><img src="island-art/cozy/cloud-drift.webp" width="384" height="48" alt=""></span>
         <span class="cozy-cloud cozy-cloud--lower"><img src="island-art/cozy/cloud-drift.webp" width="384" height="48" alt=""></span>
         <span class="cozy-balloon"><img src="island-art/cozy/balloon-turn.webp" width="432" height="144" alt=""></span>
+        <span class="cozy-balloon cozy-balloon--blue"><img src="island-art/cozy/balloon-blue-turn.webp" width="432" height="144" alt=""></span>
       </span>`;
     }
     const cozyVillagers = {
       home: [["swimmer",21,84],["gardener",75,63]],
-      daily: [["gardener",58,75],["vendor",73.3,60]],
+      daily: [["gardener",58,75],["vendor",73.3,72]],
       accounts: [["swimmer",17,75],["gardener",89,86]],
       investments: [["gardener",62,83],["potter",71.4,55.6]],
       analysis: [["gardener",34,85],["lookout",37.6,34.5]],
