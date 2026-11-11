@@ -25,7 +25,7 @@ test('bank pairing and conflict selection operate on synthetic data',async({page
     return {date,billId:FinanceCore.load().ledger.creditBills.at(-1).id};
   });
   await page.reload();await page.locator('#quickEntryForm [name=account]').selectOption({label:'測試卡片　｜　TWD'});await expect(page.locator('[data-card-region]')).toBeVisible();
-  page.once('dialog',async dialog=>{expect(dialog.message()).toContain('未儲存');await dialog.accept()});await page.getByRole('button',{name:'帳戶',exact:true}).click();await page.locator('#secondaryNav [data-tab=credit]').click();await page.locator(`[data-experience-bill="${details.billId}"]`).click();
+  page.once('dialog',async dialog=>{expect(dialog.message()).toContain('未儲存');await dialog.accept()});await page.locator('.mobile-nav [data-domain=accounts]').click();await page.locator('#secondaryNav [data-tab=credit]').click();await page.locator(`[data-experience-bill="${details.billId}"]`).click();
   await page.locator('[data-experience-bank] [name=source]').fill(`日期,商家,金額\n${details.date},測試商店,100`);await page.locator('[data-experience-bank] button').click();
   await expect(page.locator('[data-experience-matches]')).toBeVisible();await page.locator('[data-experience-matches] button').click();
   expect(await page.evaluate(id=>Object.keys(FinanceCore.load().ledger.creditBills.find(r=>r.id===id).bankMatches).length,details.billId)).toBe(1);
