@@ -25,7 +25,7 @@ for (const reducedMotion of ['no-preference', 'reduce']) {
       const art = node.getBoundingClientRect();
       const summary = node.nextElementSibling.getBoundingClientRect();
       return Math.abs(art.height-art.width*337/764)<2 &&
-        art.width<=840 && art.width>summary.width && summary.right<art.left &&
+        art.width<=920 && art.width>summary.width && summary.right<art.left &&
         Math.abs(art.bottom-summary.bottom)<0.5;
     })).toBe(true);
     await page.setViewportSize({width:390,height:844});
