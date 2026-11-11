@@ -793,6 +793,7 @@
     .cozy-villager--potter>img,.cozy-villager--lookout>img,.cozy-villager--vendor>img{animation-duration:4.8s}
     .cozy-villager--gardener>img{animation-duration:5s;animation-delay:-1s}
     @media(min-width:1024px){
+      [data-scene="home"] .cozy-backdrop{filter:saturate(.85) contrast(.96)}
       [data-scene="home"] .cozy-villager--swimmer{left:25%;top:81%}
       [data-scene="home"] .cozy-villager--gardener{left:64%;top:53%}
     }
@@ -810,6 +811,9 @@
     .cozy-stop.reached{background:#688553;border-color:#344c30}
     .cozy-traveler,.cozy-actor{width:var(--actor-size);aspect-ratio:1;transform:translate(-50%,-96%);filter:drop-shadow(0 1px 1px #50452f55)}
     .cozy-traveler,.cozy-actor[data-kind=traveler]{--frames:url("island-art/cozy/traveler-steps.webp");--actor-size:9%;--stride:.72s}
+    .cozy-art[data-scene="home"] .cozy-actor[data-kind=traveler]{--actor-size:7.2%}
+    .cozy-art[data-scene="home"] .cozy-villager--gardener{width:6.72%}
+    .cozy-art[data-scene="home"] .cozy-villager--swimmer{width:6.24%}
     .cozy-actor[data-kind=dog]{--frames:url("island-art/cozy/dog-steps.webp");--actor-size:5.6%;--stride:.55s}
     .cozy-actor[data-kind=duck]{--frames:url("island-art/cozy/duck-steps.webp");--actor-size:4.6%;--stride:1.12s}
     .cozy-actor[data-kind=rabbit]{--frames:url("island-art/cozy/rabbit-steps.webp");--actor-size:4.8%;--stride:.8s}
