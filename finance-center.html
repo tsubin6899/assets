@@ -795,14 +795,13 @@
       .cozy-split .cozy-summary-grid .metric-card{min-width:0;overflow-wrap:anywhere}
     }
     .cozy-art{position:relative;overflow:hidden;isolation:isolate}
-    .cozy-villager{position:absolute;width:6%;aspect-ratio:1;overflow:hidden;pointer-events:none;transform:translate(-50%,-80%)}
+    .cozy-villager{position:absolute;left:var(--villager-x);top:var(--villager-y);width:8.4%;aspect-ratio:1;overflow:hidden;pointer-events:none;transform:translate(-50%,-96%)}
     .cozy-villager>img{display:block;width:400%;max-width:none;height:100%;animation:cozy-balloon-turn 2.8s steps(1,end) infinite}
-    .cozy-villager--swimmer{left:21%;top:84%}
-    .cozy-villager--gardener{left:75%;top:61%}
+    .cozy-villager--swimmer{width:7.8%;transform:translate(-50%,-80%)}
     .cozy-villager--gardener>img{animation-duration:5s;animation-delay:-1s}
     @media(min-width:1024px){
-      .cozy-villager--swimmer{left:25%;top:81%}
-      .cozy-villager--gardener{left:64%;top:51%}
+      [data-scene="home"] .cozy-villager--swimmer{left:25%;top:81%}
+      [data-scene="home"] .cozy-villager--gardener{left:64%;top:53%}
     }
     @media(prefers-reduced-motion:reduce){.cozy-villager>img{animation:none}}
     .cozy-backdrop{display:block;width:100%;height:auto}
@@ -1201,20 +1200,29 @@
         <span class="cozy-balloon"><img src="island-art/cozy/balloon-turn.webp" width="432" height="144" alt=""></span>
       </span>`;
     }
+    const cozyVillagers = {
+      home: [["swimmer",21,84],["gardener",75,63]],
+      daily: [["gardener",58,75]],
+      accounts: [["swimmer",17,75],["gardener",89,86]],
+      investments: [["gardener",62,83]],
+      analysis: [["gardener",34,85]],
+      planning: [["gardener",58,84]]
+    };
     function cozyScene(name, extra="") {
       const actors = cozyActors[name].map(([kind,x,y,endX,endY,duration],index)=>
         `<span class="cozy-actor" data-kind="${kind}" style="--x:${x}%;--y:${y}%;--end-x:${endX}%;--end-y:${endY}%;--duration:${duration}s;--face:${Math.sign(endX-x)};--return-face:${Math.sign(x-endX)};--delay:-${index*3}s"></span>`
       ).join("");
       const birds = name === "home" || name === "accounts"
         ? '<span class="cozy-sky"><i class="cozy-bird"></i><i class="cozy-bird"></i></span>' : "";
-      return `<div class="cozy-scene"><div class="cozy-art" aria-hidden="true">
+      const villagers = cozyVillagers[name].map(([kind,x,y]) =>
+        `<span class="cozy-villager cozy-villager--${kind}" style="--villager-x:${x}%;--villager-y:${y}%"><img src="island-art/cozy/${kind}-frames.webp" width="384" height="96" alt=""></span>`
+      ).join("");
+      return `<div class="cozy-scene"><div class="cozy-art" data-scene="${name}" aria-hidden="true">
         <picture>
           ${name==="home"?'<source media="(min-width:1024px)" srcset="island-art/cozy/home-desktop.webp" width="1000" height="500">':""}
           <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
         </picture>
-        ${actors}${birds}
-        ${name==="home"?`<span class="cozy-villager cozy-villager--swimmer"><img src="island-art/cozy/swimmer-frames.webp" width="384" height="96" alt=""></span>
-          <span class="cozy-villager cozy-villager--gardener"><img src="island-art/cozy/gardener-frames.webp" width="384" height="96" alt=""></span>`:""}
+        ${actors}${birds}${villagers}
         ${extra}
       </div></div>`;
     }
