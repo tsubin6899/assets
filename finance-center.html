@@ -110,6 +110,11 @@
     .segmented span{display:block;padding:9px;border-radius:8px;text-align:center;color:#627083;font-weight:850;cursor:pointer}
     .segmented input:checked+span{color:#fff;background:var(--coral);box-shadow:0 6px 14px rgba(229,115,97,.2)}
     .segmented label:last-child input:checked+span{background:var(--green)}
+    .quick-entry-page .segmented input[value="expense"]+span{--entry-tone:#a52d39;--entry-tint:#fbe5e8}
+    .quick-entry-page .segmented input[value="income"]+span{--entry-tone:#246346;--entry-tint:#e0f1e7}
+    .quick-entry-page .segmented input+span{background:var(--entry-tint);color:var(--entry-tone)}
+    .quick-entry-page .segmented label input:checked+span{background:var(--entry-tone);color:#fff;box-shadow:none}
+    .quick-entry-page .segmented input:focus-visible+span{outline:2px solid var(--entry-tone);outline-offset:2px}
     .template-strip{display:flex;align-items:center;gap:7px;margin-bottom:11px;overflow-x:auto;scrollbar-width:none}.template-strip::-webkit-scrollbar{display:none}.template-strip-label{flex:0 0 auto;color:var(--muted);font-size:10px;font-weight:900}.template-chip{display:flex;flex:0 0 auto;overflow:hidden;border:1px solid #d8e4e7;border-radius:999px;background:#f4faf8}.template-chip button{min-height:32px;padding:5px 9px;border:0;color:#285d67;background:transparent;font-size:11px;font-weight:850}.template-chip button:last-child{padding-left:4px;color:#9d524c}
     .alert-list{display:grid;gap:9px}
     .alert-card{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:11px;padding:12px 13px;border-radius:13px;box-shadow:none}
@@ -643,8 +648,7 @@
       .page #analysisChartFilter :is(input,select){width:100%;min-width:0;min-height:44px;font-size:16px}
       .page .market-strip{background:#fff;border:1px solid #d6e1d7;border-radius:13px}
       .page .market-strip-meta span{color:var(--island-accent)}
-      .page .market-strip>.action-btn,.page #quickEntryForm>button[type="submit"],
-      .page #quickEntryForm .segmented input:checked+span{background:var(--island-accent);border-color:transparent;color:#fff;box-shadow:none}
+      .page .market-strip>.action-btn,.page #quickEntryForm>button[type="submit"]{background:var(--island-accent);border-color:transparent;color:#fff;box-shadow:none}
       #quickEntryForm.quick-entry-page{padding:12px}
       #quickEntryForm.quick-entry-page .form-grid .quick-field-amount{grid-column:1/-1}
       #quickEntryForm.quick-entry-page .form-grid .quick-field-account{grid-column:auto}
@@ -732,7 +736,7 @@
       .quick-entry-layout{grid-template-columns:minmax(0,0.85fr) minmax(0,1.15fr);align-items:stretch}
       .quick-entry-layout #quickEntryForm,.quick-entry-side>.panel{height:100%}
       .desktop-quick-form-title{display:block;margin:0 0 8px;font-size:20px}
-      .page #quickEntryForm>button[type="submit"],.page #quickEntryForm .segmented input:checked+span,
+      .page #quickEntryForm>button[type="submit"],
       .page .market-strip>.action-btn,.page #analysisChartFilter button{background:var(--island-accent);border-color:transparent;color:#fff;box-shadow:none}
       .quick-entry-side .table-wrap{overflow:auto}
       .quick-entry-side th{background:var(--island-tint)}
