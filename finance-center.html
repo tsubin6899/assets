@@ -807,6 +807,15 @@
       100%{transform:translate(0,0) scaleX(1)}
     }
     @media(prefers-reduced-motion:reduce){.cozy-fish{animation:none}}
+    .cozy-scene{position:relative}
+    .cozy-scene-notices{position:absolute;inset:auto 10px 10px;display:flex;gap:6px;flex-wrap:wrap;pointer-events:none}
+    .cozy-scene-notice{display:inline-flex;align-items:center;gap:5px;max-width:100%;min-height:44px;padding:5px 10px;border:1px solid #75583b;border-radius:10px;background:#fff7df;color:#3e3929;font:inherit;font-size:12px;font-weight:700;text-align:left;overflow-wrap:anywhere;pointer-events:auto;cursor:pointer}
+    .cozy-scene-notice:focus-visible{outline:3px solid #294638;outline-offset:2px}
+    .cozy-scene-notice[data-stage="0"]{background:#f5ead2}
+    .cozy-scene-notice[data-stage="1"],.cozy-scene-notice[data-stage="2"]{background:#e6efd5}
+    .cozy-scene-notice[data-stage="3"],.cozy-scene-notice[data-lit]{background:#fff0b8;box-shadow:0 0 14px #ffda83}
+    @media(prefers-reduced-motion:no-preference){.cozy-art[data-receipt] .cozy-villager--vendor{animation:cozy-vendor-receipt .55s ease-out}}
+    @keyframes cozy-vendor-receipt{50%{transform:translate(-50%,-108%) rotate(-6deg)}}
     .cozy-backdrop{display:block;width:100%;height:auto}
     .cozy-panel .island-summary{padding:clamp(14px,3vw,26px)}
     .cozy-panel .island-summary :is(h2,p,dt){color:inherit}
@@ -1224,6 +1233,61 @@
       analysis: [["gardener",34,85],["lookout",37.6,34.5]],
       planning: [["gardener",58,84]]
     };
+    let marketReceipt = false;
+    function islandNotice(icon, label, action, extra="", amount="") {
+      return `<button type="button" class="cozy-scene-notice" ${action} ${extra}><span aria-hidden="true">${icon}</span><span>${esc(label)}${amount?` <small class="money-value">${esc(amount)}</small>`:""}</span></button>`;
+    }
+    function upcomingIslandBills() {
+      const today = FinanceCore.localDate();
+      const limit = Date.parse(today) + 7 * 86400000;
+      return current.ledger.creditBills.filter(bill=>!bill.paid && Date.parse(bill.dueDate)<=limit)
+        .sort((a,b)=>a.dueDate.localeCompare(b.dueDate));
+    }
+    function islandFlowerbed() {
+      const goals = FinanceIntelligence.funding(current).filter(row=>row.targetAmount>0);
+      const goal = goals.find(row=>!row.completed && row.currentAmount<row.targetAmount) || goals[0];
+      if (!goal) return islandNotice("🌱","種下儲蓄目標",'data-go="analysis/planning"');
+      const progress = goal.completed ? 100 : Math.max(0,Math.min(100,Math.floor(goal.currentAmount/goal.targetAmount*100)));
+      const stage = progress===100 ? 3 : progress>=50 ? 2 : progress>0 ? 1 : 0;
+      return islandNotice(["🪴","🌱","🌿","🌼"][stage],`儲蓄花圃 · ${progress}%`,'data-go="analysis/planning"',`data-stage="${stage}"`,`${money(goal.completed?goal.targetAmount:goal.currentAmount)}／${money(goal.targetAmount)}`);
+    }
+    function islandSceneNotices(name) {
+      const {ledger,assets,month} = current;
+      if (name==="home") {
+        const bill = upcomingIslandBills()[0];
+        const pending = (assets.purchaseRecords||[]).some(row=>row.settlementStatus==="pending" && row.date<=FinanceCore.localDate());
+        const board = bill ? islandNotice("📌","碼頭告示板 · 待繳帳單",`data-home-bill="${esc(bill.id)}"`)
+          : pending ? islandNotice("📌","碼頭告示板 · 待核對交易",'data-go="investments/review"')
+          : islandNotice("📌","碼頭告示板",'data-go="home/actions"');
+        return board + islandFlowerbed();
+      }
+      if (name==="daily") {
+        if (ledger.monthCloseouts.some(row=>row.month===month.month)) return islandNotice("🚩","市場已完成本月月結",'data-go="daily/closeout"');
+        return islandNotice("📒",marketReceipt?"市場帳本 · 已記錄":"市場帳本",'data-go="daily/quick"');
+      }
+      if (name==="accounts") {
+        const bill = upcomingIslandBills()[0];
+        return bill ? islandNotice("🏮",`碼頭亮燈 · ${bill.dueDate}`,`data-home-bill="${esc(bill.id)}"`,'data-lit',money(bill.amount)) : "";
+      }
+      if (name==="investments") {
+        const completed = (assets.investmentSchedule||[]).filter(row=>row.completed && !row.deletedAt).length;
+        return islandNotice(completed>=3?"🌿":completed?"🌱":"🪴",completed?`溫室 · 已核對 ${completed} 筆投資日程`:"溫室 · 查看資產配置",'data-go="investments/portfolio"');
+      }
+      if (name==="planning") return islandFlowerbed();
+      if (name==="analysis") {
+        const model = FinanceCharts.model(current,FinanceCharts.filters());
+        const previousMonth = shiftMonthValue(model.month,-1);
+        const previous = FinanceCharts.model(current,{month:previousMonth}).categoryRows;
+        const changes = model.categoryRows.map(row=>{
+          const before = previous.find(item=>item.name===row.name)?.value || 0;
+          return {category:row.name,delta:row.value-before,percent:before>0?Math.round((row.value-before)/before*100):null};
+        }).sort((a,b)=>b.delta-a.delta);
+        const change = changes[0];
+        if (change?.delta>0) return islandNotice("🔭",change.percent>0?`${change.category}比上月多 ${change.percent}%`:`${change.category}支出增加`,`data-island-category="${esc(change.category)}"`);
+        return islandNotice("🔭","查看支出分析",'data-go="analysis/spending"');
+      }
+      return "";
+    }
     function cozyScene(name, extra="") {
       const actors = cozyActors[name].map(([kind,x,y,endX,endY,duration],index)=>
         `<span class="cozy-actor" data-kind="${kind}" style="--x:${x}%;--y:${y}%;--end-x:${endX}%;--end-y:${endY}%;--duration:${duration}s;--face:${Math.sign(endX-x)};--return-face:${Math.sign(x-endX)};--delay:-${index*3}s"></span>`
@@ -1236,20 +1300,20 @@
       const villagers = cozyVillagers[name].map(([kind,x,y]) =>
         `<span class="cozy-villager cozy-villager--${kind}" style="--villager-x:${x}%;--villager-y:${y}%"><img src="island-art/cozy/${kind}-frames.webp" width="384" height="96" alt=""></span>`
       ).join("");
-      return `<div class="cozy-scene"><div class="cozy-art" data-scene="${name}" aria-hidden="true">
+      const notices = islandSceneNotices(name);
+      return `<div class="cozy-scene"><div class="cozy-art" data-scene="${name}" ${name==="daily"&&marketReceipt?"data-receipt":""} aria-hidden="true">
         <picture>
           ${name==="home"?'<source media="(min-width:1024px)" srcset="island-art/cozy/home-desktop.webp" width="1000" height="500">':""}
           <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
         </picture>
         ${fish}${actors}${birds}${villagers}
         ${extra}
-      </div></div>`;
+      </div>${notices?`<div class="cozy-scene-notices" aria-label="島上動態">${notices}</div>`:""}</div>`;
     }
     function renderIslandTasks(month) {
       const today = FinanceCore.localDate();
       const daysUntil = date => Math.round((Date.parse(date)-Date.parse(today))/86400000);
-      const tasks = current.ledger.creditBills.filter(bill=>!bill.paid && bill.dueDate && daysUntil(bill.dueDate)<=7)
-        .sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,3).map(bill=>{
+      const tasks = upcomingIslandBills().slice(0,3).map(bill=>{
           const days = daysUntil(bill.dueDate);
           const due = days<0 ? "已逾期" : days===0 ? "今日到期" : `${days} 天後到期`;
           return `<button class="action-btn" data-home-bill="${esc(bill.id)}"><span>${esc(bill.card)}帳單 · ${due}</span><strong class="money-value">${money(bill.amount)}</strong></button>`;
@@ -1744,7 +1808,12 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       }
       placeTrendFilter();
       window.FubonReview?.decorate(app,state);
-      window.InvestmentOperations?.decorate(app,state);
+      marketReceipt=false;
+      window.InvestmentOperations?.decorate(app,state,()=>{
+        current=FinanceCore.insights();
+        const notices=app.querySelector(".cozy-scene-notices");
+        if(notices)notices.innerHTML=islandSceneNotices("investments");
+      });
       window.PortfolioLab?.decorate(app,state);
       window.InvestmentCards?.decorate(app,state);
       window.FinanceExperience?.decorate(app,state,current);
@@ -1797,6 +1866,14 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       const domainControl=event.target.closest(".primary-nav [data-domain],.mobile-nav [data-domain]");const domain=domainControl?.dataset.domain;if(domain){setRoute(domain);return}
       const tab=event.target.closest("[data-tab]")?.dataset.tab;if(tab){document.querySelectorAll(":popover-open").forEach(node=>node.hidePopover());setRoute(state.domain,tab);return}
       const tradeCode=event.target.closest('[data-trade-code]')?.dataset.tradeCode;if(tradeCode){ui.tradeFilter={code:tradeCode,start:'',end:'',type:''};setRoute('investments','trades');return}if(event.target.closest('[data-clear-trade-filter]')){ui.tradeFilter={code:'',start:'',end:'',type:''};FinanceWorkflow.remember({filter:ui.tradeFilter});render();return}
+      const islandCategory=event.target.closest("[data-island-category]")?.dataset.islandCategory;
+      if(islandCategory){
+        setRoute("analysis","spending");
+        if(state.domain==="analysis"&&state.tab==="spending"){
+          app.querySelector(`[data-chart-category="${CSS.escape(islandCategory)}"]`)?.click();
+        }
+        return;
+      }
       const go=event.target.closest("[data-go]")?.dataset.go;if(go){document.querySelectorAll(":popover-open").forEach(node=>node.hidePopover());const [d,t]=go.split("/");setRoute(d,t);return}
       const searchRoute=event.target.closest("[data-search-route]")?.dataset.searchRoute;if(searchRoute){document.getElementById("searchDialog").close();const [d,t]=searchRoute.split("/");setRoute(d,t);return}
       if(event.target.closest("[data-market-refresh]")){refreshMarketData();return}
@@ -1894,7 +1971,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         if(formId==="ledgerLookupForm"){if(values.startDate&&values.endDate&&values.startDate>values.endDate)throw new Error("起始日期不可晚於結束日期");ui.lookup={...ui.lookup,...values,submitted:true};render();return}
         if(formId==="taxYearForm"){ui.taxYear=String(values.year||new Date().getFullYear()).slice(0,4);render();return}
         if(formId==="bulkEntryForm"){const ids=[...document.querySelectorAll("[data-select-entry]:checked")].map(node=>node.dataset.selectEntry);if(!ids.length)throw new Error("請先選取要批次修改的帳目");const updated=FinanceUpgrades.bulkUpdateEntries({...values,ids});showToast(`已批次更新 ${updated} 筆帳目`);refresh();return}
-        if(formId==="quickEntryForm") { if(!values.id&&duplicateEntryCandidate(values)&&!confirm("發現日期、金額、帳戶與商家都相同的紀錄，仍要新增嗎？"))return; const before=FinanceCore.exportBundle();values.id?FinanceCore.updateEntry(values.id,values):FinanceCore.addEntry(values);if(!values.id)window.FinanceExperience?.rememberEntry(before,FinanceCore.exportBundle());rememberRecentAccount(values.account); clearQuickDraft(); ui.editingEntryId="";
+        if(formId==="quickEntryForm") { if(!values.id&&duplicateEntryCandidate(values)&&!confirm("發現日期、金額、帳戶與商家都相同的紀錄，仍要新增嗎？"))return; const before=FinanceCore.exportBundle();values.id?FinanceCore.updateEntry(values.id,values):FinanceCore.addEntry(values);if(!values.id)window.FinanceExperience?.rememberEntry(before,FinanceCore.exportBundle());marketReceipt=true;rememberRecentAccount(values.account); clearQuickDraft(); ui.editingEntryId="";
           if(values.continueEntry){localStorage.setItem('tsubin-finance-quick-draft-v1',JSON.stringify({...values,id:'',amount:'',merchant:'',note:'',continuing:true,savedAt:Date.now()}));}
         }
         if(formId==="transferForm") { values.id?FinanceCore.updateTransfer(values.id,values):FinanceCore.addTransfer(values); ui.editingTransferId=""; }

@@ -40,7 +40,7 @@
     return rows.sort((a,b)=>b.priority-a.priority);
   }
   function table(headers,rows){return `<div style="overflow:auto"><table><thead><tr>${headers.map(h=>`<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;}
-  function decorate(app,state){
+  function decorate(app,state,onScheduleChange){
     const showCalendar=state.domain==='investments'&&['portfolio','dividends'].includes(state.tab);
     const showPerformance=state.domain==='investments'&&state.tab==='portfolio';
     const showAlerts=(state.domain==='analysis'&&state.tab==='events')||showPerformance;
@@ -58,7 +58,7 @@
       if(showAlerts){const all=alerts(b,monitor,snapshot),visible=all.filter(r=>!(pref[r.id]>now));html+=`<h3>整合提醒中心</h3><p>${esc(loadStatus)}｜${visible.length} 筆顯示，${all.length-visible.length} 筆暫停。暫停僅影響此瀏覽器，不變更交易中心已讀狀態。</p><button id="refreshInvestmentAlerts" class="action-btn">更新提醒資料</button><button id="restoreInvestmentAlerts" class="action-btn">恢復所有暫停提醒</button>${table(['優先級','提醒','依據','操作'],visible.map(r=>[r.priority===3?'高':r.priority===2?'中':'一般',esc(r.title),esc(r.detail),`<button data-snooze="${esc(r.id)}">暫停 24 小時</button>`]))}`;}
       section.innerHTML=html;
       section.querySelector('#investmentScheduleForm')?.addEventListener('submit',e=>{e.preventDefault();try{savePlan(Object.fromEntries(new FormData(e.target)));draw();}catch(error){window.alert(error.message);}});
-      section.querySelectorAll('[data-plan]').forEach(button=>button.onclick=()=>{completePlan(button.dataset.plan);draw();});
+      section.querySelectorAll('[data-plan]').forEach(button=>button.onclick=()=>{completePlan(button.dataset.plan);draw();onScheduleChange?.();});
       section.querySelector('#investmentPerformanceYear')?.addEventListener('change',e=>{year=e.target.value;draw();});
       section.querySelectorAll('[data-snooze]').forEach(button=>button.onclick=()=>{localStorage.setItem(prefsKey,JSON.stringify({...preferences(),[button.dataset.snooze]:Date.now()+86400000}));draw();});
       section.querySelector('#refreshInvestmentAlerts')?.addEventListener('click',loadReminders);
