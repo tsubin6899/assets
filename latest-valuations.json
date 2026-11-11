@@ -1,6 +1,6 @@
 {
   "schemaVersion": 4,
-  "generatedAt": "2026-11-11T06:19:54+00:00",
+  "generatedAt": "2026-11-11T12:54:30+00:00",
   "source": "TWSE OpenAPI + TPEx OpenAPI + SEC EDGAR + WantGoo/SITCA Taiwan ETF NAV + CMoney US ETF premium",
   "referenceSources": [
     {
@@ -30,11 +30,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 99.73,
+      "nav": 103.81,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -42,11 +42,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 14.84,
+      "nav": 15.38,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -54,11 +54,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 24.2,
+      "nav": 25.32,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -66,11 +66,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 13.01,
+      "nav": 13.16,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-09",
+      "asOf": "2026-11-10",
       "dataStatus": "current",
       "stale": false
     },
@@ -78,11 +78,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 14.42,
+      "nav": 15.06,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -95,18 +95,17 @@
       "dividendYield": 0.96,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:00919": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 30.83,
+      "nav": 31.42,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -114,11 +113,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 14.5674,
+      "nav": 14.4256,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-09",
+      "asOf": "2026-11-10",
       "dataStatus": "current",
       "stale": false
     },
@@ -126,11 +125,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 12.19,
+      "nav": 12.44,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -138,11 +137,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 32.93,
+      "nav": 33.58,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -155,8 +154,7 @@
       "dividendYield": 6.26,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2617": {
       "assetType": "stock",
@@ -167,8 +165,7 @@
       "dividendYield": 4.98,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:3013": {
       "assetType": "stock",
@@ -179,8 +176,7 @@
       "dividendYield": 1.05,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2344": {
       "assetType": "stock",
@@ -191,29 +187,28 @@
       "dividendYield": 0.37,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:1799": {
       "assetType": "stock",
       "metric": null,
       "value": null,
       "pe": null,
-      "pb": 4.41,
+      "pb": 4.31,
       "dividendYield": 0.0,
       "source": "TPEx OpenAPI tpex_mainboard_peratio_analysis",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "partial"
     },
     "TW:00999A": {
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 9.44,
+      "nav": 9.76,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -221,11 +216,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 8.85,
+      "nav": 9.22,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -233,11 +228,11 @@
       "assetType": "etf",
       "metric": null,
       "value": null,
-      "nav": 11.0,
+      "nav": 11.51,
       "source": "投信投顧公會每日淨值",
       "referenceUrl": "https://www.wantgoo.com/stock/etf/net-value",
       "referenceLabel": "WantGoo 折溢價",
-      "asOf": "2026-11-10",
+      "asOf": "2026-11-11",
       "dataStatus": "current",
       "stale": false
     },
@@ -250,8 +245,7 @@
       "dividendYield": 2.97,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2454": {
       "assetType": "stock",
@@ -262,8 +256,7 @@
       "dividendYield": 1.4,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2382": {
       "assetType": "stock",
@@ -274,8 +267,7 @@
       "dividendYield": 5.23,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2408": {
       "assetType": "stock",
@@ -286,8 +278,7 @@
       "dividendYield": 0.35,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2337": {
       "assetType": "stock",
@@ -298,8 +289,7 @@
       "dividendYield": null,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:3376": {
       "assetType": "stock",
@@ -310,8 +300,7 @@
       "dividendYield": 3.35,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2303": {
       "assetType": "stock",
@@ -322,8 +311,7 @@
       "dividendYield": 2.6,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:3231": {
       "assetType": "stock",
@@ -334,8 +322,7 @@
       "dividendYield": 3.22,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2308": {
       "assetType": "stock",
@@ -346,8 +333,7 @@
       "dividendYield": 0.91,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:2327": {
       "assetType": "stock",
@@ -358,8 +344,7 @@
       "dividendYield": 1.44,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:3037": {
       "assetType": "stock",
@@ -370,8 +355,7 @@
       "dividendYield": 0.24,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:1802": {
       "assetType": "stock",
@@ -382,8 +366,7 @@
       "dividendYield": null,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "TW:4958": {
       "assetType": "stock",
@@ -394,8 +377,7 @@
       "dividendYield": 0.79,
       "source": "TWSE OpenAPI BWIBBU_ALL",
       "asOf": "2026-11-10",
-      "dataStatus": "stale",
-      "stale": true
+      "dataStatus": "current"
     },
     "US:AMAT": {
       "assetType": "stock",
@@ -625,14 +607,14 @@
     "US:VT": {
       "assetType": "etf",
       "metric": "premium",
-      "value": 0.1,
-      "premium": 0.1,
+      "value": 0.12,
+      "premium": 0.12,
       "source": "CMoney 美股ETF 折溢價（概覽）",
       "referenceUrl": "https://www.cmoney.tw/etf/us/VT",
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-11-11",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-11-11T06:19:49+00:00",
+      "fetchedAt": "2026-11-11T12:54:24+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -646,7 +628,7 @@
       "referenceLabel": "CMoney ETF 資料",
       "asOf": "2026-11-11",
       "asOfBasis": "fetch-date",
-      "fetchedAt": "2026-11-11T06:19:46+00:00",
+      "fetchedAt": "2026-11-11T12:54:20+00:00",
       "dataStatus": "current",
       "stale": false
     },
@@ -666,10 +648,5 @@
       "dataStatus": "manual-needed"
     }
   },
-  "errors": [
-    {
-      "source": "TWSE OpenAPI",
-      "error": "Expecting value: line 1 column 1 (char 0)"
-    }
-  ]
+  "errors": []
 }
