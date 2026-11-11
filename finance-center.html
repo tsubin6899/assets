@@ -795,6 +795,16 @@
       .cozy-split .cozy-summary-grid .metric-card{min-width:0;overflow-wrap:anywhere}
     }
     .cozy-art{position:relative;overflow:hidden;isolation:isolate}
+    .cozy-villager{position:absolute;width:6%;aspect-ratio:1;overflow:hidden;pointer-events:none;transform:translate(-50%,-80%)}
+    .cozy-villager>img{display:block;width:400%;max-width:none;height:100%;animation:cozy-balloon-turn 2.8s steps(1,end) infinite}
+    .cozy-villager--swimmer{left:21%;top:84%}
+    .cozy-villager--gardener{left:75%;top:61%}
+    .cozy-villager--gardener>img{animation-duration:5s;animation-delay:-1s}
+    @media(min-width:1024px){
+      .cozy-villager--swimmer{left:25%;top:81%}
+      .cozy-villager--gardener{left:64%;top:51%}
+    }
+    @media(prefers-reduced-motion:reduce){.cozy-villager>img{animation:none}}
     .cozy-backdrop{display:block;width:100%;height:auto}
     .cozy-panel .island-summary{padding:clamp(14px,3vw,26px)}
     .cozy-panel .island-summary :is(h2,p,dt){color:inherit}
@@ -1202,7 +1212,10 @@
           ${name==="home"?'<source media="(min-width:1024px)" srcset="island-art/cozy/home-desktop.webp" width="1000" height="500">':""}
           <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
         </picture>
-        ${actors}${birds}${extra}
+        ${actors}${birds}
+        ${name==="home"?`<span class="cozy-villager cozy-villager--swimmer"><img src="island-art/cozy/swimmer-frames.webp" width="384" height="96" alt=""></span>
+          <span class="cozy-villager cozy-villager--gardener"><img src="island-art/cozy/gardener-frames.webp" width="384" height="96" alt=""></span>`:""}
+        ${extra}
       </div></div>`;
     }
     function renderIslandTasks(month) {
