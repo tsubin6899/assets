@@ -1,4 +1,4 @@
-const CACHE_NAME = "tsubin-finance-center-v226";
+const CACHE_NAME = "tsubin-finance-center-v227";
 const CORE_ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const CORE_ASSETS = [
   "./island-art/cozy/daily.webp",
   "./island-art/cozy/dog-steps.webp",
   "./island-art/cozy/duck-steps.webp",
+  "./island-art/cozy/fish.webp",
   "./island-art/cozy/home.webp",
   "./island-art/cozy/home-desktop.webp",
   "./island-art/cozy/swimmer-frames.webp",

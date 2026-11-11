@@ -798,6 +798,15 @@
       [data-scene="home"] .cozy-villager--gardener{left:64%;top:53%}
     }
     @media(prefers-reduced-motion:reduce){.cozy-villager>img{animation:none}}
+    .cozy-fish{position:absolute;left:var(--fish-x);top:var(--fish-y);width:3.1%;height:auto;opacity:.72;pointer-events:none;animation:cozy-fish-swim var(--fish-period) var(--fish-delay) ease-in-out infinite}
+    @keyframes cozy-fish-swim{
+      0%{transform:translate(0,0) scaleX(1)}
+      46%{transform:translate(105%,-16%) scaleX(1);animation-timing-function:step-end}
+      50%{transform:translate(105%,-16%) scaleX(-1)}
+      96%{transform:translate(0,0) scaleX(-1);animation-timing-function:step-end}
+      100%{transform:translate(0,0) scaleX(1)}
+    }
+    @media(prefers-reduced-motion:reduce){.cozy-fish{animation:none}}
     .cozy-backdrop{display:block;width:100%;height:auto}
     .cozy-panel .island-summary{padding:clamp(14px,3vw,26px)}
     .cozy-panel .island-summary :is(h2,p,dt){color:inherit}
@@ -1221,6 +1230,9 @@
       ).join("");
       const birds = name === "home" || name === "accounts"
         ? '<span class="cozy-sky"><i class="cozy-bird"></i><i class="cozy-bird"></i></span>' : "";
+      const fish = name === "home" ? [[26,91,10,-3],[46,94,12,-7],[69,92,11,-5]].map(([x,y,period,delay]) =>
+        `<img class="cozy-fish" src="island-art/cozy/fish.webp" alt="" style="--fish-x:${x}%;--fish-y:${y}%;--fish-period:${period}s;--fish-delay:${delay}s">`
+      ).join("") : "";
       const villagers = cozyVillagers[name].map(([kind,x,y]) =>
         `<span class="cozy-villager cozy-villager--${kind}" style="--villager-x:${x}%;--villager-y:${y}%"><img src="island-art/cozy/${kind}-frames.webp" width="384" height="96" alt=""></span>`
       ).join("");
@@ -1229,7 +1241,7 @@
           ${name==="home"?'<source media="(min-width:1024px)" srcset="island-art/cozy/home-desktop.webp" width="1000" height="500">':""}
           <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
         </picture>
-        ${actors}${birds}${villagers}
+        ${fish}${actors}${birds}${villagers}
         ${extra}
       </div></div>`;
     }
