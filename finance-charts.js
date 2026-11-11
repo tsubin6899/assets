@@ -88,7 +88,7 @@
   const body=`<figure class="snapshot-figure"><figcaption class="net-summary"><small>期間增減 · ${rows.length} 次紀錄</small><span class="net-change">${summary}</span></figcaption><div class="net-point-readout" aria-live="polite"><span data-snapshot-output-date>${last.date}</span><strong data-snapshot-output-value class="money-value">NT$ ${money(last.value)}</strong></div><svg class="fc-svg net-detail-chart" viewBox="0 0 600 235" role="group" aria-label="淨資產快照走勢，依實際日期間隔排列">${ticks}${area}${lines}${points}<text x="80" y="222">${rows.length>1?first.date.slice(5):''}</text><text x="580" y="222" text-anchor="end">${last.date.slice(5)}</text></svg><p class="fc-footnote">快照差額含資金進出，不代表投資報酬。虛線代表中間有未記錄日期。</p><button class="action-btn" type="button" data-chart-table="snapshot" aria-expanded="false" aria-controls="fc-snapshot-data">查看日期與金額明細</button><div id="fc-snapshot-data" hidden>${table(['快照日期','淨資產（TWD）'],rows.map(r=>[esc(r.date),`<span class="money-value">${money(r.value)}</span>`]))}</div></figure>`;
   return panel('networth','淨資產走勢',`${m.months[0].month}～${m.month}；合併已保存的財務估值與手動資產快照，同一天只列一次。`,body);
  }
- function allocationDonut(rows,label,unit,centerAmount,centerTone){
+ function allocationDonut(rows,label,unit,centerAmount,centerTone,animal){
   const total=rows.reduce((sum,row)=>sum+row.value,0);
   if(!total)return empty('目前沒有正值可計算占比。');
   const circumference=2*Math.PI*72;
@@ -99,7 +99,8 @@
    offset+=length;
    return arc;
   }).join('');
-  return `<div class="fc-allocation"><svg viewBox="0 0 200 200" role="img" aria-label="${label}；各項金額與占比見旁側列表">${arcs}<text x="100" y="95" text-anchor="middle" class="fc-donut-title">${label}</text><text x="100" y="120" text-anchor="middle" class="fc-donut-count">${centerAmount===undefined?`${rows.length} ${unit}`:`<tspan class="money-value ${amountTone(centerTone??0)}" font-size="14">${esc(centerAmount)}</tspan>`}</text></svg><ul class="fc-allocation-list">${rows.map(r=>`<li><span><i style="background:${r.color}"></i>${esc(r.name)}</span><strong><span class="money-value ${amountTone(r.amount??0)}">${r.amount===undefined?money(r.value):signedTwd(r.amount)}</span><small>${(r.value/total*100).toFixed(1)}%</small></strong></li>`).join('')}</ul></div>`;
+  const decoration=animal?`<foreignObject x="4" y="164" width="34" height="34" aria-hidden="true" pointer-events="none"><span class="fc-donut-animal" style="background-image:url(island-art/cozy/${animal}-steps.webp)"></span></foreignObject>`:"";
+  return `<div class="fc-allocation"><svg viewBox="0 0 200 200" role="img" aria-label="${label}；各項金額與占比見旁側列表">${arcs}${decoration}<text x="100" y="95" text-anchor="middle" class="fc-donut-title">${label}</text><text x="100" y="120" text-anchor="middle" class="fc-donut-count">${centerAmount===undefined?`${rows.length} ${unit}`:`<tspan class="money-value ${amountTone(centerTone??0)}" font-size="14">${esc(centerAmount)}</tspan>`}</text></svg><ul class="fc-allocation-list">${rows.map(r=>`<li><span><i style="background:${r.color}"></i>${esc(r.name)}</span><strong><span class="money-value ${amountTone(r.amount??0)}">${r.amount===undefined?money(r.value):signedTwd(r.amount)}</span><small>${(r.value/total*100).toFixed(1)}%</small></strong></li>`).join('')}</ul></div>`;
  }
  function allocation(m){
   const total=m.allocation.reduce((sum,row)=>sum+row.value,0);
@@ -125,8 +126,8 @@
   });
   const net=gains.reduce((sum,row)=>sum+row.amount,0);
   const missing=rows.length-gains.length;
-  const allocation=panel('portfolio-holdings','股票持倉占比','按目前持倉的正值市值計算，金額以新台幣顯示。',allocationDonut(visible,'市值合計','組',`NT$ ${money(allocationTotal)}`));
-  const gainsChart=gains.some(row=>row.value>0)?allocationDonut(gains.filter(row=>row.value>0),'未實現損益','組',signedTwd(net),net):empty(gains.length?'目前已知成本的持倉損益為零。':'目前沒有可計算損益的持倉。');
+  const allocation=panel('portfolio-holdings','股票持倉占比','按目前持倉的正值市值計算，金額以新台幣顯示。',allocationDonut(visible,'市值合計','組',`NT$ ${money(allocationTotal)}`,undefined,"rabbit"));
+  const gainsChart=gains.some(row=>row.value>0)?allocationDonut(gains.filter(row=>row.value>0),'未實現損益','組',signedTwd(net),net,"dog"):empty(gains.length?'目前已知成本的持倉損益為零。':'目前沒有可計算損益的持倉。');
   const performance=panel('portfolio-gains','投資損益狀況','圓環按各持倉未實現損益的絕對值分配，金額保留正負號。',gainsChart+(missing?`<p class="fc-footnote">${missing} 檔持倉缺少成本，未計入損益。</p>`:''));
   return allocation+performance;
  }
