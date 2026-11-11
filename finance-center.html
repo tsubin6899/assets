@@ -778,6 +778,140 @@
       #quickEntryForm.quick-entry-page .form-grid{row-gap:4px}
     }
   </style>
+<style>
+    .cozy-panel{border:1px solid #d5dccb;border-radius:18px;overflow:hidden;background:#fffdf7;color:#2c3b2b;margin:12px 0 16px}
+    .cozy-scene{width:min(100%,680px);margin:0 auto 14px;border:1px solid #d5dccb;border-radius:18px;overflow:hidden;background:#e8eddf}
+    .cozy-panel>.cozy-scene{margin:0 auto;border:0;border-radius:0 0 16px 16px}
+    @media(min-width:1024px){
+      .cozy-split{display:grid;grid-template-columns:minmax(0,35fr) minmax(0,65fr);align-items:end;gap:24px;padding:24px}
+      .cozy-split>.cozy-scene{grid-column:2;grid-row:1;justify-self:end;width:min(100%,760px);margin:0;border-radius:16px}
+      .cozy-split[aria-labelledby="island-title"]{grid-template-columns:minmax(0,30fr) minmax(0,70fr)}
+      .cozy-split[aria-labelledby="island-title"]>.cozy-scene{width:min(100%,840px)}
+      .cozy-panel.cozy-split>.island-summary,.cozy-split>.island-page-heading{grid-column:1;grid-row:1;min-width:0;margin:0;padding:0}
+      .cozy-split .cozy-summary-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0 0!important}
+      .cozy-split .cozy-summary-grid .metric-card{min-width:0;overflow-wrap:anywhere}
+    }
+    .cozy-art{position:relative;overflow:hidden;isolation:isolate}
+    .cozy-backdrop{display:block;width:100%;height:auto}
+    .cozy-panel .island-summary{padding:clamp(14px,3vw,26px)}
+    .cozy-panel .island-summary :is(h2,p,dt){color:inherit}
+    .cozy-panel .action-btn{background:#47643d;color:#fffdf7;border:1px solid #47643d;min-height:44px}
+    .cozy-links{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .cozy-links .action-btn{background:#f0f2e8;color:#34492f;border-color:#cbd6c3}
+    .cozy-panel .progress-track{background:#e3e8db;margin-top:10px}
+    .cozy-panel .progress-track i{background:#668259}
+    .cozy-stop,.cozy-traveler,.cozy-actor{position:absolute;left:var(--x);top:var(--y)}
+    .cozy-stop{width:clamp(9px,1.5vw,16px);height:clamp(5px,1vw,10px);transform:translate(-50%,-100%);border-radius:2px;border:1px solid #775638;background:#d9bc90}
+    .cozy-stop.reached{background:#688553;border-color:#344c30}
+    .cozy-traveler,.cozy-actor{width:var(--actor-size);aspect-ratio:1;transform:translate(-50%,-96%);filter:drop-shadow(0 1px 1px #50452f55)}
+    .cozy-traveler,.cozy-actor[data-kind=traveler]{--frames:url("island-art/cozy/traveler-steps.webp");--actor-size:9%;--stride:.72s}
+    .cozy-actor[data-kind=dog]{--frames:url("island-art/cozy/dog-steps.webp");--actor-size:5.6%;--stride:.55s}
+    .cozy-actor[data-kind=duck]{--frames:url("island-art/cozy/duck-steps.webp");--actor-size:4.6%;--stride:1.12s}
+    .cozy-actor[data-kind=rabbit]{--frames:url("island-art/cozy/rabbit-steps.webp");--actor-size:4.8%;--stride:.8s}
+    .cozy-traveler::before,.cozy-actor::before,.cozy-actor::after{
+      content:"";position:absolute;inset:0;background:var(--frames) 33.333% 0/400% 100% no-repeat;
+    }
+    .cozy-actor::after{
+      animation:cozy-stride var(--stride) steps(1,end) infinite,
+        cozy-stepping var(--duration) var(--delay,0s) steps(1,end) infinite;
+      background-color:transparent;
+    }
+    .cozy-actor::before{animation:cozy-resting var(--duration) var(--delay,0s) steps(1,end) infinite}
+    .cozy-traveler.is-walking::before{animation:cozy-stride var(--stride) steps(1,end) infinite}
+    @keyframes cozy-stride{
+      0%,100%{background-position-x:0}
+      25%{background-position-x:33.333%}
+      50%{background-position-x:66.667%}
+      75%{background-position-x:100%}
+    }
+    @keyframes cozy-stepping{0%,49%,100%{opacity:0}9%,59%{opacity:1}}
+    @keyframes cozy-resting{0%,49%,100%{opacity:1}9%,59%{opacity:0}}
+
+    .cozy-actor{animation:cozy-walk var(--duration) var(--delay,0s) ease-in-out infinite,cozy-facing var(--duration) var(--delay,0s) steps(1,end) infinite}
+    @keyframes cozy-facing{0%,100%{scale:var(--face) 1} 54%{scale:var(--return-face) 1}}
+    @keyframes cozy-walk{
+      0%,9%,100%{left:var(--x);top:var(--y)}
+      49%,59%{left:var(--end-x);top:var(--end-y)}
+    }
+    @media(max-width:600px){
+      .cozy-scene .cozy-art{width:132%;margin-inline:-16%}
+      .cozy-panel>.cozy-scene{border-radius:0}
+    }
+    .page .island-page-heading{display:block;padding:10px 0;background:transparent;border:0}
+    .page .island-page-heading h2{font-size:clamp(23px,3vw,36px)}
+    body{--paper:#fbf8ef;--paper-card:#fffdf6;--paper-line:#d8d9c7;--moss:#365738;--moss-soft:#e2ebd8;--clay:#934a39}
+    body{background:#f3f0e5}
+    .page :is(.panel,.metric-card,.account-card,.holding-position-card,.fc-panel,.market-strip,.upgrade-card,.table-wrap){background:var(--paper-card);border-color:var(--paper-line);box-shadow:none}
+    .page .metric-card{border-radius:14px;border-top-color:#a8b595}
+    .page :is(.account-summary,.island-summary-metrics,.desktop-quick-summary) .metric-card:first-child{background:var(--moss);color:#fffdf6}
+    .page :is(.account-summary,.island-summary-metrics,.desktop-quick-summary) .metric-card:first-child :is(strong,span,small){color:inherit}
+    .page .negative{color:var(--clay)}
+    .page :is(input:not([type=checkbox]):not([type=radio]),select,textarea){background:var(--paper-card);border-color:#bfc5ae}
+    .page :is(button[type=submit].action-btn,.action-btn.green){background:var(--moss);border-color:var(--moss);color:#fffdf6}
+    .page :is(.table-wrap,.fc-table) th{background:#e9eddd;color:#354d3c}
+    .page :is(.table-wrap,.fc-table) td{border-color:#e6e3d6}
+    .page :is(.table-wrap,.fc-table) td.money-value{text-align:right}
+    .page .empty{background:var(--paper);border-color:#b8c2a7}
+    .page .empty::before{content:"";display:block;width:28px;height:28px;margin:0 auto 8px;background:url("island-art/cozy/duck-steps.webp") left center/400% 100% no-repeat}
+    .app-header,.mobile-nav{background:var(--paper);color:#294638;border-color:var(--paper-line)}
+    .app-header :is(.brand,.header-btn){color:#294638}
+    .mobile-nav button[data-domain].active{background:var(--moss-soft)!important;color:#294638}
+    .secondary-nav .secondary-track button.active{background:var(--moss);color:#fffdf6}
+    .toast{background:#344e36;color:#fffdf6}
+    .toast.saved::before{content:"✓";display:inline-grid;place-items:center;width:1.45em;height:1.45em;margin-inline-end:.55em;border:1px solid currentColor;border-radius:4px;transform:rotate(-9deg)}
+    @media(min-width:1024px){
+      .desktop-sidebar{background:#efeadd;color:#294638;border-inline-end:1px solid var(--paper-line)}
+      .sidebar-brand small,.sidebar-caption,.sidebar-sync{color:#53654f}
+      .sidebar-caption{border-top-color:#d1d5c1}
+      .desktop-sidebar :is(.primary-nav,.secondary-track) button{color:#294638}
+      .desktop-sidebar :is(.primary-nav,.secondary-track) button:hover,
+      .desktop-sidebar .primary-nav button.active,
+      .desktop-sidebar .secondary-track[data-section] button.active{background:var(--moss-soft);color:#294638}
+      .desktop-sidebar .primary-nav [data-domain]:not(.active) .island-nav-icon{color:var(--moss)}
+      .desktop-sidebar button:focus-visible{outline-color:var(--moss)}
+    }
+    .desktop-sidebar .primary-nav button.active,
+    .desktop-sidebar .secondary-track[data-section] button.active,
+    .secondary-nav .secondary-track button.active,
+    .mobile-nav button[data-domain].active{
+      background:#365738!important;color:#fffdf6;
+      box-shadow:inset 0 0 0 2px #263f28;
+    }
+    :is(.desktop-sidebar,.mobile-nav) button.active .island-nav-icon{color:inherit}
+    :is(.primary-nav,.secondary-track,.mobile-nav) button:active{filter:brightness(.88)}
+    .cozy-sky{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+    .cozy-bird{position:absolute;top:12%;left:0;width:22px;height:12px;color:#435a53;opacity:0;animation:cozy-flight 27s linear infinite}
+    .cozy-bird+.cozy-bird{top:18%;animation-delay:.65s;scale:.78}
+    .cozy-bird::before,.cozy-bird::after{content:"";position:absolute;top:4px;width:11px;height:6px;border-top:2px solid currentColor;border-radius:60% 70% 0 0}
+    .cozy-bird::before{right:50%;transform-origin:right bottom;animation:cozy-wing .42s ease-in-out infinite alternate}
+    .cozy-bird::after{left:50%;transform-origin:left bottom;animation:cozy-wing .42s ease-in-out infinite alternate-reverse}
+    @keyframes cozy-wing{from{rotate:-22deg}to{rotate:22deg}}
+    @keyframes cozy-flight{0%{left:-24px;opacity:0}3%{opacity:.78}23%{left:100%;opacity:.78}25%,100%{left:105%;opacity:0}}
+    .cozy-balloon{width:52px;aspect-ratio:3/4;overflow:hidden;pointer-events:none;animation:cozy-drift 3.2s ease-in-out infinite alternate}
+    .cozy-balloon>img{display:block;width:400%;max-width:none;height:100%;transform:translateX(-25%);animation:cozy-balloon-turn 10s steps(1,end) infinite}
+    @keyframes cozy-balloon-turn{
+      0%,100%{transform:translateX(0)}
+      16.667%,83.333%{transform:translateX(-25%)}
+      33.333%,66.667%{transform:translateX(-50%)}
+      50%{transform:translateX(-75%)}
+    }
+    .cozy-balloon--title{display:block;float:right;width:38px;margin:0 18px 20px 12px}
+    .island-tasks{display:grid;gap:8px;margin-top:16px}
+    .island-tasks h3{margin:0}
+    .island-tasks .action-btn{display:flex;justify-content:space-between;gap:8px;text-align:left;white-space:normal;background:var(--paper-card);color:var(--moss);border:1px solid var(--paper-line)}
+    .island-tasks .action-btn:hover{background:var(--moss-soft)}
+    .cozy-lighthouse{position:absolute;top:2%;left:21.5%;width:14%;aspect-ratio:1;pointer-events:none;background:radial-gradient(circle,#fff2abcc,transparent 65%);mix-blend-mode:screen}
+    @keyframes cozy-drift{to{transform:translate(12px,18px) rotate(7deg)}}
+    @media(min-width:1024px){
+      .cozy-balloon--title{width:48px}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .cozy-bird{display:none}
+      .cozy-balloon,.cozy-balloon>img{animation:none}
+      .cozy-actor,.cozy-actor::before,.cozy-actor::after{animation:none}
+      .cozy-actor::after{display:none}
+    }
+</style>
 </head>
 <body>
   <svg width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -925,7 +1059,7 @@
     function signed(value) { const n = Math.round(Number(value) || 0); return `${n >= 0 ? "+" : "−"}${Math.abs(n).toLocaleString("zh-TW")}`; }
     function pct(value) { return `${Math.round((Number(value) || 0) * 10) / 10}%`; }
     function dateTime(value) { try { return new Intl.DateTimeFormat("zh-TW", { dateStyle:"medium", timeStyle:"short" }).format(new Date(value)); } catch { return value || ""; } }
-    function showToast(message) { const node = document.getElementById("toast"); node.textContent = message; node.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => node.classList.remove("show"), 2300); }
+    function showToast(message, saved = false) { const node = document.getElementById("toast"); node.textContent = message; node.classList.toggle("saved", saved); node.classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => node.classList.remove("show"), 2300); }
     function option(value, label, selected) { return `<option value="${esc(value)}" ${String(value) === String(selected) ? "selected" : ""}>${esc(label)}</option>`; }
     function recentAccountNames() { try { const rows=JSON.parse(localStorage.getItem(recentAccountsKey)||"[]"); return Array.isArray(rows)?rows.filter(Boolean):[]; } catch { return []; } }
     function rememberRecentAccount(name) { if(!name)return; const rows=[name,...recentAccountNames().filter(row=>row!==name)].slice(0,5);localStorage.setItem(recentAccountsKey,JSON.stringify(rows)); }
@@ -988,9 +1122,8 @@
     }
     const islandNames = {home:"拾光島",daily:"記帳島",accounts:"帳務島",investments:"投資島",analysis:"洞察島"};
     function pageHeading(kicker,title,note,action=""){
-      const {domain,tab}=state;
-      const art=domain==="home"?domain:`${domain}/${tab}`;
-      return `<header class="page-heading island-page-heading"><div><span class="island-label">${islandNames[domain]}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div><img src="island-art/${art}.png" alt="">${action}</header>`;
+      const {domain}=state;
+      return `<header class="page-heading island-page-heading"><div><span class="island-label">${islandNames[domain]}</span><h2>${esc(title)}</h2><p>${esc(note)}</p></div>${action}</header>`;
     }
 
     function metric(label, value, note, tone = "") { return `<article class="metric-card ${tone}"><span>${esc(label)}</span><strong class="money-value ${/負債/.test(label)?"negative":label==="總損益"&&/[-−]/.test(value)?"negative":label==="總損益"&&value.startsWith("+")?"positive":""}">${value}</strong><small>${esc(note)}</small></article>`; }
@@ -1032,26 +1165,79 @@
       const duration=Math.max(86400000,dates.at(-1)-dates[0]),x=i=>96+(dates[i]-dates[0])/duration*488,y=value=>150-(value-low)/range*128;
       return `<figure class="snapshot-figure"><figcaption>最近 ${rows.length} 次快照｜<span class="money-value">首末差額 ${signed(values.at(-1)-values[0])}</span></figcaption><p class="chart-caption">單位：新台幣。依實際日期間隔排列；快照差額包含資金進出，不代表投資報酬。</p><svg viewBox="0 0 620 192" role="img" aria-label="淨資產快照走勢，日期與金額可展開明細查看">${[low,(low+high)/2,high].map(value=>`<line x1="96" y1="${y(value)}" x2="584" y2="${y(value)}" stroke="#dce5ed"/><text class="money-value" x="90" y="${y(value)+4}" text-anchor="end">${(value/10000).toFixed(1)}萬</text>`).join("")}<polyline points="${values.map((value,i)=>`${x(i)},${y(value)}`).join(" ")}" fill="none" stroke="#245fba" stroke-width="3"/>${values.map((value,i)=>`<circle cx="${x(i)}" cy="${y(value)}" r="4" fill="#245fba"><title>${esc(rows[i].date)}｜${money(value)}</title></circle>`).join("")}<text x="96" y="180">${esc(rows[0].date)}</text><text x="584" y="180" text-anchor="end">${rows.length>1?esc(rows.at(-1).date):""}</text></svg><details class="snapshot-details"><summary>查看日期與金額明細（${rows.length} 筆）</summary><table><thead><tr><th scope="col">快照日期</th><th scope="col">淨資產（TWD）</th></tr></thead><tbody>${rows.map((row,i)=>`<tr><td data-label="快照日期">${esc(row.date)}</td><td data-label="淨資產（TWD）" class="money-value">${money(values[i])}</td></tr>`).join("")}</tbody></table></details></figure>`;
     }
+    // Each path is measured against its background as percentages of its width and height.
+    const cozyActors = {
+      home: [["traveler",24,47,37,50,16],["dog",67,67,53,77,13],["duck",39,69,48,70,19]],
+      planning: [["rabbit",42,88,50,80,18],["dog",80,43,86,49,22]],
+      daily: [["traveler",30,75,52,72,16],["dog",73,83,59,84,13]],
+      accounts: [["traveler",66,76,81,69,17],["duck",25,66,35,71,21]],
+      investments: [["traveler",34,84,55,86,19],["rabbit",72,81,83,88,14]],
+      analysis: [["traveler",44,79,68,71,18],["dog",80,82,69,86,14]]
+    };
+    function balloonSprite() {
+      return '<span class="cozy-balloon cozy-balloon--title" aria-hidden="true"><img src="island-art/cozy/balloon-turn.webp" width="432" height="144" alt=""></span>';
+    }
+    function cozyScene(name, extra="") {
+      const actors = cozyActors[name].map(([kind,x,y,endX,endY,duration],index)=>
+        `<span class="cozy-actor" data-kind="${kind}" style="--x:${x}%;--y:${y}%;--end-x:${endX}%;--end-y:${endY}%;--duration:${duration}s;--face:${Math.sign(endX-x)};--return-face:${Math.sign(x-endX)};--delay:-${index*3}s"></span>`
+      ).join("");
+      const birds = name === "home" || name === "accounts"
+        ? '<span class="cozy-sky"><i class="cozy-bird"></i><i class="cozy-bird"></i></span>' : "";
+      return `<div class="cozy-scene"><div class="cozy-art" aria-hidden="true">
+        <img class="cozy-backdrop" src="island-art/cozy/${name}.webp" width="764" height="337" alt="">
+        ${actors}${birds}${extra}
+      </div></div>`;
+    }
+    function renderIslandTasks(month) {
+      const today = FinanceCore.localDate();
+      const daysUntil = date => Math.round((Date.parse(date)-Date.parse(today))/86400000);
+      const tasks = current.ledger.creditBills.filter(bill=>!bill.paid && bill.dueDate && daysUntil(bill.dueDate)<=7)
+        .sort((a,b)=>a.dueDate.localeCompare(b.dueDate)).slice(0,3).map(bill=>{
+          const days = daysUntil(bill.dueDate);
+          const due = days<0 ? "已逾期" : days===0 ? "今日到期" : `${days} 天後到期`;
+          return `<button class="action-btn" data-home-bill="${esc(bill.id)}"><span>${esc(bill.card)}帳單 · ${due}</span><strong class="money-value">${money(bill.amount)}</strong></button>`;
+        });
+      const budget = current.ledger.budgets.filter(row=>Number(row.amount)>0)
+        .map(row=>({...row,usage:(Number(month.categorySpend[row.category])||0)/Number(row.amount)}))
+        .sort((a,b)=>b.usage-a.usage)[0];
+      if (budget?.usage>=.8) tasks.push(`<button class="action-btn" data-go="daily/budgets"><span>${esc(budget.category)}預算</span><strong class="money-value">已用 ${pct(budget.usage*100)}</strong></button>`);
+      const goal = FinanceIntelligence.funding(current).find(row=>!row.completed && row.targetAmount>row.currentAmount);
+      if (goal) tasks.push(`<button class="action-btn" data-go="analysis/planning"><span>${esc(goal.name)}</span><strong class="money-value">還差 ${money(goal.targetAmount-goal.currentAmount)}</strong></button>`);
+      return `<section class="island-tasks" aria-label="今日待辦"><h3>今日待辦</h3>${tasks.slice(0,3).join("") || "<p>目前沒有待處理事項。</p>"}</section>`;
+    }
+    function renderMonthJournal(month) {
+      const biggest = Object.entries(month.categorySpend).sort((a,b)=>b[1]-a[1])[0];
+      const history = (current.ledger.goalAllocationHistory||[]).filter(row=>String(row.date||"").slice(0,7)===month.month);
+      const reserved = history.reduce((sum,row)=>sum+(Number(row.amount)||0)-(Number(row.before)||0),0);
+      const closed = current.ledger.monthCloseouts.some(row=>row.month===month.month);
+      return `<section class="panel"><div class="panel-head"><div><h3>本月手帳</h3><p>${esc(month.month)} · ${closed?"已完成月結":"尚未月結"}</p></div><button class="action-btn" data-go="daily/closeout">查看月結明細</button></div>
+        <div class="three-col grid">${metric("本月結餘",money(month.balance),"收入扣除一般支出",month.balance<0?"tone-coral":"tone-green")}
+        ${metric("最大支出分類",biggest?money(biggest[1]):"—",biggest?.[0]||"本月無分類支出","tone-coral")}
+        ${metric("儲蓄圈存淨變動",history.length?`${reserved<0?"−":reserved>0?"+":""}${money(Math.abs(reserved))}`:"—",history.length?"依本月圈存紀錄":"本月無圈存紀錄",reserved<0?"tone-coral":"tone-green")}</div></section>`;
+    }
     function renderIsland(assets, month) {
-      return `<section class="island-overview" aria-labelledby="island-title">
+      return `<section class="cozy-panel cozy-split" aria-labelledby="island-title">
+        ${cozyScene("home")}
         <div class="island-summary">
           <p class="island-eyebrow">TSUBIN 個人財務中心</p>
-          <h2 id="island-title">歡迎回到拾光島</h2>
-          <p>前往各島，查看帳戶、投資、收支和提醒。</p>
+          <h2 id="island-title">拾光島總覽</h2>
           <dl>
             <div><dt>目前淨資產</dt><dd class="money-value">${money(assets.netWorth)}</dd></div>
             <div><dt>帳戶可用資金</dt><dd class="money-value">${money(assets.cash)}</dd></div>
             <div><dt>本月結餘</dt><dd class="money-value">${money(month.balance)}</dd></div>
+            <div><dt>本月收入</dt><dd class="money-value">${money(month.income)}</dd></div>
+            <div><dt>本月支出</dt><dd class="money-value">${money(month.expense)}</dd></div>
           </dl>
-          <button class="action-btn island-entry" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
-        </div>
-        <div class="island-map" role="group" aria-label="拾光島地圖">
-          <img src="island-art/map.png" width="1670" height="941" alt="" draggable="false">
-          <button type="button" class="island-stop island-bank" data-go="accounts/accounts" aria-label="帳務島"></button>
-          <button type="button" class="island-stop island-garden" data-go="investments/portfolio" aria-label="投資島"></button>
-          <button type="button" class="island-stop island-board" data-island-alerts aria-label="拾光島提醒 · ${current.alerts.length} 筆提醒"></button>
-          <button type="button" class="island-stop island-market" data-go="daily" aria-label="記帳島"></button>
-          <button type="button" class="island-stop island-house" data-go="analysis/trends" aria-label="洞察島"></button>
+          ${renderIslandTasks(month)}
+          <button class="action-btn" data-go="daily/quick"><i data-lucide="plus"></i>快速記帳</button>
+          <div class="cozy-links" role="group" aria-label="拾光島導航">
+            <button class="action-btn" data-go="accounts/accounts">帳務島</button>
+            <button class="action-btn" data-go="investments/portfolio">投資島</button>
+            <button class="action-btn" data-go="daily">記帳島</button>
+            <button class="action-btn" data-go="analysis/trends">洞察島</button>
+            <button class="action-btn" data-go="analysis/planning">儲蓄目標</button>
+            <button class="action-btn" data-island-alerts>提醒（${current.alerts.length}）</button>
+          </div>
         </div>
       </section>`;
     }
@@ -1071,6 +1257,7 @@
           <div class="hero-metrics"><div><span>現金安全</span><strong>${safety === null ? "待設定" : `${safety.toFixed(1)} 個月`}</strong></div><div><span>信用卡負債比</span><strong>${a.totalAssets ? pct(a.liabilities/a.totalAssets*100) : "0%"}</strong></div><div><span>待處理提醒</span><strong>${current.alerts.length} 筆</strong></div></div>
         </article>
         <div class="four-col grid">${metric("本月收入",money(m.income),`${m.rows.filter(r=>["income","dividend"].includes(r.kind)).length} 筆收入`,"tone-green")}${metric("本月支出",money(m.expense),`${m.rows.filter(r=>r.kind==="expense").length} 筆支出`,"tone-coral")}${metric("本月結餘",money(m.balance),"收入扣除一般支出",m.balance>=0?"tone-teal":"tone-coral")}${metric("帳戶可用資金",money(a.cash),"已納入轉帳與投資現金流","tone-purple")}</div>
+        ${renderMonthJournal(m)}
         <section class="panel"><div class="panel-head"><div><h3>淨資產趨勢</h3><p>最近 12 次資產快照</p></div><button class="action-btn" data-go="analysis/trends">詳細分析</button></div>${FinanceCharts.homeSnapshot(current.assets,a.netWorth)}</section>
         <section class="panel"><div class="panel-head"><div><h3>即將到期</h3><p>信用卡帳單與固定收支</p></div></div>${upcoming.length ? `<div class="alert-list">${upcoming.map(row => `<article class="alert-card warning"><i class="alert-dot"></i><div><strong>${esc(row.card || row.name)}</strong><small>${esc(row.dueDate || "待排程")}</small></div><span class="money-value">${money(row.amount)}</span></article>`).join("")}</div>` : `<div class="empty">目前沒有即將到期的款項。</div>`}</section>
       </section><aside class="grid"><section class="panel"><div class="panel-head"><div><h3>快速記帳</h3><p>新增後立即反映在帳戶與首頁</p></div></div>${quickEntryForm(true)}</section><section class="panel"><div class="panel-head"><div class="island-alert-heading"><h3 id="home-alerts" tabindex="-1">提醒島</h3><p>待處理事項與財務提醒</p></div></div>${alertList(current.alerts.slice(0,7))}</section></aside></div>${pendingHomeTasks()}`;
@@ -1265,7 +1452,7 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     function renderAccountsNative() {
       const a=current.assetsSummary;
       const accountTitles={accounts:"帳戶總覽",transfer:"帳戶轉帳",credit:"信用卡帳單與核對",installments:"信用卡分期",loans:"貸款管理",reconcile:"帳戶盤點"};
-      const head=pageHeading("Accounts & Liabilities",accountTitles[state.tab]||"帳戶與負債","帳戶、轉帳、卡費、分期與對帳都可直接在財務中心處理。");
+      const head=pageHeading("Accounts & Liabilities",accountTitles[state.tab]||"帳戶與負債","管理帳戶、轉帳、卡費與對帳。");
       if(state.tab==="reconcile") return renderReconcile(head);
       if(state.tab==="loans") return renderLoans(head);
       if(state.tab==="accounts") { const edit=current.ledger.accounts.find(row=>row.id===ui.editingAccountId),activeCount=current.ledger.accounts.filter(row=>!row.archived).length,archivedCount=current.ledger.accounts.length-activeCount; return `${head}<section aria-labelledby="account-summary-title"><h3 class="account-section-title" id="account-summary-title">財務摘要</h3><div class="account-summary grid">${metric("淨資產",money(a.netWorth),"資產－負債","tone-blue")}${metric("可用資金",money(a.cash),"不含信用卡","tone-green")}${metric("總負債",money(a.liabilities),`信用卡 ${money(a.creditDebt||0)}｜貸款 ${money(a.loanDebt||0)}`,"tone-purple")}${metric("使用中帳戶",String(activeCount),`${archivedCount} 個歷史封存帳戶`,"tone-teal")}</div></section><section style="margin-top:16px" class="grid"><section aria-labelledby="account-details-title"><h3 class="account-section-title" id="account-details-title">帳戶明細</h3><div class="three-col grid">${accountCards()}</div></section><section class="panel"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}帳戶</h3><p>重新命名會同步更新所有既有紀錄；不用的帳戶請封存以保留歷史</p></div></div><form id="accountForm" class="form-grid"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><label>帳戶名稱<input name="name" value="${esc(edit?.name||"")}" required></label><label>類型<select name="type">${accountTypeOptions(edit?.type||"銀行帳戶")}</select></label><label>幣別<select name="currency">${option("TWD","台幣 TWD",edit?.currency||"TWD")}${option("USD","美元 USD",edit?.currency)}</select></label><label>期初餘額<input name="openingBalance" type="number" step="0.01" value="${esc(edit?.openingBalance||0)}"></label><label>結帳日<input name="statementDay" type="number" min="0" max="31" value="${esc(edit?.statementDay||"")}"></label><label>繳款日<input name="paymentDay" type="number" min="0" max="31" value="${esc(edit?.paymentDay||"")}"></label><button class="action-btn green wide" type="submit">${edit?"儲存帳戶修改":"新增帳戶"}</button>${edit?`<button class="action-btn wide" type="button" data-cancel-account>取消編輯</button>`:""}</form></section>${exchangeRateTable()}</section>`; }
@@ -1359,9 +1546,31 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     function accountCashflowPanel() { return FinanceIntelligenceUI.forecast(current); }
     function forecastPanel(head) { return head + accountCashflowPanel(); }
     function syncPanel() { const sync=FinanceSync.read(),label=FinanceSync.label(sync),phaseTone=sync.phase==="error"?"danger":sync.outbox.length?"warning":"";return `<section class="panel" style="margin-bottom:16px"><div class="panel-head"><div><h3>雲端同步中心</h3><p>本機異動會進入待同步佇列，網路恢復後自動重試</p></div><span class="status-chip ${phaseTone}">${esc(label)}</span></div><div class="sync-summary"><div><span>待同步異動</span><strong>${sync.outbox.length} 項</strong></div><div><span>最後同步</span><strong>${sync.lastSyncedAt?dateTime(sync.lastSyncedAt):"尚未完成"}</strong></div><div><span>同步狀態</span><strong>${esc(sync.lastError||label)}</strong></div></div>${cloudUser?`<button class="action-btn blue" style="width:100%;margin-top:13px" type="button" data-sync-now>立即同步</button>`:`<button class="action-btn" style="width:100%;margin-top:13px" type="button" data-open-login>登入後啟用跨裝置同步</button>`}</section>`; }
+    const goalWaypoints = [[19,97],[28,92],[36,86],[44,79],[51,71],[57,63],[66,56],[75,50],[82,45],[81,39],[77,35]];
+    let sceneGoalId = "";
+    function renderGoalScene(goals) {
+      const goal = goals.find(row=>row.id===ui.editingGoalId) || goals.find(row=>row.id===sceneGoalId) || goals[0];
+      sceneGoalId = goal?.id || "";
+      const progress = goal?.completed ? 100 : Math.max(0,Math.min(100,(Number(goal?.currentAmount)||0)/Math.max(1,Number(goal?.targetAmount)||0)*100));
+      const milestone = Math.floor(progress/10);
+      const nextAmount = goal ? Math.max(0, Math.ceil((Number(goal.targetAmount)*(milestone+1)*10)-Number(goal.currentAmount)*100)/100) : 0;
+      const [x,y] = goalWaypoints[milestone];
+      const markers = goal ? goalWaypoints.map(([left,top],index)=>`<span class="cozy-stop${index<=milestone?" reached":""}" style="--x:${left}%;--y:${top}%"></span>`).join("") : "";
+      const traveler = goal ? `<span class="cozy-traveler" data-goal="${esc(goal.id)}" data-milestone="${milestone}" style="--x:${x}%;--y:${y}%"></span>` : "";
+      return `<section class="cozy-panel cozy-split" aria-labelledby="cozy-goal-title">
+        ${cozyScene("planning",markers+traveler+(goal && milestone===10?'<span class="cozy-lighthouse"></span>':""))}
+        <div class="island-summary">
+          <h2 id="cozy-goal-title">儲蓄目標</h2>
+          ${goal ? `<strong>${esc(goal.name)}</strong>
+            <p class="money-value">${money(goal.completed ? goal.targetAmount : goal.currentAmount)} ／ ${money(goal.targetAmount)} · ${Math.floor(progress)}% · ${milestone} / 10 站</p>
+            <div class="progress-track" aria-hidden="true"><i style="width:${progress}%"></i></div>
+            <p>${milestone===10?"已達標，燈塔點亮":`距離下一站還差 <strong class="money-value">${money(nextAmount)}</strong>`}</p>` : "<p>新增儲蓄目標，開始旅程。</p>"}
+        </div>
+      </section>`;
+    }
     function renderPlanning(head) {
       const year=String(new Date().getFullYear()),plan=(current.ledger.annualPlans||[]).find(row=>row.year===year)||{},goals=FinanceIntelligence.funding(current).sort((a,b)=>Number(a.completed)-Number(b.completed)||String(a.targetDate||"").localeCompare(String(b.targetDate||""))),edit=current.ledger.goals.find(row=>row.id===ui.editingGoalId),yearEntries=(current.ledger.entries||[]).filter(row=>String(row.date||"").startsWith(year)&&String(row.date||"")<=FinanceCore.localDate()),income=yearEntries.filter(row=>row.type==="income").reduce((sum,row)=>sum+Number(row.amount||0),0),expense=yearEntries.filter(row=>row.type!=="income").reduce((sum,row)=>sum+Number(row.amount||0),0),emergencyTarget=Number(plan.emergencyFundTarget||current.averageMonthlyExpense*6),goalCards=goals.length?goals.map(row=>{const progress=Math.min(100,Number(row.currentAmount||0)/Math.max(1,Number(row.targetAmount||0))*100);return `<article class="upgrade-card"><div class="panel-head"><div><h3>${esc(row.name)}</h3><p>${esc(row.targetDate||"未設定期限")}｜${esc(row.linkedAccount||"手動追蹤")}</p></div><span class="status-chip">${row.completed?"已完成":`${Math.round(progress)}%`}</span></div><div class="progress-track"><i style="width:${progress}%"></i></div><div class="sync-summary" style="margin-top:10px"><div><span>目前累積</span><strong class="money-value">${money(row.currentAmount)}</strong></div><div><span>目標金額</span><strong class="money-value">${money(row.targetAmount)}</strong></div><div><span>尚差</span><strong class="money-value">${money(Math.max(0,Number(row.targetAmount)-Number(row.currentAmount)))}</strong></div></div><div class="row-actions" style="margin-top:12px"><button class="action-btn" data-edit-goal="${esc(row.id)}">編輯</button><button class="action-btn danger" data-delete-goal="${esc(row.id)}">刪除</button></div></article>`}).join(""):`<div class="empty">尚未建立儲蓄目標。</div>`;
-      return `${head}<div class="four-col grid" style="margin-bottom:16px">${metric(`${year} 累計收入`,money(income),"已實現收入","tone-green")}${metric(`${year} 累計支出`,money(expense),`年度上限 ${money(plan.spendingLimit||0)}`,"tone-coral")}${metric("緊急預備金目標",money(emergencyTarget),"預設為 6 個月平均支出","tone-amber")}${metric("年度投資目標",money(plan.investmentTarget||0),"可搭配投資基準追蹤","tone-purple")}</div><div class="two-col grid"><form id="goalForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}儲蓄目標</h3><p>旅遊、購屋、教育與緊急預備金可分開追蹤</p></div></div><div class="form-grid"><label>目標名稱<input name="name" value="${esc(edit?.name||"")}" required></label><label>目標日期<input name="targetDate" type="date" value="${esc(edit?.targetDate||"")}"></label><label>目標金額<input name="targetAmount" type="number" min="1" value="${esc(edit?.targetAmount||"")}" required></label><label>圈存金額（台幣）<input name="currentAmount" type="number" min="0" value="${esc(edit?.currentAmount||0)}"></label><label class="wide">連結帳戶<select name="linkedAccount"><option value="">尚未配置（圈存須為 0）</option>${accountOptions(edit?.linkedAccount||"",true)}</select></label><label class="wide">備註<input name="note" value="${esc(edit?.note||"")}"></label></div><button class="action-btn green" style="width:100%;margin-top:13px" type="submit">${edit?"儲存目標修改":"新增儲蓄目標"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-goal>取消編輯</button>`:""}</form><form id="annualPlanForm" class="panel"><div class="panel-head"><div><h3>${year} 年度財務計畫</h3><p>預算、安全準備與投資基準集中設定</p></div></div><div class="form-grid"><label>年度<input name="year" value="${year}" maxlength="4" required></label><label>預期年收入<input name="expectedIncome" type="number" min="0" value="${esc(plan.expectedIncome||"")}"></label><label>年度支出上限<input name="spendingLimit" type="number" min="0" value="${esc(plan.spendingLimit||"")}"></label><label>緊急預備金目標<input name="emergencyFundTarget" type="number" min="0" value="${esc(plan.emergencyFundTarget||"")}"></label><label>年度投資目標<input name="investmentTarget" type="number" min="0" value="${esc(plan.investmentTarget||"")}"></label><label>投資基準報酬率 %<input name="benchmarkRate" type="number" step="0.1" value="${esc(plan.benchmarkRate||"")}"></label><label class="wide">備註<input name="note" value="${esc(plan.note||"")}"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">儲存年度計畫</button></form></div><section class="grid" style="margin-top:16px">${goalCards}</section>`;
+      return `${renderGoalScene(goals)}${head}<div class="four-col grid" style="margin-bottom:16px">${metric(`${year} 累計收入`,money(income),"已實現收入","tone-green")}${metric(`${year} 累計支出`,money(expense),`年度上限 ${money(plan.spendingLimit||0)}`,"tone-coral")}${metric("緊急預備金目標",money(emergencyTarget),"預設為 6 個月平均支出","tone-amber")}${metric("年度投資目標",money(plan.investmentTarget||0),"可搭配投資基準追蹤","tone-purple")}</div><div class="two-col grid"><form id="goalForm" class="panel"><input type="hidden" name="id" value="${esc(edit?.id||"")}"><div class="panel-head"><div><h3>${edit?"編輯":"新增"}儲蓄目標</h3><p>旅遊、購屋、教育與緊急預備金可分開追蹤</p></div></div><div class="form-grid"><label>目標名稱<input name="name" value="${esc(edit?.name||"")}" required></label><label>目標日期<input name="targetDate" type="date" value="${esc(edit?.targetDate||"")}"></label><label>目標金額<input name="targetAmount" type="number" min="1" value="${esc(edit?.targetAmount||"")}" required></label><label>圈存金額（台幣）<input name="currentAmount" type="number" min="0" value="${esc(edit?.currentAmount||0)}"></label><label class="wide">連結帳戶<select name="linkedAccount"><option value="">尚未配置（圈存須為 0）</option>${accountOptions(edit?.linkedAccount||"",true)}</select></label><label class="wide">備註<input name="note" value="${esc(edit?.note||"")}"></label></div><button class="action-btn green" style="width:100%;margin-top:13px" type="submit">${edit?"儲存目標修改":"新增儲蓄目標"}</button>${edit?`<button class="action-btn" style="width:100%;margin-top:8px" type="button" data-cancel-goal>取消編輯</button>`:""}</form><form id="annualPlanForm" class="panel"><div class="panel-head"><div><h3>${year} 年度財務計畫</h3><p>預算、安全準備與投資基準集中設定</p></div></div><div class="form-grid"><label>年度<input name="year" value="${year}" maxlength="4" required></label><label>預期年收入<input name="expectedIncome" type="number" min="0" value="${esc(plan.expectedIncome||"")}"></label><label>年度支出上限<input name="spendingLimit" type="number" min="0" value="${esc(plan.spendingLimit||"")}"></label><label>緊急預備金目標<input name="emergencyFundTarget" type="number" min="0" value="${esc(plan.emergencyFundTarget||"")}"></label><label>年度投資目標<input name="investmentTarget" type="number" min="0" value="${esc(plan.investmentTarget||"")}"></label><label>投資基準報酬率 %<input name="benchmarkRate" type="number" step="0.1" value="${esc(plan.benchmarkRate||"")}"></label><label class="wide">備註<input name="note" value="${esc(plan.note||"")}"></label></div><button class="action-btn blue" style="width:100%;margin-top:13px" type="submit">儲存年度計畫</button></form></div><section class="grid" style="margin-top:16px">${goalCards}</section>`;
     }
     function renderTaxAndBenchmark(head) {
       return head + '<form id="taxYearForm" class="filter-bar"><label>報表年度<input name="year" value="'+esc(ui.taxYear)+'" pattern="[0-9]{4}" required></label><button type="submit" class="action-btn">更新年度</button></form>' + FinanceIntelligenceUI.performance(current,ui.taxYear);
@@ -1397,6 +1606,17 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       return renderDataManagement(head);
     }
     const desktopTrendsLayout = matchMedia("(min-width:1024px)");
+    const mobileQuickLayout = matchMedia("(max-width:760px)");
+    function placeQuickScene() {
+      if (state.domain!=="daily" || state.tab!=="quick") return;
+      const header = app.querySelector(":scope > .cozy-split");
+      const scene = app.querySelector(".cozy-scene");
+      const layout = app.querySelector(".quick-entry-layout");
+      if (!header || !scene || !layout) return;
+      if (mobileQuickLayout.matches) layout.after(scene);
+      else header.prepend(scene);
+    }
+    mobileQuickLayout.addEventListener("change",placeQuickScene);
     function placeTrendFilter() {
       if (state.domain !== "analysis" || state.tab !== "trends") return;
       const form=app.querySelector("#analysisChartFilter");
@@ -1406,18 +1626,65 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
       if(desktopTrendsLayout.matches)heading.append(form);
       else summary.after(form);
     }
-    desktopTrendsLayout.addEventListener("change",placeTrendFilter);
+    function preparePageSummary(header, heading) {
+      const next = header.nextElementSibling;
+      const title = next?.matches(".desktop-trend-title") ? next : null;
+      const summary = title ? title.nextElementSibling : next;
+      const grid = summary?.matches(".grid") ? summary :
+        summary?.querySelector(":scope > .account-summary, :scope > .island-summary-metrics");
+      if (!grid?.children.length || !Array.from(grid.children).every(card=>card.matches(".metric-card"))) return;
+      const location = document.createComment("page summary");
+      (title || summary).before(location);
+      const items = title ? [title, summary] : [summary];
+      grid.classList.add("cozy-summary-grid");
+      movePageSummary = () => {
+        if (desktopTrendsLayout.matches) heading.append(...items);
+        else location.after(...items);
+      };
+    }
+    let movePageSummary = null;
+    desktopTrendsLayout.addEventListener("change",()=>{
+      movePageSummary?.();
+      placeTrendFilter();
+    });
     function render() {
       current = FinanceCore.insights();
       const renderer = { home:renderHome, daily:renderDaily, accounts:renderAccounts, investments:renderInvestments, analysis:renderAnalysis }[state.domain] || renderHome;
       app.dataset.section = state.domain;
       app.dataset.view = state.tab;
       let content=renderer();
+      if (!(state.domain==="home" && islandView) && !(state.domain==="analysis" && state.tab==="planning")) content=cozyScene(state.domain)+content;
       if(state.domain==="home")content+=FinanceIntelligenceUI.home(current);
       if(state.domain==="accounts"&&state.tab==="loans")content+=FinanceIntelligenceUI.loans(current);
       if((state.domain==="analysis"&&state.tab==="trends")||(state.domain==="daily"&&state.tab==="closeout"))content+=FinanceIntelligenceUI.attribution(current);
       if(state.domain==="analysis"&&state.tab==="data")content+=FinanceIntelligenceUI.sync(current);
+      const previousTraveler = app.querySelector(".cozy-traveler");
       app.innerHTML = content;
+      movePageSummary = null;
+      const standaloneScene = app.querySelector(":scope > .cozy-scene");
+      const pageHeading = app.querySelector(":scope > .island-page-heading");
+      if (standaloneScene && pageHeading) {
+        const header = document.createElement("div");
+        header.className = "cozy-split";
+        standaloneScene.before(header);
+        header.append(standaloneScene, pageHeading);
+        preparePageSummary(header, pageHeading);
+      }
+      movePageSummary?.();
+      app.querySelector(".cozy-split > :is(.island-summary,.island-page-heading)")?.insertAdjacentHTML("afterbegin",balloonSprite());
+      placeQuickScene();
+      const traveler = app.querySelector(".cozy-traveler");
+      if (traveler && previousTraveler?.dataset.goal === traveler.dataset.goal && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const from = Number(previousTraveler.dataset.milestone), to = Number(traveler.dataset.milestone);
+        if (from !== to) {
+          const points = goalWaypoints.slice(Math.min(from,to),Math.max(from,to)+1);
+          if (from > to) points.reverse();
+          traveler.classList.add("is-walking");
+          traveler.style.scale = points.at(-1)[0] < points[0][0] ? "-1 1" : "1 1";
+          const movement = traveler.animate(points.map(([x,y])=>({left:`${x}%`,top:`${y}%`})), {duration:Math.min(2200,Math.max(560,Math.abs(to-from)*360)),easing:"ease-in-out"});
+          movement.addEventListener("finish",()=>traveler.classList.remove("is-walking"),{once:true});
+        }
+      }
       placeTrendFilter();
       window.FubonReview?.decorate(app,state);
       window.InvestmentOperations?.decorate(app,state);
@@ -1591,7 +1858,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         if(formId==="categoryForm") { FinanceCore.saveCategory(values); ui.editingCategory=""; }
         if(formId==="itemForm") { FinanceCore.saveItem(values); ui.editingItem=null; }
         if(formId==="categoryRuleForm") { FinanceCore.saveCategoryRule(values); }
-        FinanceWorkflow.saved(formId);showToast("已儲存並更新財務總覽");refresh();
+        FinanceWorkflow.saved(formId);showToast("已儲存並更新財務總覽",formId==="quickEntryForm");refresh();
         if(formId==='quickEntryForm'&&values.continueEntry)document.querySelector('#quickEntryForm [name="amount"]')?.focus();
       } catch(error){showToast(error.message||"儲存失敗")}
     });

@@ -1,10 +1,20 @@
-const CACHE_NAME = "tsubin-finance-center-v194";
+const CACHE_NAME = "tsubin-finance-center-v216";
 const CORE_ASSETS = [
   "./",
   "./index.html",
   "./finance-center.html",
+  "./island-art/cozy/accounts.webp",
+  "./island-art/cozy/analysis.webp",
+  "./island-art/cozy/daily.webp",
+  "./island-art/cozy/dog-steps.webp",
+  "./island-art/cozy/duck-steps.webp",
+  "./island-art/cozy/home.webp",
+  "./island-art/cozy/balloon-turn.webp",
+  "./island-art/cozy/investments.webp",
+  "./island-art/cozy/planning.webp",
+  "./island-art/cozy/rabbit-steps.webp",
+  "./island-art/cozy/traveler-steps.webp",
   "./combined-dashboard.html",
-  "./accounting-manifest.webmanifest",
   "./market-data-config.js",
   "./finance-center-routes.js",
   "./finance-core.js",
@@ -32,9 +42,7 @@ const CORE_ASSETS = [
   "./latest-rates.json",
   "./latest-valuations.json",
   "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/accounting-192.png",
-  "./icons/accounting-512.png"
+  "./icons/icon-512.png"
 ];
 
 self.addEventListener('push',event=>{
