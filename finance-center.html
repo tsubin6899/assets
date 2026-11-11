@@ -895,7 +895,14 @@
       33.333%,66.667%{transform:translateX(-50%)}
       50%{transform:translateX(-75%)}
     }
-    .cozy-balloon--title{display:block;float:right;width:38px;margin:0 18px 20px 12px}
+    .cozy-balloon--title{position:relative;display:block;float:right;width:38px;margin:0 18px 20px 12px;isolation:isolate}
+    .cozy-balloon--title>.cozy-balloon{display:block;width:100%}
+    .cozy-cloud{position:absolute;z-index:-1;width:29px;aspect-ratio:2/1;overflow:hidden;opacity:.9;pointer-events:none;animation:cozy-cloud-drift 8s ease-in-out infinite alternate}
+    .cozy-cloud--upper{top:13%;left:-14px}
+    .cozy-cloud--lower{top:68%;right:-13px;width:25px;animation-delay:-4s}
+    .cozy-cloud>img{display:block;width:400%;max-width:none;height:100%;transform:translateX(-25%);animation:cozy-balloon-turn 7s steps(1,end) infinite}
+    .cozy-cloud--lower>img{animation-delay:-2s}
+    @keyframes cozy-cloud-drift{to{transform:translate(7px,-4px)}}
     .island-tasks{display:grid;gap:8px;margin-top:16px}
     .island-tasks h3{margin:0}
     .island-tasks .action-btn{display:flex;justify-content:space-between;gap:8px;text-align:left;white-space:normal;background:var(--paper-card);color:var(--moss);border:1px solid var(--paper-line)}
@@ -907,7 +914,7 @@
     }
     @media(prefers-reduced-motion:reduce){
       .cozy-bird{display:none}
-      .cozy-balloon,.cozy-balloon>img{animation:none}
+      .cozy-balloon,.cozy-balloon>img,.cozy-cloud,.cozy-cloud>img{animation:none}
       .cozy-actor,.cozy-actor::before,.cozy-actor::after{animation:none}
       .cozy-actor::after{display:none}
     }
@@ -1175,7 +1182,11 @@
       analysis: [["traveler",44,79,68,71,18],["dog",80,82,69,86,14]]
     };
     function balloonSprite() {
-      return '<span class="cozy-balloon cozy-balloon--title" aria-hidden="true"><img src="island-art/cozy/balloon-turn.webp" width="432" height="144" alt=""></span>';
+      return `<span class="cozy-balloon--title" aria-hidden="true">
+        <span class="cozy-cloud cozy-cloud--upper"><img src="island-art/cozy/cloud-drift.webp" width="384" height="48" alt=""></span>
+        <span class="cozy-cloud cozy-cloud--lower"><img src="island-art/cozy/cloud-drift.webp" width="384" height="48" alt=""></span>
+        <span class="cozy-balloon"><img src="island-art/cozy/balloon-turn.webp" width="432" height="144" alt=""></span>
+      </span>`;
     }
     function cozyScene(name, extra="") {
       const actors = cozyActors[name].map(([kind,x,y,endX,endY,duration],index)=>
