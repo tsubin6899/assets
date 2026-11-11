@@ -798,6 +798,10 @@
     .cozy-villager{position:absolute;left:var(--villager-x);top:var(--villager-y);width:8.4%;aspect-ratio:1;overflow:hidden;pointer-events:none;transform:translate(-50%,-96%)}
     .cozy-villager>img{display:block;width:400%;max-width:none;height:100%;animation:cozy-balloon-turn 2.8s steps(1,end) infinite}
     .cozy-villager--swimmer{width:7.8%;transform:translate(-50%,-80%)}
+    .cozy-villager--potter,.cozy-villager--vendor{width:8%}
+    .cozy-villager--lookout{width:7.2%}
+    .cozy-villager--vendor{clip-path:inset(0 0 37% 0)}
+    .cozy-villager--potter>img,.cozy-villager--lookout>img,.cozy-villager--vendor>img{animation-duration:4.8s}
     .cozy-villager--gardener>img{animation-duration:5s;animation-delay:-1s}
     @media(min-width:1024px){
       [data-scene="home"] .cozy-villager--swimmer{left:25%;top:81%}
@@ -1202,10 +1206,10 @@
     }
     const cozyVillagers = {
       home: [["swimmer",21,84],["gardener",75,63]],
-      daily: [["gardener",58,75]],
+      daily: [["gardener",58,75],["vendor",73.3,60]],
       accounts: [["swimmer",17,75],["gardener",89,86]],
-      investments: [["gardener",62,83]],
-      analysis: [["gardener",34,85]],
+      investments: [["gardener",62,83],["potter",71.4,55.6]],
+      analysis: [["gardener",34,85],["lookout",37.6,34.5]],
       planning: [["gardener",58,84]]
     };
     function cozyScene(name, extra="") {
