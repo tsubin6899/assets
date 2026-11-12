@@ -1846,11 +1846,11 @@ function creditBillEntries(bill) { const card=(current.ledger.accounts||[]).find
     document.getElementById("searchClose").addEventListener("click",()=>document.getElementById("searchDialog").close());
     document.getElementById("searchInput").addEventListener("input",event=>renderSearchResults(event.target.value));
     document.addEventListener("keydown",event=>{if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==="k"){event.preventDefault();openGlobalSearch()}if(event.key==="Escape"&&document.getElementById("searchDialog").open)document.getElementById("searchDialog").close()});
-    function syncMarketControls(detail=window.FinanceMarket?.state||{}){document.querySelectorAll('#marketRefresh,[data-market-refresh]').forEach(button=>{button.disabled=Boolean(detail.busy);button.setAttribute('aria-busy',detail.busy?'true':'false');button.title=detail.message||'更新股價與匯率'})}
+    function syncMarketControls(detail=window.FinanceMarket?.state||{}){document.querySelectorAll('#marketRefresh,[data-market-refresh]').forEach(button=>{button.disabled=Boolean(detail.busy);button.setAttribute('aria-busy',detail.busy?'true':'false');button.title=[detail.message,detail.report?.dataAt&&('資料時間 '+dateTime(detail.report.dataAt))].filter(Boolean).join('｜')||'更新股價與匯率'})}
 
-    async function refreshMarketData(){try{const result=await FinanceMarket.refresh();refresh();const r=FinanceMarket.state.report;showToast(result.pending?'行情仍在背景處理，已顯示目前可取得價格':r?`行情檢查完成：${r.changed} 檔價格更新、${r.same} 檔維持原價、${r.failed} 檔未取得`:'行情讀取完成')}catch(error){showToast(`行情更新失敗：${error.message||'請稍後再試'}`)}finally{syncMarketControls()}}
+    async function refreshMarketData(){try{const result=await FinanceMarket.refresh();refresh({background:true});const r=FinanceMarket.state.report;showToast(result.pending?'行情仍在背景處理，已顯示目前可取得價格':r?`行情檢查完成：${r.changed} 檔價格更新、${r.same} 檔維持原價、${r.failed} 檔未取得`:'行情讀取完成')}catch(error){showToast(`行情更新失敗：${error.message||'請稍後再試'}`)}finally{syncMarketControls()}}
 
-    window.addEventListener("finance-market-status",event=>{syncMarketControls(event.detail);if(event.detail.phase==="applied"&&((state.domain==="investments"&&["portfolio","holdings"].includes(state.tab))||state.domain==="home"))refresh();else if(state.domain==="investments"&&state.tab==="portfolio")render()});
+    window.addEventListener("finance-market-status",event=>{syncMarketControls(event.detail);if(event.detail.phase==="applied"&&((state.domain==="investments"&&["portfolio","holdings"].includes(state.tab))||state.domain==="home"))refresh({background:true});else if(state.domain==="investments"&&state.tab==="portfolio"&&!FinanceWorkflow.isEditing())render()});
     document.getElementById("marketRefresh").addEventListener("click",refreshMarketData);
     document.addEventListener("click", event => {
       if (event.target.closest("[data-home-view]")) {

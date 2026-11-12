@@ -96,19 +96,17 @@
     notify("triggering", "正在更新股價與匯率…", { busy: true });
     try {
       symbols=FinanceCore.marketSymbols();previous=FinanceCore.load?.().assets?.marketPrices||{};
+      const direct = postUpdate("/api/update-prices", symbols).catch(() => null);
       const before = await fetchLatest().catch(() => null);
       const available = before ? apply(before) : null;
-      if(before)state.report=summarize(symbols,before,previous,'cached');
-      if (available) notify('applied', '已套用目前可取得的行情，正在要求新一輪報價…', {busy:true,lastResult:available});
-      let immediate = false;
-      try {
-        await postUpdate("/api/update-prices", symbols);
-        immediate = true;
-      } catch {
+      if (before) state.report = summarize(symbols,before,previous,'cached');
+      if (available) notify('applied', '已顯示現有行情，背景更新中', {busy:true,lastResult:available});
+      let payload = await direct;
+      if (!payload?.prices?.prices) {
         await postUpdate(updateEndpoint(), symbols);
+        notify("waiting", "行情正在背景更新，可繼續操作", { busy: true });
+        payload = await waitForFresh(before);
       }
-      notify("waiting", immediate ? "正在套用最新行情…" : "背景抓價與網站發布中，完成後將自動更新畫面（可能需數分鐘）", { busy: true });
-      const payload = immediate ? await fetchLatest() : await waitForFresh(before);
       if (!payload) {
         const fallback = { ...(available || { pricesUpdated: 0, ratesUpdated: 0 }), pending: true };
         if(state.report)state.report={...state.report,status:'pending'};
