@@ -1196,7 +1196,7 @@
         <div class="segmented"><label><input type="radio" name="type" value="expense" ${type!=="income"?"checked":""}><span>支出</span></label><label><input type="radio" name="type" value="income" ${type==="income"?"checked":""}><span>收入</span></label></div>
         <div class="form-grid">
           <label class="quick-field-amount">交易金額<input name="amount" type="number" min="0" step="0.01" inputmode="decimal" required placeholder="0" value="${esc(row?.transactionAmount ?? row?.amount ?? draft?.amount ?? "")}"></label>
-          <label class="quick-field-date">日期<input name="date" type="date" value="${esc(row?.date || draft?.date || FinanceCore.localDate())}" required></label>
+          <label class="quick-field-date">日期<input name="date" type="date" value="${esc(row?.date || FinanceCore.localDate())}" required></label>
           <label class="quick-field-account">帳戶<select name="account">${accountOptions(selectedAccount)}</select></label>
           <label class="quick-field-category">分類<select name="category" data-entry-category>${categories.map(item => option(item,item,category)).join("")}</select></label>
           <label class="quick-field-item">項目<select name="item" data-entry-item>${option("","未指定",row?.item||draft?.item||"")}${items.map(item=>option(item,item,row?.item||draft?.item||"")).join("")}</select></label>
@@ -1975,7 +1975,7 @@ const financeForms=["dailyStatisticsForm","entryFilterForm","ledgerLookupForm","
         if(formId==="taxYearForm"){ui.taxYear=String(values.year||new Date().getFullYear()).slice(0,4);render();return}
         if(formId==="bulkEntryForm"){const ids=[...document.querySelectorAll("[data-select-entry]:checked")].map(node=>node.dataset.selectEntry);if(!ids.length)throw new Error("請先選取要批次修改的帳目");const updated=FinanceUpgrades.bulkUpdateEntries({...values,ids});showToast(`已批次更新 ${updated} 筆帳目`);refresh();return}
         if(formId==="quickEntryForm") { if(!values.id&&duplicateEntryCandidate(values)&&!confirm("發現日期、金額、帳戶與商家都相同的紀錄，仍要新增嗎？"))return; const before=FinanceCore.exportBundle();values.id?FinanceCore.updateEntry(values.id,values):FinanceCore.addEntry(values);if(!values.id)window.FinanceExperience?.rememberEntry(before,FinanceCore.exportBundle());marketReceipt=true;rememberRecentAccount(values.account); clearQuickDraft(); ui.editingEntryId="";
-          if(values.continueEntry){localStorage.setItem('tsubin-finance-quick-draft-v1',JSON.stringify({...values,id:'',amount:'',merchant:'',note:'',continuing:true,savedAt:Date.now()}));}
+          if(values.continueEntry){localStorage.setItem('tsubin-finance-quick-draft-v1',JSON.stringify({...values,id:'',date:FinanceCore.localDate(),amount:'',merchant:'',note:'',continuing:true,savedAt:Date.now()}));}
         }
         if(formId==="transferForm") { values.id?FinanceCore.updateTransfer(values.id,values):FinanceCore.addTransfer(values); ui.editingTransferId=""; }
         if(formId==="tradeForm") { values.id?FinanceCore.updatePurchase(values.id,values):FinanceCore.addPurchase(values); ui.editingTradeId=""; }
