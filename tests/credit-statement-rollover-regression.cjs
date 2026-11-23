@@ -1,0 +1,27 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const vm = require("node:vm");
+const context = {window:{dispatchEvent(){}},localStorage:{getItem(){return null}},console,Date,Intl,CustomEvent:class{}};
+vm.runInNewContext(fs.readFileSync("finance-core.js","utf8"),context);
+const core = context.window.FinanceCore;
+const previous = {id:"oct",card:"聯邦銀行linebank 信用卡",billMonth:"2026-10",paid:true};
+const entry = {id:"expense",account:previous.card,type:"expense",date:"2026-10-01",amount:40000};
+const ledger = {accounts:[{name:previous.card,statementDay:5}],creditBills:[previous],entries:[entry]};
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-11").length,0,"paid previous bill must not carry forward");
+previous.paid=false;
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-11").length,1,"unresolved unchecked entry can still carry forward");
+previous.reconciled=true;
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-11").length,0,"reconciled previous bill must not carry forward");
+previous.reconciled=false;
+entry.statementChecks={oct:{checkedAt:"2026-10-20"}};
+entry.statementMonthOverride="2026-11";
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-11").length,0,"previously checked entry remains in its reconciled period after month metadata changes");
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-10").length,1,"checked entry stays visible in original bill");
+entry.statementChecks={};
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-11").length,1,"explicit deferral remains supported");
+console.log("Credit statement rollover regression passed");
+
+previous.paid=true;
+ledger.creditStatementChecks=[{card:previous.card,billMonth:previous.billMonth,matchedKeys:[entry.id]}];
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-11").length,0,"legacy completed snapshot owns the transaction despite closing day changes");
+assert.equal(core.creditBillEntriesForPeriod(ledger,previous.card,"2026-10").length,1,"legacy snapshot remains visible in original statement");

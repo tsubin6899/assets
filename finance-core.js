@@ -83,9 +83,20 @@
     return (ledger.entries || []).filter(row => {
       if (row.account !== card) return false;
       if (row.isReconciliationAdjustment || row.manualPaymentComplete || row.statementExclusions?.[billMonth]) return false;
+      // A checked transaction belongs to that statement even if the account's
+      // closing day or legacy month metadata later changes.
+      const checkedBills = (ledger.creditBills || []).filter(bill =>
+        bill.card === card && (
+          row.statementChecks?.[bill.id] ||
+          ((bill.paid || bill.reconciled) && !(row.statementStatus === "deferred" && row.statementMonthOverride && row.statementMonthOverride !== bill.billMonth) && (ledger.creditStatementChecks || []).some(check =>
+            check.card === card &&
+            (check.creditBillId ? check.creditBillId === bill.id : check.billMonth === bill.billMonth) &&
+            ((check.matchedKeys || []).includes(row.id) || (check.matchedEntries || []).some(item => item.id === row.id))))
+        ));
+      if (checkedBills.length) return checkedBills.some(bill => bill.billMonth === billMonth);
       const entryMonth = statementMonthForEntry(row, cardAccount);
       if (entryMonth === billMonth) return true;
-      return entryMonth === previousMonth && previousBill && !previousBill.reconciled && !row.statementChecks?.[previousBill.id];
+      return entryMonth === previousMonth && previousBill && !previousBill.paid && !previousBill.reconciled && !row.statementChecks?.[previousBill.id];
     });
   }
   function daysInMonth(month = monthOf()) {
@@ -1946,7 +1957,7 @@
   }
 
   window.FinanceCore = {
-    tradeNetAmount, tradeTwdAmount, tradeAccountAmount, setTradeSettlement, previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
+    creditBillEntriesForPeriod, tradeNetAmount, tradeTwdAmount, tradeAccountAmount, setTradeSettlement, previewReconciliationRefresh, applyReconciliationRefresh, VERSION, KEYS, load, touch, persist, insights, buildEvents, accountBalances, assetSummary, monthSummary, alerts, setCreditEntryManualPaymentComplete, setCardFeeRate, setBankFee, saveBankStatement,
     recurringDatesForMonth, recurringOccurrences, materializeDueRecurring, repairRecurringEntries,
     addEntry, updateEntry, removeEntry, repairOrphanForeignCardFees, saveEntryTemplate, removeTemplate, importEntries, importTradeRows, importBatches, undoImportBatch, addTransfer, updateTransfer, removeTransfer, addPurchase, importBrokerFills, addDividend,
     addAccount, updateAccount, addCreditBill, updateCreditBill, removeCreditBill, setCreditBillPaid, repairCreditBillPayments, setCreditStatementEntryChecked, setCreditBillReconciled, excludeCreditStatementEntryFromBill, moveCreditStatementEntryToNextPeriod,
